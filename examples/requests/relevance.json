@@ -1,0 +1,12 @@
+{
+  "questions": {
+    "relevant": {
+      "type": "noul",
+      "instructions": "Does the `passage` contain information that helps answer the `query`? Judge only whether it helps; do not judge whether it is the best available passage.",
+      "criteria": {
+        "true": "It states, or directly implies, something the query asks for.",
+        "false": "It is on a related topic but answers a different question."
+      }
+    }
+  }
+}

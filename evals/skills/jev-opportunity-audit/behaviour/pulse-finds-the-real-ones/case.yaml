@@ -1,0 +1,10 @@
+# The eval sandbox starts with an empty working directory, and reads above it
+# are refused. A case whose subject is a file therefore has to stage it, and
+# `context.scaffold_script` is the only mechanism that does: it names a script
+# inside this case directory, and `scripts/skill-eval.sh` passes --scaffold.
+#
+# Was never reachable before: the case scored on an empty workspace.
+schema_version: "1.1"
+name: audit-behaviour-pulse-finds-the-real-ones
+context:
+  scaffold_script: scaffold.sh

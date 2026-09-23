@@ -1,0 +1,106 @@
+{
+  "dataset": {
+    "fingerprint": "abff704daeed6bdb",
+    "rows": 60,
+    "sources": [
+      "data/tickets-labelled.jsonl"
+    ]
+  },
+  "endpoint": "https://api.typesafe.ai",
+  "model": [
+    "jev-1.13.0"
+  ],
+  "model_requested": "jev-1.13.0",
+  "objective": {
+    "name": "min-accuracy",
+    "target": 0.9,
+    "threshold_field": "confidence"
+  },
+  "questions": {
+    "team": {
+      "accuracy": 0.7647058823529411,
+      "brier_score": 0.12,
+      "calibration": {
+        "expected_error": 0.05
+      },
+      "confusion": {
+        "api": {
+          "api": 2,
+          "billing": 1,
+          "onboarding": 1
+        },
+        "billing": {
+          "api": 1,
+          "billing": 6
+        },
+        "onboarding": {
+          "api": 1,
+          "onboarding": 5
+        }
+      },
+      "headline": {
+        "interval_95": {
+          "lower": 0.5273820187471664,
+          "method": "wilson",
+          "upper": 0.9044495567990257
+        },
+        "metric": "accuracy",
+        "n": 17,
+        "value": 0.7647058823529411
+      },
+      "labelled": 17,
+      "macro_f1": 0.7301587301587302,
+      "macro_precision": 0.7301587301587302,
+      "macro_recall": 0.7301587301587302,
+      "n": 17,
+      "objective_applies": true,
+      "per_class": {
+        "api": {
+          "f1": 0.5,
+          "precision": 0.5,
+          "recall": 0.5,
+          "support": 4
+        },
+        "billing": {
+          "f1": 0.8571428571428571,
+          "precision": 0.8571428571428571,
+          "recall": 0.8571428571428571,
+          "support": 7
+        },
+        "onboarding": {
+          "f1": 0.8333333333333334,
+          "precision": 0.8333333333333334,
+          "recall": 0.8333333333333334,
+          "support": 6
+        }
+      },
+      "threshold": 0.71,
+      "threshold_reachable": true,
+      "threshold_tie_break": "the lower threshold",
+      "type": "choice"
+    }
+  },
+  "request": {
+    "fingerprint": "ca8b22d0db83a22d"
+  },
+  "rows": {
+    "errors": {},
+    "evaluated": 60,
+    "failed": 0,
+    "interrupted": false,
+    "stopped_early": false,
+    "total": 60
+  },
+  "schema": "jev.eval/v1",
+  "split": {
+    "calibration_rows": 43,
+    "mode": "seeded",
+    "reported_rows": 17,
+    "seed": 7,
+    "test_fraction": 0.3
+  },
+  "warnings": [
+    "team: only 17 labelled row(s) were scored; the 95% interval beside the headline number is how wide the uncertainty is on a sample this small",
+    "team: the threshold was chosen from 43 calibration row(s); a cut fitted to a sample this small is unlikely to hold on new data"
+  ]
+}

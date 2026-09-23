@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "comment": "Pinned upstream sources for the skill-authoring development toolchain. Nothing here is a runtime dependency of the `jev` binary, and nothing here is committed: scripts/skill-authoring-setup.sh clones each repository at the pinned commit into the gitignored references/ corpus and copies the listed artifacts into the gitignored .claude/skills/ paths. See docs/development/skill-authoring.md.",
+  "snapshotDate": "2026-09-20",
+  "sources": {
+    "anthropics/skills": {
+      "url": "https://github.com/anthropics/skills.git",
+      "commit": "34040c9c568585f6929bedeaad110ad08f079624",
+      "clone": "references/07-skill-authoring/anthropics_skills",
+      "license": "Apache-2.0",
+      "licenseNote": "No repository-root LICENSE. skills/skill-creator/LICENSE.txt is Apache-2.0 with the copyright line filled in: Copyright 2026 Anthropic, PBC.",
+      "install": [
+        {
+          "from": "skills/skill-creator",
+          "to": ".claude/skills/skill-creator",
+          "license": "skills/skill-creator/LICENSE.txt",
+          "why": "Primary skill-authoring orchestrator: drafting, eval prompts, baseline and with-skill runs, independent grading, benchmark aggregation, blind A/B comparison, analyzer subagents, and held-out trigger-description optimization."
+        }
+      ]
+    },
+    "obra/superpowers": {
+      "url": "https://github.com/obra/superpowers.git",
+      "commit": "5bf4e78011075bcfc0dc295f0724994cd123ee71",
+      "clone": "references/07-skill-authoring/obra_superpowers",
+      "license": "MIT",
+      "licenseNote": "MIT License, Copyright (c) 2025 Jesse Vincent. The repository LICENSE is copied next to each installed skill.",
+      "install": [
+        {
+          "from": "skills/writing-skills",
+          "to": ".claude/skills/writing-skills",
+          "license": "LICENSE",
+          "why": "Secondary methodology: skill authoring as red-green-refactor, with the baseline run and the pressure scenarios that make a failure observable before a skill is written."
+        },
+        {
+          "from": "skills/test-driven-development",
+          "to": ".claude/skills/test-driven-development",
+          "license": "LICENSE",
+          "why": "Declared prerequisite of writing-skills; it defines the red-green-refactor cycle writing-skills builds on."
+        },
+        {
+          "from": "skills/verification-before-completion",
+          "to": ".claude/skills/verification-before-completion",
+          "license": "LICENSE",
+          "why": "Stops a skill being called done because its Markdown validates. Self-contained, no cross-references."
+        },
+        {
+          "from": "skills/dispatching-parallel-agents",
+          "to": ".claude/skills/dispatching-parallel-agents",
+          "license": "LICENSE",
+          "why": "Parallel research, independent eval execution, adversarial testing, and review. Self-contained, no cross-references."
+        }
+      ]
+    },
+    "agentskills/agentskills": {
+      "url": "https://github.com/agentskills/agentskills.git",
+      "commit": "69ef37e9424c0a7ea9dd2293b559e43ec8176379",
+      "clone": "references/07-skill-authoring/agentskills_agentskills",
+      "license": "Apache-2.0 (code), CC-BY-4.0 (docs/)",
+      "licenseNote": "docs/specification.mdx is the portability authority for the skills this repository ships. skills-ref/ is Apache-2.0 and is described upstream as demonstration software, not production software.",
+      "install": [],
+      "referenceOnly": "Read in place. The specification's rules are enforced by scripts/validate-skills.py; skills-ref is not installed and is not a dependency."
+    },
+    "anthropics/claude-plugins-official": {
+      "url": "https://github.com/anthropics/claude-plugins-official.git",
+      "commit": "c447c3207a425bc4e2a0d068435f64b0477ae981",
+      "clone": "references/07-skill-authoring/anthropics_claude-plugins-official",
+      "license": "Apache-2.0",
+      "licenseNote": "Repository LICENSE is Apache-2.0 with an unfilled copyright placeholder; plugins/skill-creator/.claude-plugin/plugin.json names Anthropic as the author.",
+      "install": [],
+      "referenceOnly": "plugins/skill-creator is byte-identical to anthropics/skills except for its LICENSE.txt copyright line, so only one copy is installed. plugins/plugin-dev/skills/skill-development is deliberately NOT installed: it overlaps skill-creator and its description competes for the same trigger."
+    }
+  }
+}

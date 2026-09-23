@@ -1,0 +1,464 @@
+# Release pipeline — ARMED, and still manual.
+#
+# This workflow deliberately has no `push: tags:` trigger. Releasing is a human
+# decision that no agent and no merge may take; see AGENTS.md §12 and ADR-0014. It runs
+# only on `workflow_dispatch`, and it publishes only when a human does **two**
+# independent things: unticks `dry_run` and types the exact tag into `confirm_tag`.
+# The `guard` job additionally refuses unless that tag already points at the commit
+# being built, so a release can never carry artifacts from something the tag does not
+# name.
+#
+# The default is still a dry run: it builds and verifies everything a release would
+# contain — cross-platform archives, checksums, installers whose embedded digests are
+# asserted, an SBOM — and publishes nothing.
+#
+# `cargo publish` is **not** here, and `publish = false` stays on every crate. That one
+# is irreversible on a public registry and is its own decision.
+#
+# Build provenance is opt-in. The publish job does not depend on its success, so a
+# release must not claim provenance until the attestation has been verified.
+#
+# `dist` is used as a *builder only*. It never generates or manages this file;
+# `allow-dirty = ["ci"]` in `dist-workspace.toml` is what enforces that. See ADR-0009
+# for why: the workflow `dist generate` produces carries a tag trigger, sixteen
+# unpinned actions, and thirty-two zizmor findings, none of which this repository
+# accepts.
+#
+# Rules for anyone (human or agent) editing this file:
+#   * Every third-party action is pinned to an immutable commit SHA.
+#   * Every job declares the least privilege it needs, with a comment saying why.
+#   * No step may publish unless the guard job authorizes this run.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and verify artifacts without publishing anything."
+        type: boolean
+        default: true
+        required: true
+      confirm_tag:
+        description: >-
+          To publish, type the exact tag (e.g. v0.1.0). Ignored on a dry run. A
+          checkbox is too easy to tick by accident for an irreversible action.
+        type: string
+        default: ""
+        required: false
+      attest:
+        description: >-
+          Also mint a build provenance attestation. Publishing does not wait for this
+          optional job; verify it before claiming provenance. Requires id-token: write.
+        type: boolean
+        default: false
+        required: false
+
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+
+jobs:
+  guard:
+    name: authorization
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read # read the version and resolve the tag
+    outputs:
+      tag: ${{ steps.check.outputs.tag }}
+      publishing: ${{ steps.check.outputs.publishing }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # tags, so the release can be checked against the commit
+      - name: Decide whether this run may publish
+        id: check
+        # Publishing is irreversible in effect: a release URL gets shared, and an
+        # artifact someone downloaded cannot be recalled. So it takes two independent
+        # acts -- unticking `dry_run` *and* typing the exact tag -- and the tag must
+        # already point at the commit being built. A single checkbox is too easy to
+        # tick by accident.
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          CONFIRM: ${{ inputs.confirm_tag }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          version="$(grep -m1 '^version = ' Cargo.toml | cut -d'"' -f2)"
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version $version, tag $tag, commit $SHA"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "publishing=false" >> "$GITHUB_OUTPUT"
+            echo "dry run: no artifact will be published"
+            exit 0
+          fi
+
+          if [ "$CONFIRM" != "$tag" ]; then
+            echo "::error::To publish, set confirm_tag to exactly '$tag'. Got '$CONFIRM'." >&2
+            exit 1
+          fi
+
+          # The tag must exist and must be the commit this run is building, or the
+          # release would carry artifacts built from something the tag does not name.
+          if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "::error::tag $tag does not exist. Create and push it first." >&2
+            exit 1
+          fi
+          tagged="$(git rev-list -n1 "refs/tags/$tag")"
+          if [ "$tagged" != "$SHA" ]; then
+            echo "::error::$tag points at $tagged but this run is building $SHA." >&2
+            echo "::error::Run this workflow from the tag, or move the tag." >&2
+            exit 1
+          fi
+
+          echo "publishing=true" >> "$GITHUB_OUTPUT"
+          echo "AUTHORIZED: will publish $tag from $SHA"
+
+  plan:
+    name: plan
+    needs: [guard]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read # read the source being planned
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          # Pinned, and kept in step with `cargo-dist-version` in
+          # `dist-workspace.toml` by `scripts/check-tool-pins.py`. A floating `dist`
+          # would silently change what a release contains.
+          tool: cargo-dist@0.32.0
+      - name: Show what a release would contain
+        run: dist plan
+
+  build:
+    name: build (${{ matrix.target }})
+    needs: [plan]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read # read the source being built
+    defaults:
+      run:
+        # Every step in this job, on every platform. GitHub's default shell on a
+        # Windows runner is PowerShell, where `"$TARGET"` is a *PowerShell* variable
+        # and expands to the empty string -- `rustup target add ""` failed with
+        # "does not contain component 'rust-std' for target ''", and the next step's
+        # `mktemp` would not have existed either. Git Bash ships on the Windows
+        # runners, so one shell for all five targets is both simpler and correct.
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-gnu,  os: ubuntu-24.04 }
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-24.04-arm }
+          - { target: x86_64-apple-darwin,       os: macos-15 }
+          - { target: aarch64-apple-darwin,      os: macos-15 }
+          - { target: x86_64-pc-windows-msvc,    os: windows-2025 }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2.9.2
+      - uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-dist@0.32.0
+      - name: Add the target
+        env:
+          TARGET: ${{ matrix.target }}
+        run: rustup target add "$TARGET"
+      - name: Build the archive and its checksum
+        env:
+          TARGET: ${{ matrix.target }}
+          # Reproducibility measures. Bit-for-bit reproducibility is a goal, not yet a
+          # verified claim; see docs/release-verification.md.
+          RUSTFLAGS: --remap-path-prefix=${{ github.workspace }}=/build
+          SOURCE_DATE_EPOCH: "0"
+        # The per-target manifest is not a nicety. `dist build --artifacts=global`
+        # reads the `*-dist-manifest.json` files sitting in `target/distrib` to learn
+        # each archive's checksum; without them it emits a shell installer whose
+        # `_checksum_value` is never assigned ("no checksums to verify") and a Homebrew
+        # formula with no `sha256` line. Having the `.tar.xz.sha256` files present is
+        # *not* sufficient — only the manifest is read. The `global` job asserts this.
+        # The manifest is written outside `target/distrib` first: `dist` scans that
+        # directory as it runs and would try to parse the half-written file.
+        run: |
+          manifest="$(mktemp)"
+          dist build --artifacts=local --target "$TARGET" --output-format=json \
+            > "$manifest"
+          mv "$manifest" "target/distrib/$TARGET-dist-manifest.json"
+      - name: Verify the checksum that was just written
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          found=0
+          for archive in target/distrib/*.tar.xz target/distrib/*.zip; do
+            found=1
+            expected="$(cut -d' ' -f1 < "$archive.sha256")"
+            if command -v sha256sum >/dev/null 2>&1; then
+              actual="$(sha256sum "$archive" | cut -d' ' -f1)"
+            else
+              actual="$(shasum -a 256 "$archive" | cut -d' ' -f1)"
+            fi
+            [ "$expected" = "$actual" ] || { echo "::error::checksum mismatch for $archive"; exit 1; }
+            echo "ok $archive"
+          done
+          [ "$found" = 1 ] || { echo "::error::no archive was produced"; exit 1; }
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifacts-${{ matrix.target }}
+          path: |
+            target/distrib/*.tar.xz
+            target/distrib/*.zip
+            target/distrib/*.sha256
+            target/distrib/*-dist-manifest.json
+          if-no-files-found: error
+
+  global:
+    name: installers and formula
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read # read the source the installers are generated from
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-dist@0.32.0
+      - name: Fetch every target's archives and manifests
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: artifacts-*
+          merge-multiple: true
+          path: target/distrib
+      - name: Build the installers and the Homebrew formula
+        run: dist build --artifacts=global
+      - name: Assert the installers actually verify what they download
+        # An installer that downloads over HTTPS and never checks the bytes is the
+        # weakest link in the whole release: a compromised or wrongly served artifact
+        # installs silently. This is the check that would have caught the missing
+        # manifests above, so it is written to fail loudly rather than to pass quietly.
+        run: python3 scripts/check-installers.py target/distrib
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: artifacts-global
+          path: |
+            target/distrib/*installer*
+            target/distrib/*.rb
+            target/distrib/source.tar.gz*
+            target/distrib/sha256.sum
+          if-no-files-found: error
+
+  smoke:
+    name: install smoke test (${{ matrix.os }})
+    needs: [build]
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64-unknown-linux-gnu,  os: ubuntu-24.04 }
+          - { target: aarch64-unknown-linux-gnu, os: ubuntu-24.04-arm }
+          - { target: aarch64-apple-darwin,      os: macos-15 }
+          - { target: x86_64-pc-windows-msvc,    os: windows-2025 }
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: artifacts-${{ matrix.target }}
+          path: artifacts
+      - name: Unpack and run the binary a user would get
+        shell: bash
+        env:
+          # The whole point is to run it as a stranger would: nothing configured, no
+          # credential, no network.
+          JEV_CONFIG_DIR: ${{ runner.temp }}/jev-smoke
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          mkdir -p unpacked
+          for archive in artifacts/*.tar.xz; do tar -xJf "$archive" -C unpacked; done
+          for archive in artifacts/*.zip; do unzip -q "$archive" -d unpacked; done
+
+          binary="$(find unpacked -type f \( -name jev -o -name jev.exe \) | head -1)"
+          [ -n "$binary" ] || { echo "::error::no jev binary in the archive"; exit 1; }
+          chmod +x "$binary"
+
+          "$binary" --version
+          "$binary" doctor > /dev/null
+          "$binary" completions bash > /dev/null
+          # `doctor` must not have contacted the network, and with no credential the
+          # evaluation path must fail with exit 3 rather than doing anything surprising.
+          set +e
+          echo "state" | "$binary" noul "is this urgent?" > /dev/null 2>&1
+          code=$?
+          set -e
+          [ "$code" = 3 ] || { echo "::error::expected exit 3 with no credential, got $code"; exit 1; }
+
+          for required in LICENSE-MIT LICENSE-APACHE README.md CHANGELOG.md; do
+            find unpacked -name "$required" | grep -q . \
+              || { echo "::error::the archive is missing $required"; exit 1; }
+          done
+          echo "the published artifact runs, and carries its licences"
+
+  sbom:
+    name: sbom
+    needs: [plan]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: taiki-e/install-action@9114bf4d891761788c546334fd37538eae1bf8b3 # v2.87.16
+        with:
+          tool: cargo-sbom@0.10.0
+      - name: Generate an SPDX SBOM
+        run: cargo sbom --output-format spdx_json_2_3 > jev.spdx.json
+      - name: Check it is not empty
+        run: |
+          python3 - <<'PY'
+          import json
+          with open("jev.spdx.json", encoding="utf-8") as handle:
+              document = json.load(handle)
+          packages = document.get("packages", [])
+          assert len(packages) > 10, f"only {len(packages)} packages in the SBOM"
+          print(f"{len(packages)} packages")
+          PY
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom
+          path: jev.spdx.json
+          if-no-files-found: error
+
+  attest:
+    name: build provenance (rehearsal)
+    needs: [build, smoke]
+    if: ${{ inputs.attest }}
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write # Sigstore OIDC identity for the attestation
+      attestations: write # record the build provenance
+      contents: read # read the repository the attestation refers to
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: artifacts-*
+          merge-multiple: true
+          path: artifacts
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            artifacts/*.tar.xz
+            artifacts/*.zip
+
+  release-complete:
+    name: release dry run complete
+    if: always()
+    needs: [guard, plan, build, global, smoke, sbom]
+    runs-on: ubuntu-24.04
+    permissions: {}
+    steps:
+      - name: Fail if any dependency failed
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+      - run: echo "release build and artifact checks completed"
+
+  publish:
+    name: publish the GitHub release
+    # Deliberately NOT `needs: attest`. That job is `if: inputs.attest`, so on a run
+    # that leaves it off it is *skipped*, and a skipped dependency blocks the dependent
+    # job forever. The tempting repair -- `if: always()` -- would also decouple publish
+    # from `guard`, which is the one job that must never be bypassed.
+    needs: [guard, plan, build, global, smoke, sbom]
+    if: ${{ needs.guard.outputs.publishing == 'true' }}
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # create the release and upload its assets
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Fetch every artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: artifacts-*
+          merge-multiple: true
+          path: dist
+      - name: Fetch the SBOM
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: sbom
+          path: dist
+      - name: Re-verify every checksum immediately before publishing
+        # The archives were verified on the machine that built them. They have since
+        # crossed the artifact store twice. Verifying here means the bytes attached to
+        # the release are the bytes whose checksum is published beside them.
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          found=0
+          for archive in dist/*.tar.xz dist/*.zip; do
+            found=1
+            expected="$(cut -d' ' -f1 < "$archive.sha256")"
+            actual="$(sha256sum "$archive" | cut -d' ' -f1)"
+            [ "$expected" = "$actual" ] || { echo "::error::checksum mismatch for $archive"; exit 1; }
+            echo "ok $(basename "$archive")"
+          done
+          [ "$found" = 1 ] || { echo "::error::no archive to publish"; exit 1; }
+      - name: Assert the installers verify what they download
+        run: python3 scripts/check-installers.py dist
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.guard.outputs.tag }}
+        run: |
+          set -euo pipefail
+          # `--verify-tag` refuses to invent a tag; the guard already proved it points
+          # at this commit. `--notes-from-tag` uses the annotated tag's own message, so
+          # the release notes and the tag cannot drift apart.
+          gh release create "$TAG" \
+            --verify-tag \
+            --title "jev $TAG" \
+            --notes-from-tag \
+            dist/*.tar.xz dist/*.zip dist/*.sha256 dist/sha256.sum \
+            dist/*installer.sh dist/*.rb dist/source.tar.gz dist/jev.spdx.json
+          gh release view "$TAG" --json url --jq .url
+
+  # ---------------------------------------------------------------------------
+  # Steps below are the reviewed shape of the eventual release. They are disabled,
+  # and the `guard` job above fails the run before any of them could execute.
+  # ---------------------------------------------------------------------------
+  #
+  # publish:
+  #   # `attest` must NOT appear here. It is `if: ${{ inputs.attest }}`, so on a real
+  #   # release run it is *skipped*, and a skipped dependency blocks the dependent job
+  #   # forever. The tempting repair — `if: always()` — would also decouple publish
+  #   # from `guard`, which is the one job that must never be bypassed. When the
+  #   # pipeline is armed, make attestation unconditional instead of conditional.
+  #   needs: [guard, build, global, smoke, sbom]
+  #   environment: release   # human approval gate, configured in repository settings
+  #   permissions:
+  #     contents: write      # create the GitHub release
+  #   steps:
+  #     - run: gh release create "$TAG" --verify-tag --notes-from-tag artifacts/*
+  #     - run: cargo publish --locked -p jev-cli
+  #
+  # Package manifests are updated by a human after verifying the published artifacts,
+  # not by this workflow. See packaging/README.md.

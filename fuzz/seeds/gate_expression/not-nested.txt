@@ -1,0 +1,1 @@
+not (severity < 1.5 or urgent <= 0.2)

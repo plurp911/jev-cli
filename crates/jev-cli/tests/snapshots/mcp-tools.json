@@ -1,0 +1,1243 @@
+[
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Jev Noul (yes/no)"
+    },
+    "description": "Yes/no judgement: the probability (0-1) that the instructions hold for the given state. Returns answers.<id>.noul; there is no confidence field, and 0.5 means genuinely unsure. For semantic judgement of text or JSON -- not for generating text, and not for anything code can check exactly (arithmetic, string matching, parsing). Use `choice` to pick one of several named options, `score` to rate on ordered levels, `ask` for several questions about the same state. The state is sent to the configured TypeSafe endpoint.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "criteria": {
+          "additionalProperties": false,
+          "description": "Optional: what yes and what no mean, when the boundary is subtle. Give at least one of the two.",
+          "properties": {
+            "false": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "true": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "id": {
+          "description": "Key for the answer in the result. Default \"answer\".",
+          "minLength": 1,
+          "type": "string"
+        },
+        "instructions": {
+          "description": "The question, in natural language.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "model": {
+          "description": "Model id or alias. Default: the server's configured model.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            }
+          ],
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+        }
+      },
+      "required": [
+        "state",
+        "instructions"
+      ],
+      "type": "object"
+    },
+    "name": "noul",
+    "outputSchema": {
+      "properties": {
+        "answers": {
+          "additionalProperties": {
+            "description": "The API's own answer shape: noul has `noul`; choice has `choice`, `confidence`, `probabilities`; score has `score`, `confidence`, `legend`, `probabilities`.",
+            "properties": {
+              "choice": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "legend": {
+                "type": "object"
+              },
+              "noul": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "probabilities": {
+                "additionalProperties": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              "score": {
+                "description": "Probability-weighted mean level, 0-based; may fall between levels.",
+                "minimum": 0,
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              },
+              "unrecognized": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          "description": "One answer per question, keyed by question id.",
+          "type": "object"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "missing_answers": {
+          "description": "Present only when the API returned no answer for these question ids.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "model": {
+          "description": "The model that answered.",
+          "type": "string"
+        },
+        "model_requested": {
+          "type": "string"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema": {
+          "enum": [
+            "jev.evaluation/v1"
+          ],
+          "type": "string"
+        },
+        "usage": {
+          "additionalProperties": true,
+          "properties": {
+            "input_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "output_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "input_tokens",
+            "output_tokens"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema",
+        "model",
+        "model_requested",
+        "endpoint",
+        "answers",
+        "usage",
+        "request_id"
+      ],
+      "type": "object"
+    },
+    "title": "Jev Noul (yes/no)"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Jev Choice (one of named options)"
+    },
+    "description": "Pick one of 2-255 named options for the given state, with the probability of every option and a confidence value. Returns answers.<id>.choice, .probabilities, and .confidence. For routing, categorising, and triage. Not for generating text or for rules code can check exactly. Use `noul` for a single yes/no, `score` when the options are ordered levels, `ask` to combine with other questions about the same state. The state is sent to the configured TypeSafe endpoint.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Key for the answer in the result. Default \"answer\".",
+          "minLength": 1,
+          "type": "string"
+        },
+        "instructions": {
+          "description": "The question, in natural language.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "model": {
+          "description": "Model id or alias. Default: the server's configured model.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "options": {
+          "description": "The options, in order. 2 to 255.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "description": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "name": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "type": "object"
+          },
+          "maxItems": 255,
+          "minItems": 2,
+          "type": "array"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            }
+          ],
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+        }
+      },
+      "required": [
+        "state",
+        "instructions",
+        "options"
+      ],
+      "type": "object"
+    },
+    "name": "choice",
+    "outputSchema": {
+      "properties": {
+        "answers": {
+          "additionalProperties": {
+            "description": "The API's own answer shape: noul has `noul`; choice has `choice`, `confidence`, `probabilities`; score has `score`, `confidence`, `legend`, `probabilities`.",
+            "properties": {
+              "choice": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "legend": {
+                "type": "object"
+              },
+              "noul": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "probabilities": {
+                "additionalProperties": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              "score": {
+                "description": "Probability-weighted mean level, 0-based; may fall between levels.",
+                "minimum": 0,
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              },
+              "unrecognized": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          "description": "One answer per question, keyed by question id.",
+          "type": "object"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "missing_answers": {
+          "description": "Present only when the API returned no answer for these question ids.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "model": {
+          "description": "The model that answered.",
+          "type": "string"
+        },
+        "model_requested": {
+          "type": "string"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema": {
+          "enum": [
+            "jev.evaluation/v1"
+          ],
+          "type": "string"
+        },
+        "usage": {
+          "additionalProperties": true,
+          "properties": {
+            "input_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "output_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "input_tokens",
+            "output_tokens"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema",
+        "model",
+        "model_requested",
+        "endpoint",
+        "answers",
+        "usage",
+        "request_id"
+      ],
+      "type": "object"
+    },
+    "title": "Jev Choice (one of named options)"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Jev Score (ordered levels)"
+    },
+    "description": "Rate the given state on 2-10 ordered levels described in words, lowest first. Returns answers.<id>.score (the probability-weighted mean level, 0-based, which can fall between levels), the probability of every level, and a confidence value. For severity, risk, quality, or priority on your own rubric. Not for generating text or for quantities code can compute. Use `choice` when the options are not ordered, `noul` for yes/no. The state is sent to the configured TypeSafe endpoint.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "description": "Key for the answer in the result. Default \"answer\".",
+          "minLength": 1,
+          "type": "string"
+        },
+        "instructions": {
+          "description": "The question, in natural language.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "levels": {
+          "description": "Level descriptions, lowest first. 2 to 10.",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "maxItems": 10,
+          "minItems": 2,
+          "type": "array"
+        },
+        "model": {
+          "description": "Model id or alias. Default: the server's configured model.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            }
+          ],
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+        }
+      },
+      "required": [
+        "state",
+        "instructions",
+        "levels"
+      ],
+      "type": "object"
+    },
+    "name": "score",
+    "outputSchema": {
+      "properties": {
+        "answers": {
+          "additionalProperties": {
+            "description": "The API's own answer shape: noul has `noul`; choice has `choice`, `confidence`, `probabilities`; score has `score`, `confidence`, `legend`, `probabilities`.",
+            "properties": {
+              "choice": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "legend": {
+                "type": "object"
+              },
+              "noul": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "probabilities": {
+                "additionalProperties": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              "score": {
+                "description": "Probability-weighted mean level, 0-based; may fall between levels.",
+                "minimum": 0,
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              },
+              "unrecognized": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          "description": "One answer per question, keyed by question id.",
+          "type": "object"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "missing_answers": {
+          "description": "Present only when the API returned no answer for these question ids.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "model": {
+          "description": "The model that answered.",
+          "type": "string"
+        },
+        "model_requested": {
+          "type": "string"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema": {
+          "enum": [
+            "jev.evaluation/v1"
+          ],
+          "type": "string"
+        },
+        "usage": {
+          "additionalProperties": true,
+          "properties": {
+            "input_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "output_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "input_tokens",
+            "output_tokens"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema",
+        "model",
+        "model_requested",
+        "endpoint",
+        "answers",
+        "usage",
+        "request_id"
+      ],
+      "type": "object"
+    },
+    "title": "Jev Score (ordered levels)"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Jev Ask (several questions, one state)"
+    },
+    "description": "Several independent noul, choice, and score questions about ONE state, in a single request: much cheaper than, and about as fast as, one question each. Returns one answer per question id, each with its full probabilities. Use instead of calling noul, choice, or score repeatedly on the same state; use `map` to ask the same questions of many different states. The state is sent to the configured TypeSafe endpoint.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "description": "Model id or alias. Default: the server's configured model.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "questions": {
+          "description": "Independent questions, each evaluated against the same state.",
+          "items": {
+            "additionalProperties": false,
+            "description": "One question. `criteria` applies to noul, `options` to choice, `levels` to score.",
+            "properties": {
+              "criteria": {
+                "additionalProperties": false,
+                "description": "Optional: what yes and what no mean, when the boundary is subtle. Give at least one of the two.",
+                "properties": {
+                  "false": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "true": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "instructions": {
+                "description": "The question, in natural language.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "levels": {
+                "description": "Level descriptions, lowest first. 2 to 10.",
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "minItems": 2,
+                "type": "array"
+              },
+              "options": {
+                "description": "The options, in order. 2 to 255.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "name": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 255,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": {
+                "enum": [
+                  "noul",
+                  "choice",
+                  "score"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "instructions"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "state": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            }
+          ],
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+        }
+      },
+      "required": [
+        "state",
+        "questions"
+      ],
+      "type": "object"
+    },
+    "name": "ask",
+    "outputSchema": {
+      "properties": {
+        "answers": {
+          "additionalProperties": {
+            "description": "The API's own answer shape: noul has `noul`; choice has `choice`, `confidence`, `probabilities`; score has `score`, `confidence`, `legend`, `probabilities`.",
+            "properties": {
+              "choice": {
+                "type": "string"
+              },
+              "confidence": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "legend": {
+                "type": "object"
+              },
+              "noul": {
+                "maximum": 1,
+                "minimum": 0,
+                "type": "number"
+              },
+              "probabilities": {
+                "additionalProperties": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              "score": {
+                "description": "Probability-weighted mean level, 0-based; may fall between levels.",
+                "minimum": 0,
+                "type": "number"
+              },
+              "type": {
+                "type": "string"
+              },
+              "unrecognized": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          "description": "One answer per question, keyed by question id.",
+          "type": "object"
+        },
+        "endpoint": {
+          "type": "string"
+        },
+        "missing_answers": {
+          "description": "Present only when the API returned no answer for these question ids.",
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "model": {
+          "description": "The model that answered.",
+          "type": "string"
+        },
+        "model_requested": {
+          "type": "string"
+        },
+        "request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema": {
+          "enum": [
+            "jev.evaluation/v1"
+          ],
+          "type": "string"
+        },
+        "usage": {
+          "additionalProperties": true,
+          "properties": {
+            "input_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "output_tokens": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": [
+            "input_tokens",
+            "output_tokens"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema",
+        "model",
+        "model_requested",
+        "endpoint",
+        "answers",
+        "usage",
+        "request_id"
+      ],
+      "type": "object"
+    },
+    "title": "Jev Ask (several questions, one state)"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": "Jev Map (same questions, many records)"
+    },
+    "description": "Many records, each its own state: the same question set over up to 100 inline records, one request per record, run concurrently, results in input order. Several questions about ONE state -- even one with several parts, such as a multi-file diff -- are a single `ask` call, not a map. Returns one row per record sent -- its answers, or an `error` for a record that failed, which is not an answer -- and a summary. For larger or offline jobs, files on disk, CI gates, or calibrated evaluation, run the `jev map` or `jev eval` CLI instead. Every record's state is sent to the configured TypeSafe endpoint.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "concurrency": {
+          "description": "Requests in flight at once, 1 to 16. Default 4.",
+          "maximum": 16,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "model": {
+          "description": "Model id or alias. Default: the server's configured model.",
+          "minLength": 1,
+          "type": "string"
+        },
+        "questions": {
+          "description": "The question set, asked of every record.",
+          "items": {
+            "additionalProperties": false,
+            "description": "One question. `criteria` applies to noul, `options` to choice, `levels` to score.",
+            "properties": {
+              "criteria": {
+                "additionalProperties": false,
+                "description": "Optional: what yes and what no mean, when the boundary is subtle. Give at least one of the two.",
+                "properties": {
+                  "false": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "true": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "id": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "instructions": {
+                "description": "The question, in natural language.",
+                "minLength": 1,
+                "type": "string"
+              },
+              "levels": {
+                "description": "Level descriptions, lowest first. 2 to 10.",
+                "items": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "minItems": 2,
+                "type": "array"
+              },
+              "options": {
+                "description": "The options, in order. 2 to 255.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "description": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "name": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 255,
+                "minItems": 2,
+                "type": "array"
+              },
+              "type": {
+                "enum": [
+                  "noul",
+                  "choice",
+                  "score"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "instructions"
+            ],
+            "type": "object"
+          },
+          "minItems": 1,
+          "type": "array"
+        },
+        "records": {
+          "description": "Records to evaluate, 1 to 100. Each record's state is sent to the configured TypeSafe endpoint.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "description": "Optional record id, echoed in its row as a string. Default: the record's position."
+              },
+              "state": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  }
+                ],
+                "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "questions",
+        "records"
+      ],
+      "type": "object"
+    },
+    "name": "map",
+    "outputSchema": {
+      "properties": {
+        "rows": {
+          "description": "One row per record sent, in input order. After a rejected credential the batch stops, so compare summary.evaluated with summary.total.",
+          "items": {
+            "description": "One `jev.map.row/v1` row. `ok: true` rows carry `model`, `answers`, `usage`; `ok: false` rows carry `error`. Every row carries `attempts`, the HTTP attempts made (each may have been billed; `0` when no request was sent).",
+            "properties": {
+              "answers": {
+                "additionalProperties": {
+                  "description": "The API's own answer shape: noul has `noul`; choice has `choice`, `confidence`, `probabilities`; score has `score`, `confidence`, `legend`, `probabilities`.",
+                  "properties": {
+                    "choice": {
+                      "type": "string"
+                    },
+                    "confidence": {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "legend": {
+                      "type": "object"
+                    },
+                    "noul": {
+                      "maximum": 1,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "probabilities": {
+                      "additionalProperties": {
+                        "maximum": 1,
+                        "minimum": 0,
+                        "type": "number"
+                      },
+                      "type": "object"
+                    },
+                    "score": {
+                      "description": "Probability-weighted mean level, 0-based; may fall between levels.",
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "unrecognized": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "type": "object"
+                },
+                "description": "One answer per question, keyed by question id.",
+                "type": "object"
+              },
+              "attempts": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "error": {
+                "properties": {
+                  "kind": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "message"
+                ],
+                "type": "object"
+              },
+              "gate": {
+                "anyOf": [
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "index": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "missing_answers": {
+                "description": "Present only when the API returned no answer for these question ids.",
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              "model": {
+                "type": "string"
+              },
+              "ok": {
+                "type": "boolean"
+              },
+              "request_digest": {
+                "type": "string"
+              },
+              "request_id": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "schema": {
+                "enum": [
+                  "jev.map.row/v1"
+                ],
+                "type": "string"
+              },
+              "state_digest": {
+                "type": "string"
+              },
+              "usage": {
+                "additionalProperties": true,
+                "properties": {
+                  "input_tokens": {
+                    "anyOf": [
+                      {
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "output_tokens": {
+                    "anyOf": [
+                      {
+                        "minimum": 0,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "input_tokens",
+                  "output_tokens"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "schema",
+              "index",
+              "id",
+              "state_digest",
+              "request_digest",
+              "ok",
+              "attempts",
+              "request_id",
+              "gate"
+            ],
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "schema": {
+          "enum": [
+            "jev.mcp.map/v1"
+          ],
+          "type": "string"
+        },
+        "summary": {
+          "description": "The `jev.map.summary/v1` document.",
+          "properties": {
+            "complete": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "evaluated": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "failed": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "gate": {
+              "anyOf": [
+                {
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "interrupted": {
+              "type": "boolean"
+            },
+            "resumed": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "schema": {
+              "enum": [
+                "jev.map.summary/v1"
+              ],
+              "type": "string"
+            },
+            "stopped_early": {
+              "type": "boolean"
+            },
+            "succeeded": {
+              "minimum": 0,
+              "type": "integer"
+            },
+            "total": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "schema",
+            "total",
+            "evaluated",
+            "resumed",
+            "succeeded",
+            "failed",
+            "complete",
+            "stopped_early",
+            "interrupted",
+            "gate"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "schema",
+        "rows",
+        "summary"
+      ],
+      "type": "object"
+    },
+    "title": "Jev Map (same questions, many records)"
+  }
+]

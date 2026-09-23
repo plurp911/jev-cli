@@ -1,0 +1,123 @@
+{
+  "dataset": {
+    "fingerprint": "addc22261724743e",
+    "rows": 60,
+    "sources": [
+      "data/urgency-v1-export.jsonl"
+    ]
+  },
+  "endpoint": "https://api.typesafe.ai",
+  "model": [
+    "jev-1.13.0"
+  ],
+  "model_requested": "jev-1.13.0",
+  "objective": {
+    "name": "min-precision",
+    "target": 0.95,
+    "threshold_field": "noul"
+  },
+  "questions": {
+    "urgent": {
+      "at_threshold_on_calibration": null,
+      "brier_score": 0.12,
+      "calibration": {
+        "expected_error": 0.05
+      },
+      "labelled": 17,
+      "log_loss": 0.61,
+      "n": 17,
+      "objective_applies": true,
+      "rows": [
+        {
+          "correct": null,
+          "id": "T-1000",
+          "label": true,
+          "predicted": 0.88
+        },
+        {
+          "correct": null,
+          "id": "T-1003",
+          "label": false,
+          "predicted": 0.12
+        },
+        {
+          "correct": null,
+          "id": "T-1004",
+          "label": true,
+          "predicted": 0.07
+        },
+        {
+          "correct": null,
+          "id": "T-1008",
+          "label": true,
+          "predicted": 0.88
+        },
+        {
+          "correct": null,
+          "id": "T-1019",
+          "label": false,
+          "predicted": 0.12
+        },
+        {
+          "correct": null,
+          "id": "T-1020",
+          "label": true,
+          "predicted": 0.07
+        },
+        {
+          "correct": null,
+          "id": "T-1025",
+          "label": false,
+          "predicted": 0.12
+        },
+        {
+          "correct": null,
+          "id": "T-1037",
+          "label": false,
+          "predicted": 0.07
+        },
+        {
+          "correct": null,
+          "id": "T-1040",
+          "label": true,
+          "predicted": 0.54
+        },
+        {
+          "correct": null,
+          "id": "T-1044",
+          "label": true,
+          "predicted": 0.46
+        }
+      ],
+      "threshold": null,
+      "threshold_reachable": false,
+      "threshold_tie_break": null,
+      "type": "noul"
+    }
+  },
+  "request": {
+    "fingerprint": "f9d37c23fcc0f03c"
+  },
+  "rows": {
+    "errors": {},
+    "evaluated": 60,
+    "failed": 0,
+    "interrupted": false,
+    "stopped_early": false,
+    "total": 60
+  },
+  "schema": "jev.eval/v1",
+  "split": {
+    "calibration_rows": 43,
+    "mode": "seeded",
+    "reported_rows": 17,
+    "seed": 7,
+    "test_fraction": 0.3
+  },
+  "warnings": [
+    "urgent: no threshold in the calibration rows reaches --target 0.95; the question as written may not support the guarantee you asked for",
+    "urgent: only 17 labelled row(s) were scored; the 95% interval beside the headline number is how wide the uncertainty is on a sample this small",
+    "urgent: the threshold was chosen from 43 calibration row(s); a cut fitted to a sample this small is unlikely to hold on new data",
+    "urgent: the rarer outcome appears in fewer than 10 scored row(s); precision, recall, and F1 involving it are unstable"
+  ]
+}

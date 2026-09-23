@@ -1,0 +1,2 @@
+{"schema":"jev.eval.row/v1","id":"1","state":{"nested":[1,2,3]},"labels":{"a":0}}
+{"schema":"jev.eval.row/v1","id":"2","state":"another","labels":{"b":"two","c":0}}

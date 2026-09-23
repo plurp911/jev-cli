@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/plurp911/jev-cli/main/schema/request.schema.json",
+  "title": "jev request document",
+  "description": "A request document for `jev ask --request` and `jev map --request`. This is the official TypeSafe System One evaluation request body (https://docs.typesafe.ai/api), not a format invented by this CLI: a file that validates here is a valid API body for curl or an SDK, and an example copied from the official documentation validates here unchanged. The schema is therefore deliberately NOT versioned by a field inside the document -- adding one would make the file invalid as an API body. It is versioned by its $id, and `jev` accepts exactly the fields the API defines. See docs/commands.md and crates/jev-cli/src/request.rs.",
+
+  "oneOf": [
+    { "$ref": "#/$defs/fullDocument" },
+    { "$ref": "#/$defs/questions" }
+  ],
+
+  "$defs": {
+    "fullDocument": {
+      "type": "object",
+      "description": "A full request document. Recognised when the top level has a `questions` key whose value is an object of question objects.",
+      "required": ["questions"],
+      "additionalProperties": false,
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/content",
+          "description": "What the questions are about. `jev map` ignores this and substitutes each input record."
+        },
+        "model": {
+          "$ref": "#/$defs/name",
+          "description": "The model to evaluate with. Optional; `--model` overrides it, and in `jev map` too. `jev` hard-codes no catalogue -- run `jev models` for the live list. `jev` also caps it at 128 characters *after trimming*, which JSON Schema cannot express -- a plain `maxLength` is measured before trimming, so it red-underlined a padded name `jev` accepts. A schema that rejects a valid file is worse than one that is lax, so the cap is not stated here."
+        },
+        "questions": { "$ref": "#/$defs/questions" }
+      }
+    },
+
+    "questions": {
+      "type": "object",
+      "description": "Question ids mapped to question definitions. Ids are for your code and are not sent to the model, so the full meaning belongs in `instructions`. Order is preserved. A duplicate id is a load error, not a silent overwrite.",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/questionId" },
+      "additionalProperties": { "$ref": "#/$defs/question" }
+    },
+
+    "questionId": {
+      "$ref": "#/$defs/name",
+      "description": "A question id. Also the name a `--require` gate addresses, as `<id>.noul`, `<id>.choice`, `<id>.score`, `<id>.confidence`, or `<id>.probabilities.<key>`. Note that `jev` trims before comparing, so ` a ` and `a` are the same id and the second is a duplicate -- which JSON Schema cannot express, because it sees two distinct property names."
+    },
+
+    "name": {
+      "type": "string",
+      "description": "A non-blank name with no control characters. `minLength` alone is not enough: it does not trim, and `jev` rejects a name that is only whitespace.",
+      "minLength": 1,
+      "pattern": "\\S",
+      "not": { "pattern": "[\\u0000-\\u001f\\u007f-\\u009f]" }
+    },
+
+    "question": {
+      "type": "object",
+      "required": ["type", "instructions"],
+      "additionalProperties": false,
+      "properties": {
+        "type": { "enum": ["noul", "choice", "score"] },
+        "instructions": { "$ref": "#/$defs/content" },
+        "criteria": {}
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "noul" } }, "required": ["type"] },
+          "then": { "properties": { "criteria": { "$ref": "#/$defs/noulCriteria" } } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "choice" } }, "required": ["type"] },
+          "then": {
+            "required": ["criteria"],
+            "properties": { "criteria": { "$ref": "#/$defs/choiceCriteria" } }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "score" } }, "required": ["type"] },
+          "then": {
+            "required": ["criteria"],
+            "properties": { "criteria": { "$ref": "#/$defs/scoreCriteria" } }
+          }
+        }
+      ]
+    },
+
+    "noulCriteria": {
+      "type": ["object", "null"],
+      "description": "Optional guidance for a Noul. Present as an object, it must describe at least one side: `{}` and `{\"true\": null, \"false\": null}` are both refused, because they say nothing. A Noul returns the probability that the condition holds and carries no confidence value -- the API returns none and `jev` invents none, so `<id>.confidence` in a `--require` gate is unevaluable. See https://docs.typesafe.ai/primitives/noul.md.",
+      "additionalProperties": false,
+      "properties": {
+        "true": { "$ref": "#/$defs/nullableContent" },
+        "false": { "$ref": "#/$defs/nullableContent" }
+      },
+      "if": { "type": "object" },
+      "then": {
+        "anyOf": [
+          { "required": ["true"], "properties": { "true": { "not": { "type": "null" } } } },
+          { "required": ["false"], "properties": { "false": { "not": { "type": "null" } } } }
+        ]
+      }
+    },
+
+    "choiceCriteria": {
+      "type": "object",
+      "description": "Each option name mapped to a description, or to null for no description. Include a no-match option when nothing may fit: the model cannot select an option you did not offer. See https://docs.typesafe.ai/primitives/choice.md.",
+      "minProperties": 2,
+      "maxProperties": 255,
+      "propertyNames": { "$ref": "#/$defs/name" },
+      "additionalProperties": { "$ref": "#/$defs/nullableContent" }
+    },
+
+    "scoreCriteria": {
+      "type": "array",
+      "description": "Ordered level descriptions, lowest first. Each level must describe a concrete situation and stand on its own. See https://docs.typesafe.ai/primitives/score.md.",
+      "minItems": 2,
+      "maxItems": 10,
+      "items": { "$ref": "#/$defs/content" }
+    },
+
+    "content": {
+      "description": "Text, or structured JSON. A null, a boolean, and a bare number are refused: they carry no meaning the model can read. `jev` additionally refuses nesting deeper than 64 levels, which JSON Schema cannot express -- so a very deeply nested document validates here and is still rejected at run time.",
+      "type": ["string", "object", "array"],
+      "if": { "type": "string" },
+      "then": { "minLength": 1, "pattern": "\\S" }
+    },
+
+    "nullableContent": {
+      "description": "Content, or null to say there is none.",
+      "type": ["string", "object", "array", "null"],
+      "if": { "type": "string" },
+      "then": { "minLength": 1, "pattern": "\\S" }
+    }
+  }
+}

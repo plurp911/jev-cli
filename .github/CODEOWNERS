@@ -1,0 +1,28 @@
+# Default owner for everything.
+*                       @plurp911
+
+# Security-sensitive surfaces. With a single maintainer these resolve to the same
+# person as the default owner, so the value today is that a change to any of them is
+# flagged as touching a protected surface. Split these onto a dedicated security
+# reviewer as soon as there is a second maintainer.
+#
+# Changes here are the ones an AI agent is most likely to get subtly wrong.
+/SECURITY.md            @plurp911
+/docs/threat-model.md   @plurp911
+/docs/adr/              @plurp911
+/crates/jev-config/     @plurp911
+/crates/jev-client/     @plurp911
+/deny.toml              @plurp911
+/.github/workflows/     @plurp911
+/.github/dependabot.yml @plurp911
+/.githooks/              @plurp911
+/scripts/verify.sh       @plurp911
+/scripts/install-hooks.sh @plurp911
+/scripts/credential-canary.sh @plurp911
+/scripts/check-workflows.py @plurp911
+
+# Agent instructions are load-bearing: a weakened instruction file weakens every
+# future change made by an agent.
+/AGENTS.md              @plurp911
+/CLAUDE.md              @plurp911
+/.claude/skills/        @plurp911

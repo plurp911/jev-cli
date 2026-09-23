@@ -1,0 +1,4 @@
+{"role": "user", "content": "classify these 12 support threads by product area", "ts": "2026-09-14T09:00:00Z"}
+{"role": "assistant", "content": "Thread 1 is billing. Thread 2 is onboarding. Thread 3 is the API.", "ts": "2026-09-14T09:01:00Z"}
+{"role": "tool", "name": "search_threads", "arguments": {"query": "unassigned"}, "ts": "2026-09-14T09:02:00Z"}
+{"role": "assistant", "content": "Threads 4 through 12: billing, API, API, onboarding, billing, API, onboarding, billing, API.", "ts": "2026-09-14T09:03:00Z"}

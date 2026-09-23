@@ -1,0 +1,50 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "state",
+    "instructions",
+    "levels"
+  ],
+  "properties": {
+    "state": {
+      "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object"
+        },
+        {
+          "type": "array"
+        }
+      ]
+    },
+    "instructions": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The question, in natural language."
+    },
+    "levels": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 10,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Level descriptions, lowest first. 2 to 10."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Key for the answer in the result. Default \"answer\"."
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Model id or alias. Default: the server's configured model."
+    }
+  }
+}

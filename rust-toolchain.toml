@@ -1,0 +1,9 @@
+# Pins the toolchain used for local development and for the default CI jobs so
+# that formatting and lint results are reproducible across machines.
+#
+# CI jobs that must exercise a *different* toolchain (MSRV, beta, nightly) set the
+# RUSTUP_TOOLCHAIN environment variable, which overrides this file.
+[toolchain]
+channel = "1.94.1"
+components = ["rustfmt", "clippy", "rust-docs", "rust-src"]
+profile = "minimal"

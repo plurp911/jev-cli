@@ -1,0 +1,75 @@
+{
+  "dataset": {
+    "fingerprint": "e428062f143c9a68",
+    "rows": 2600
+  },
+  "endpoint": "https://api.typesafe.ai",
+  "model": [
+    "jev-1.13.0"
+  ],
+  "model_requested": "jev-1.13.0",
+  "objective": {
+    "name": "min-precision",
+    "target": 0.9,
+    "threshold_field": "noul"
+  },
+  "questions": {
+    "urgent": {
+      "at_threshold": {
+        "accuracy": 0.9512820512820512,
+        "f1": 0.9385113268608415,
+        "false_negative": 30,
+        "false_positive": 8,
+        "negative_predictive_value": 0.9377593360995851,
+        "precision": 0.9731543624161074,
+        "recall": 0.90625,
+        "specificity": 0.9826086956521739,
+        "true_negative": 452,
+        "true_positive": 290
+      },
+      "brier_score": 0.05,
+      "calibration": {
+        "expected_error": 0.02
+      },
+      "headline": {
+        "interval_95": {
+          "lower": 0.9338382966659786,
+          "method": "wilson",
+          "upper": 0.9643025098404331
+        },
+        "metric": "accuracy",
+        "n": 780,
+        "value": 0.9512820512820512
+      },
+      "labelled": 780,
+      "log_loss": 0.19,
+      "n": 780,
+      "objective_applies": true,
+      "positives": 320,
+      "threshold": 0.72,
+      "threshold_reachable": true,
+      "threshold_tie_break": "the lower threshold",
+      "type": "noul"
+    }
+  },
+  "request": {
+    "fingerprint": "cac7f65554d65169"
+  },
+  "rows": {
+    "errors": {},
+    "evaluated": 2600,
+    "failed": 0,
+    "interrupted": false,
+    "stopped_early": false,
+    "total": 2600
+  },
+  "schema": "jev.eval/v1",
+  "split": {
+    "calibration_rows": 1820,
+    "mode": "seeded",
+    "reported_rows": 780,
+    "seed": 21,
+    "test_fraction": 0.3
+  },
+  "warnings": []
+}

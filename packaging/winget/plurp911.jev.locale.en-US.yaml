@@ -1,0 +1,26 @@
+# Template. See ../README.md.
+PackageIdentifier: plurp911.jev
+PackageVersion: PLACEHOLDER_VERSION
+PackageLocale: en-US
+Publisher: jev-cli contributors
+PublisherUrl: https://github.com/plurp911/jev-cli
+PublisherSupportUrl: https://github.com/plurp911/jev-cli/issues
+PackageName: jev
+PackageUrl: https://github.com/plurp911/jev-cli
+License: MIT OR Apache-2.0
+LicenseUrl: https://github.com/plurp911/jev-cli/blob/main/LICENSE-MIT
+ShortDescription: An unofficial, community CLI for TypeSafe's System One API and the Jev model.
+Description: >-
+  jev is an independent, community-maintained command-line interface for TypeSafe AI's
+  System One API and the Jev model. It is not affiliated with, sponsored by, or endorsed
+  by TypeSafe AI. It asks bounded semantic questions -- yes/no, one-of-a-set, or a
+  position on a described scale -- and returns typed answers with calibrated
+  probabilities, as structured JSON a script can branch on.
+Tags:
+  - ai
+  - cli
+  - classification
+  - typesafe
+ReleaseNotesUrl: https://github.com/plurp911/jev-cli/blob/main/CHANGELOG.md
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

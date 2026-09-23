@@ -1,0 +1,26 @@
+{
+  "sessionId": "bcde2345-0000-4000-8000-000000000002",
+  "projectHash": "deadbeef",
+  "startTime": "2026-09-16T11:00:00.000Z",
+  "lastUpdated": "2026-09-16T11:30:00.000Z",
+  "kind": "main",
+  "messages": [
+    {
+      "type": "user",
+      "id": "u1",
+      "timestamp": "2026-09-16T11:01:00.000Z",
+      "content": [
+        {
+          "text": "same question for the export worker"
+        }
+      ]
+    },
+    {
+      "type": "gemini",
+      "id": "g1",
+      "timestamp": "2026-09-16T11:02:00.000Z",
+      "model": "gemini-3-pro",
+      "content": "Three of eleven are relevant."
+    }
+  ]
+}

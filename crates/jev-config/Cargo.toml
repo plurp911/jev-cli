@@ -1,0 +1,49 @@
+[package]
+name = "jev-config"
+description = "Configuration and credential handling for the unofficial Jev CLI."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[features]
+default = ["os-keychain"]
+# The OS-native credential store. Separable so that a build for an environment with no
+# secure storage -- a distroless container, for example -- can omit the dependency
+# entirely rather than link code it can never use. Without it, `jev` uses the
+# environment sources and reports secure storage as unavailable.
+os-keychain = [
+    "dep:keyring-core",
+    "dep:apple-native-keyring-store",
+    "dep:windows-native-keyring-store",
+    "dep:dbus-secret-service-keyring-store",
+]
+
+[lints]
+workspace = true
+
+[dependencies]
+keyring-core = { workspace = true, optional = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+toml = { workspace = true }
+zeroize = { workspace = true }
+
+# `target_vendor = "apple"` rather than naming macOS and iOS: tvOS, watchOS and visionOS
+# have a Keychain too, and listing operating systems individually silently routed them
+# to the D-Bus arm, which they cannot use.
+[target.'cfg(target_vendor = "apple")'.dependencies]
+apple-native-keyring-store = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows-native-keyring-store = { workspace = true, optional = true }
+
+[target.'cfg(all(unix, not(target_vendor = "apple"), not(target_os = "android")))'.dependencies]
+dbus-secret-service-keyring-store = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tempfile = { workspace = true }

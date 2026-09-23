@@ -1,0 +1,127 @@
+{
+  "type": "object",
+  "required": [
+    "schema",
+    "model",
+    "model_requested",
+    "endpoint",
+    "answers",
+    "usage",
+    "request_id"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string",
+      "enum": [
+        "jev.evaluation/v1"
+      ]
+    },
+    "model": {
+      "type": "string",
+      "description": "The model that answered."
+    },
+    "model_requested": {
+      "type": "string"
+    },
+    "endpoint": {
+      "type": "string"
+    },
+    "answers": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "type"
+        ],
+        "description": "The API's own answer shape: noul has `noul`; choice has `choice`, `confidence`, `probabilities`; score has `score`, `confidence`, `legend`, `probabilities`.",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "noul": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "choice": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Probability-weighted mean level, 0-based; may fall between levels."
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "probabilities": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "legend": {
+            "type": "object"
+          },
+          "unrecognized": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "One answer per question, keyed by question id."
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "input_tokens",
+        "output_tokens"
+      ],
+      "properties": {
+        "input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "request_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "missing_answers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Present only when the API returned no answer for these question ids."
+    }
+  }
+}

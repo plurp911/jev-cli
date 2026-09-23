@@ -1,0 +1,22 @@
+{
+  "questions": {
+    "reversible": {
+      "type": "noul",
+      "instructions": "If the `action` described were carried out and turned out to be a mistake, could it be undone without needing a backup or anyone's help?",
+      "criteria": {
+        "true": "It writes something new, or changes something whose previous value is still recorded.",
+        "false": "It deletes, overwrites, sends, publishes, or spends something."
+      }
+    },
+    "scope": {
+      "type": "choice",
+      "instructions": "Who is affected if the `action` is carried out?",
+      "criteria": {
+        "nobody": "It only reads.",
+        "self": "It affects only files or state belonging to this task.",
+        "project": "It affects a shared repository, branch, or environment.",
+        "outside": "It reaches someone or something outside this system."
+      }
+    }
+  }
+}

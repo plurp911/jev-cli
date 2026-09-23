@@ -1,0 +1,65 @@
+[package]
+name = "jev-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+license = "MIT OR Apache-2.0"
+
+# Not a workspace member. `cargo-fuzz` builds with instrumentation and a nightly
+# toolchain, which would otherwise contaminate every ordinary `cargo` invocation in the
+# workspace, and `libfuzzer-sys` brings `unsafe` that the workspace forbids.
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+jev-core = { path = "../crates/jev-core" }
+jev-client = { path = "../crates/jev-client", default-features = false }
+jev-cli = { path = "../crates/jev-cli" }
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "gate_expression"
+path = "fuzz_targets/gate_expression.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "request_document"
+path = "fuzz_targets/request_document.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "api_response"
+path = "fuzz_targets/api_response.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "endpoint_url"
+path = "fuzz_targets/endpoint_url.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "state_input"
+path = "fuzz_targets/state_input.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "eval_dataset"
+path = "fuzz_targets/eval_dataset.rs"
+test = false
+doc = false
+bench = false

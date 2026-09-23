@@ -1,0 +1,57 @@
+name: Feature request
+description: Propose a change to what the CLI does.
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project aims to stay **minimal**. The strongest proposals show a task that
+        is awkward or impossible today, not a feature that would be nice to have.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What are you trying to do, and what stops you today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed command surface
+      description: Sketch the exact invocation and output you would want.
+      render: shell
+    validations:
+      required: true
+
+  - type: dropdown
+    id: consumer
+    attributes:
+      label: Who consumes the output
+      options:
+        - A human at a terminal
+        - A shell script or CI job
+        - An AI coding agent
+        - A data pipeline
+        - Several of the above
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you tried instead
+      description: >-
+        Existing flags, shell pipelines, or the official SDKs. If an existing tool
+        already does this well, say so.
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - label: >-
+            I understand this CLI deliberately has no plugin system, no telemetry, and
+            no arbitrary code execution, and my proposal does not require any of them.
+          required: true

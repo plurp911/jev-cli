@@ -1,0 +1,17 @@
+# Deterministic test conventions. See AGENTS.md, "Testing expectations".
+[profile.default]
+# A test that needs the network, a sleep, or a retry to pass is a broken test.
+# Anything slower than a second is doing something it should not.
+slow-timeout = { period = "10s", terminate-after = 3 }
+failure-output = "immediate-final"
+fail-fast = false
+
+[profile.ci]
+slow-timeout = { period = "30s", terminate-after = 2 }
+failure-output = "immediate-final"
+fail-fast = false
+# Flaky tests are bugs. Never add a retry count here to make CI green.
+retries = 0
+
+[profile.ci.junit]
+path = "junit.xml"

@@ -1,0 +1,18 @@
+# Template. PLACEHOLDER values are filled in by a human after verifying the published
+# artifact's checksum and build provenance attestation. See ../README.md.
+PackageIdentifier: plurp911.jev
+PackageVersion: PLACEHOLDER_VERSION
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+  - RelativeFilePath: jev-cli-x86_64-pc-windows-msvc\jev.exe
+    PortableCommandAlias: jev
+Commands:
+  - jev
+ReleaseDate: PLACEHOLDER_DATE
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/plurp911/jev-cli/releases/download/vPLACEHOLDER_VERSION/jev-cli-x86_64-pc-windows-msvc.zip
+    InstallerSha256: PLACEHOLDER_SHA256_X86_64
+ManifestType: installer
+ManifestVersion: 1.6.0

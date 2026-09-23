@@ -1,0 +1,56 @@
+[
+  {
+    "id": "noul",
+    "expect": "noul",
+    "prompt": "Using jev, judge whether this error is likely caused by authentication:\n\nERROR 2026-09-20T11:02:13Z payments-worker: upstream call to ledger returned HTTP 403 {\"error\":\"insufficient_scope\",\"hint\":\"token lacks ledger:write\"}"
+  },
+  {
+    "id": "choice",
+    "expect": "choice",
+    "prompt": "Using jev: which team should own this ticket -- billing, auth, infrastructure, or support?\n\nTicket #4412: \"I reset my password this morning and since then I've been charged twice for my annual subscription. Please refund one of them.\""
+  },
+  {
+    "id": "score",
+    "expect": "score",
+    "prompt": "Using jev, rate the migration risk of this change on this five-level rubric: 1 = cosmetic, no schema change; 2 = additive, backwards compatible; 3 = needs a backfill but reversible; 4 = hard to reverse, needs a maintenance window; 5 = irreversible data loss.\n\nChange:\nALTER TABLE invoices DROP COLUMN legacy_tax_code;\nDELETE FROM audit_log WHERE created_at < now() - interval '2 years';"
+  },
+  {
+    "id": "ask",
+    "expect": "ask",
+    "prompt": "Using jev, against this same diff check three things: does it change a public API, does it require a database migration, and is it security-relevant?\n\ndiff --git a/src/api/users.rs b/src/api/users.rs\n-pub fn get_user(id: u64) -> User {\n+pub fn get_user(id: u64, include_email: bool) -> User {\n+    // email now returned only to admins\n+    if include_email && !caller_is_admin() { return redact(user) }\ndiff --git a/migrations/0042_add_email_verified.sql b/migrations/0042_add_email_verified.sql\n+ALTER TABLE users ADD COLUMN email_verified boolean NOT NULL DEFAULT false;"
+  },
+  {
+    "id": "map",
+    "expect": "map",
+    "prompt": "Using jev, classify each of the 80 alerts in alerts.txt with the same question: is this alert actionable for the on-call engineer right now? Give me the list of actionable ones.",
+    "fixture": "alerts"
+  },
+  {
+    "id": "neg-rewrite",
+    "expect": "none",
+    "prompt": "Rewrite the function in fib.py so it is iterative instead of recursive.",
+    "fixture": "fib"
+  },
+  {
+    "id": "neg-arith",
+    "expect": "none",
+    "prompt": "Calculate 1783 * 29."
+  },
+  {
+    "id": "neg-grep",
+    "expect": "none",
+    "prompt": "Find the exact occurrences of FooBar in this directory.",
+    "fixture": "foobar"
+  },
+  {
+    "id": "neg-release-notes",
+    "expect": "none",
+    "prompt": "Write release notes for these commits:\n- fix: retry 503s with backoff\n- feat: add --resume to map\n- docs: explain confidence\n- fix: redact keys echoed in error bodies"
+  },
+  {
+    "id": "neg-eval",
+    "expect": "cli-eval",
+    "prompt": "Using jev, run a calibrated evaluation of the question in question.json over the labelled examples in labelled.jsonl and tell me which threshold to use.",
+    "fixture": "eval"
+  }
+]

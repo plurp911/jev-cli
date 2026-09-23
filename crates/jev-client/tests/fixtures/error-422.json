@@ -1,0 +1,12 @@
+{
+  "_source": "typesafe-sdk-python _schemas/models.py — HTTPValidationError / ValidationError, example values verbatim",
+  "detail": [
+    {
+      "loc": ["body", "questions", "urgency", "score", "criteria"],
+      "msg": "Field required",
+      "type": "missing",
+      "input": { "type": "score" },
+      "ctx": { "min_length": 1 }
+    }
+  ]
+}

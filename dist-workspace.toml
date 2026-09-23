@@ -1,0 +1,51 @@
+# Packaging configuration for `dist` (formerly cargo-dist).
+#
+# `dist` is used here as a **builder only**. It is never allowed to generate or manage
+# the release workflow; `.github/workflows/release.yml` is hand-written, SHA-pinned,
+# least-privilege, and deliberately not armed. See ADR-0009 for why, and ADR-0005 for
+# the release posture the workflow implements.
+#
+# `allow-dirty = ["ci"]` is the mechanism: it tells `dist` that the CI file is not its
+# to own, so `dist build` works and `dist generate` is not part of any workflow.
+
+[workspace]
+members = ["cargo:."]
+
+[dist]
+# The version invoked in CI. Bumping it is a reviewed change, not an automatic one.
+cargo-dist-version = "0.32.0"
+ci = "github"
+# `dist` must not touch the release workflow. See ADR-0009.
+allow-dirty = ["ci"]
+# No `powershell` installer, deliberately. `dist` 0.32.0 generates a PowerShell
+# installer with **no checksum verification at all** -- no `Get-FileHash`, no embedded
+# digest, no verification step. It downloads over HTTPS and runs whatever it is served.
+#
+# For a tool whose whole premise is that a compromised artifact is a credential-
+# harvesting vector (`docs/release-verification.md`), shipping an install path that
+# verifies nothing contradicts the project's own security posture. The shell installer
+# and the Homebrew formula both verify a sha256, and `scripts/check-installers.py`
+# fails the build if either ever stops.
+#
+# Windows users get the `.zip` plus `sha256.sum`, and Scoop or WinGet once those
+# manifests are submitted -- both carry a hash. Revisit if a future `dist` adds
+# verification to the PowerShell installer.
+installers = ["shell", "homebrew"]
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+]
+hosting = "github"
+# `AGENTS.md` §3.3 forbids a self-update mechanism. Keeping this false is the machine
+# enforcement of that rule: with it true, `dist` bundles `axoupdater` into the
+# installers and the binary can rewrite itself.
+install-updater = false
+# Build provenance, so a user can prove an artifact came from this repository.
+github-attestations = true
+checksum = "sha256"
+source-tarball = true
+# The release profile with fat LTO, defined in the workspace Cargo.toml.
+cargo-dist-cargo-profile = "dist"

@@ -1,0 +1,179 @@
+{
+  "dataset": {
+    "fingerprint": "914614ab20759840",
+    "rows": 400
+  },
+  "endpoint": "https://api.typesafe.ai",
+  "model": [
+    "jev-1.13.0"
+  ],
+  "model_requested": "jev-1.13.0",
+  "objective": {
+    "name": "min-accuracy",
+    "target": 0.9,
+    "threshold_field": "confidence"
+  },
+  "questions": {
+    "severity": {
+      "adjacent_agreement": 1.0,
+      "at_threshold": {
+        "abstention": 0.30000000000000004,
+        "accuracy_among_covered": 0.9285714285714286,
+        "coverage": 0.7,
+        "covered": 84,
+        "risk_among_covered": 0.0714285714285714
+      },
+      "calibration": {
+        "expected_error": 0.04
+      },
+      "confusion": {
+        "0": {
+          "0": 20
+        },
+        "1": {
+          "1": 25,
+          "2": 20
+        },
+        "2": {
+          "1": 15,
+          "2": 25
+        },
+        "3": {
+          "3": 15
+        }
+      },
+      "coverage_sweep": [
+        {
+          "abstention": 0.0,
+          "accuracy_among_covered": 0.7083333333333334,
+          "coverage": 1.0,
+          "covered": 120,
+          "risk_among_covered": 0.29166666666666663,
+          "threshold": 0.0
+        },
+        {
+          "abstention": 0.0,
+          "accuracy_among_covered": 0.7083333333333334,
+          "coverage": 1.0,
+          "covered": 120,
+          "risk_among_covered": 0.29166666666666663,
+          "threshold": 0.4
+        },
+        {
+          "abstention": 0.15000000000000002,
+          "accuracy_among_covered": 0.803921568627451,
+          "coverage": 0.85,
+          "covered": 102,
+          "risk_among_covered": 0.196078431372549,
+          "threshold": 0.5
+        },
+        {
+          "abstention": 0.30000000000000004,
+          "accuracy_among_covered": 0.9285714285714286,
+          "coverage": 0.7,
+          "covered": 84,
+          "risk_among_covered": 0.0714285714285714,
+          "threshold": 0.62
+        },
+        {
+          "abstention": 0.55,
+          "accuracy_among_covered": 0.9814814814814815,
+          "coverage": 0.45,
+          "covered": 54,
+          "risk_among_covered": 0.01851851851851849,
+          "threshold": 0.8
+        }
+      ],
+      "exact_agreement": 0.7083333333333334,
+      "headline": {
+        "interval_95": {
+          "lower": 0.6215576501812725,
+          "method": "wilson",
+          "upper": 0.7821843638050566
+        },
+        "metric": "exact_agreement",
+        "n": 120,
+        "value": 0.7083333333333334
+      },
+      "labelled": 120,
+      "n": 120,
+      "objective_applies": true,
+      "quadratic_weighted_kappa": 0.8242677824267782,
+      "rows": [
+        {
+          "correct": false,
+          "id": "S-2001",
+          "label": 2,
+          "predicted": 1.46
+        },
+        {
+          "correct": false,
+          "id": "S-2002",
+          "label": 1,
+          "predicted": 1.55
+        },
+        {
+          "correct": true,
+          "id": "S-2003",
+          "label": 3,
+          "predicted": 2.94
+        },
+        {
+          "correct": true,
+          "id": "S-2004",
+          "label": 0,
+          "predicted": 0.06
+        },
+        {
+          "correct": true,
+          "id": "S-2005",
+          "label": 1,
+          "predicted": 1.21
+        },
+        {
+          "correct": true,
+          "id": "S-2006",
+          "label": 2,
+          "predicted": 1.88
+        },
+        {
+          "correct": false,
+          "id": "S-2007",
+          "label": 1,
+          "predicted": 1.52
+        },
+        {
+          "correct": false,
+          "id": "S-2008",
+          "label": 2,
+          "predicted": 1.41
+        }
+      ],
+      "threshold": 0.62,
+      "threshold_reachable": true,
+      "threshold_tie_break": "the lower threshold",
+      "type": "score"
+    }
+  },
+  "request": {
+    "fingerprint": "264ad4f6d0e6bf80",
+    "source": "pilots/severity/request.json"
+  },
+  "rows": {
+    "errors": {},
+    "evaluated": 400,
+    "failed": 0,
+    "interrupted": false,
+    "stopped_early": false,
+    "total": 400
+  },
+  "schema": "jev.eval/v1",
+  "split": {
+    "calibration_rows": 280,
+    "mode": "seeded",
+    "reported_rows": 120,
+    "seed": 11,
+    "test_fraction": 0.3
+  },
+  "warnings": []
+}

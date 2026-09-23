@@ -1,0 +1,17 @@
+[files]
+# The held-out routing prompts are written the way users actually type, typos included
+# ("cna you", "grep teh repo"). Correcting them would make the set test polished requests
+# only, which is the thing it exists not to do. Only the prompts are excluded; the
+# README beside them is still checked.
+extend-exclude = ["Cargo.lock", "target/", "*.snap", "evals/skills/heldout/*/prompt.md"]
+
+[default.extend-words]
+# Noul is a TypeSafe System One primitive, not a typo.
+noul = "noul"
+Noul = "Noul"
+
+# Deliberate misspellings used as test fixtures. Each one exists to prove that `jev`
+# rejects a mistyped key rather than silently ignoring it, so the misspelling is the
+# point and correcting it would delete the test's meaning.
+modle = "modle"
+questons = "questons"

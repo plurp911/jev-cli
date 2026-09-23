@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/plurp911/jev-cli/security/advisories/new
+    about: >-
+      Report privately. Do not open a public issue for a vulnerability.
+      See SECURITY.md.
+  - name: Question about Jev or the TypeSafe API itself
+    url: https://docs.typesafe.ai
+    about: >-
+      This is an unofficial community project. Questions about Jev's behaviour,
+      pricing, or availability belong with TypeSafe, not here.
+  - name: Question about using the CLI
+    url: https://github.com/plurp911/jev-cli/issues
+    about: >-
+      Open an issue. (Discussions are not enabled; if they are turned on later,
+      point this link there instead.)

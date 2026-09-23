@@ -1,0 +1,4 @@
+{"kind": "main", "sessionId": "abcd1234-0000-4000-8000-000000000001", "projectHash": "deadbeef", "startTime": "2026-09-15T10:00:00.000Z", "lastUpdated": "2026-09-15T10:20:00.000Z"}
+{"type": "user", "id": "u1", "timestamp": "2026-09-15T10:01:00.000Z", "content": [{"text": "which of these 18 search hits are on the billing path"}]}
+{"type": "gemini", "id": "g1", "timestamp": "2026-09-15T10:02:00.000Z", "model": "gemini-3-pro", "content": "Four are; the rest are tests and a helper.", "tokens": {"input": 4100, "output": 120}, "toolCalls": [{"name": "search_file_content", "args": {"pattern": "billing"}}]}
+{"$set": {"ignored": true}}

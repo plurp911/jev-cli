@@ -1,0 +1,32 @@
+{
+  "questions": {
+    "kind": {
+      "type": "choice",
+      "instructions": "What kind of report is this issue? Read the title and body together; a title that says 'bug' but describes desired new behaviour is a feature request.",
+      "criteria": {
+        "bug": "Something the software already claims to do does not work.",
+        "feature": "A request for behaviour the software does not claim to have.",
+        "question": "A request for help using the software as it is.",
+        "other": "None of the above, including spam and duplicates."
+      }
+    },
+    "severity": {
+      "type": "score",
+      "instructions": "How badly does this affect the people using the software, assuming the report is accurate?",
+      "criteria": [
+        "Cosmetic: wrong wording, a misaligned element, a typo.",
+        "Inconvenient: a workaround exists and is easy to find.",
+        "Blocking: a common task cannot be completed and no workaround is given.",
+        "Damaging: data is lost or corrupted, or a security boundary is crossed."
+      ]
+    },
+    "actionable": {
+      "type": "noul",
+      "instructions": "Does this issue contain enough detail for someone to begin reproducing it without asking the reporter a question first?",
+      "criteria": {
+        "true": "There are concrete steps, inputs, or an environment description.",
+        "false": "It describes a feeling about the software, or is too vague to act on."
+      }
+    }
+  }
+}

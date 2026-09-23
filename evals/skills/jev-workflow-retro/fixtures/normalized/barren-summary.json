@@ -1,0 +1,129 @@
+{
+  "busiest_days": [
+    {
+      "day": "2026-09-11",
+      "events": 13
+    },
+    {
+      "day": "2026-09-12",
+      "events": 11
+    },
+    {
+      "day": "2026-09-13",
+      "events": 11
+    }
+  ],
+  "events_by_kind": {
+    "assistant": 3,
+    "prompt": 3,
+    "session": 6,
+    "tool_call": 13,
+    "tool_result": 13
+  },
+  "models": [
+    {
+      "model": "claude-opus-5",
+      "turns": 3
+    }
+  ],
+  "problem_count": 0,
+  "problems": [],
+  "schema": "jev.retro.summary/v1",
+  "scope": {
+    "home": "<fixture home>",
+    "project_filter": null,
+    "window": {
+      "since": "1926-10-18T15:32:34.793000Z",
+      "until": null
+    }
+  },
+  "skills": [],
+  "subagents": [],
+  "tool_pairs": [
+    {
+      "count": 3,
+      "pair": [
+        "Read",
+        "Edit"
+      ],
+      "sessions": 3
+    },
+    {
+      "count": 3,
+      "pair": [
+        "Edit",
+        "Bash"
+      ],
+      "sessions": 2
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Edit",
+        "Write"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Write",
+        "Bash"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Bash",
+        "Read"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Bash",
+        "Edit"
+      ],
+      "sessions": 1
+    }
+  ],
+  "tools": [
+    {
+      "count": 5,
+      "sessions": 3,
+      "tool": "Bash"
+    },
+    {
+      "count": 4,
+      "sessions": 3,
+      "tool": "Edit"
+    },
+    {
+      "count": 3,
+      "sessions": 3,
+      "tool": "Read"
+    },
+    {
+      "count": 1,
+      "sessions": 1,
+      "tool": "Write"
+    }
+  ],
+  "totals": {
+    "days_active": 3,
+    "events": 38,
+    "projects": 1,
+    "providers": [
+      "claude-code"
+    ],
+    "sessions": 3
+  },
+  "usage": {
+    "claude-code": {
+      "output_tokens": 1320,
+      "requests": 16
+    }
+  }
+}

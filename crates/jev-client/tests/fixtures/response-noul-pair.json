@@ -1,0 +1,18 @@
+{
+  "_source": "https://docs.typesafe.ai/primitives/noul \u2014 Response structure, two Noul questions in one request, transcribed 2026-09-20",
+  "model": "jev-1.13.0",
+  "answers": {
+    "is_human_escalation": {
+      "type": "noul",
+      "noul": 0.99
+    },
+    "is_repeat_contact": {
+      "type": "noul",
+      "noul": 0.93
+    }
+  },
+  "usage": {
+    "input_tokens": 360,
+    "output_tokens": 39
+  }
+}

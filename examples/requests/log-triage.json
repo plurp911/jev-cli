@@ -1,0 +1,12 @@
+{
+  "questions": {
+    "actionable": {
+      "type": "noul",
+      "instructions": "Does this log line describe a fault that someone operating this service should look at, as opposed to routine or expected noise?",
+      "criteria": {
+        "true": "An error, a failed dependency, an exhausted resource, or a repeated retry.",
+        "false": "A routine lifecycle message, a debug trace, or an expected client error such as a 404."
+      }
+    }
+  }
+}

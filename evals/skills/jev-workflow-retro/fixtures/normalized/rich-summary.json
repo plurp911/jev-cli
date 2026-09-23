@@ -1,0 +1,406 @@
+{
+  "busiest_days": [
+    {
+      "day": "2026-09-02",
+      "events": 59
+    },
+    {
+      "day": "2026-09-03",
+      "events": 30
+    },
+    {
+      "day": "2026-09-04",
+      "events": 16
+    },
+    {
+      "day": "2026-09-05",
+      "events": 19
+    },
+    {
+      "day": "2026-09-06",
+      "events": 38
+    },
+    {
+      "day": "2026-09-07",
+      "events": 11
+    },
+    {
+      "day": "2026-09-08",
+      "events": 11
+    },
+    {
+      "day": "2026-09-09",
+      "events": 5
+    },
+    {
+      "day": "2026-09-10",
+      "events": 4
+    },
+    {
+      "day": "2026-09-11",
+      "events": 17
+    },
+    {
+      "day": "2026-09-12",
+      "events": 27
+    },
+    {
+      "day": "2026-09-13",
+      "events": 6
+    },
+    {
+      "day": "2026-09-14",
+      "events": 7
+    },
+    {
+      "day": "2026-09-15",
+      "events": 4
+    },
+    {
+      "day": "2026-09-16",
+      "events": 3
+    }
+  ],
+  "events_by_kind": {
+    "assistant": 56,
+    "prompt": 17,
+    "session": 30,
+    "skill": 5,
+    "subagent": 9,
+    "tool_call": 71,
+    "tool_result": 82
+  },
+  "models": [
+    {
+      "model": "claude-opus-5",
+      "turns": 41
+    },
+    {
+      "model": "gemini-3-pro",
+      "turns": 2
+    }
+  ],
+  "problem_count": 2,
+  "problems": [
+    {
+      "path": "fixtures/home-rich/.codex/sessions/2026/09/14/rollout-2026-09-14T08-00-00-aaaaaaaa-0000-4000-8000-000000000004.jsonl",
+      "provider": "codex",
+      "reason": "no {type, payload} envelope; too old to parse"
+    },
+    {
+      "path": "fixtures/home-rich/.claude/projects/-home-dev-helio/11111111-0000-4000-8000-000000000009.jsonl",
+      "provider": "claude-code",
+      "reason": "2 unparsable line(s) skipped"
+    }
+  ],
+  "schema": "jev.retro.summary/v1",
+  "scope": {
+    "home": "<fixture home>",
+    "project_filter": null,
+    "window": {
+      "since": "1926-10-18T15:32:34.608002Z",
+      "until": null
+    }
+  },
+  "skills": [
+    {
+      "count": 2,
+      "sessions": 1,
+      "skill": "security-review"
+    },
+    {
+      "count": 2,
+      "sessions": 1,
+      "skill": "technical-writing"
+    },
+    {
+      "count": 1,
+      "sessions": 1,
+      "skill": "code-review"
+    }
+  ],
+  "subagents": [
+    {
+      "agent_type": "general-purpose",
+      "count": 3,
+      "sessions": 1
+    },
+    {
+      "agent_type": "docs-writer",
+      "count": 2,
+      "sessions": 1
+    },
+    {
+      "agent_type": "test-triager",
+      "count": 1,
+      "sessions": 1
+    },
+    {
+      "agent_type": "test-fixer",
+      "count": 1,
+      "sessions": 1
+    },
+    {
+      "agent_type": "i18n-specialist",
+      "count": 1,
+      "sessions": 1
+    },
+    {
+      "agent_type": "security-reviewer",
+      "count": 1,
+      "sessions": 1
+    }
+  ],
+  "tool_pairs": [
+    {
+      "count": 13,
+      "pair": [
+        "Read",
+        "Read"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 8,
+      "pair": [
+        "Edit",
+        "Bash"
+      ],
+      "sessions": 2
+    },
+    {
+      "count": 7,
+      "pair": [
+        "shell",
+        "shell"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 7,
+      "pair": [
+        "Bash",
+        "Edit"
+      ],
+      "sessions": 2
+    },
+    {
+      "count": 6,
+      "pair": [
+        "Read",
+        "Grep"
+      ],
+      "sessions": 2
+    },
+    {
+      "count": 6,
+      "pair": [
+        "Grep",
+        "Read"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 4,
+      "pair": [
+        "Bash",
+        "Bash"
+      ],
+      "sessions": 2
+    },
+    {
+      "count": 4,
+      "pair": [
+        "Grep",
+        "Grep"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 2,
+      "pair": [
+        "Write",
+        "Write"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "/security-review",
+        "/technical-writing"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "/technical-writing",
+        "/security-review"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "/security-review",
+        "/code-review"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "/code-review",
+        "/technical-writing"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Grep",
+        "Write"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Grep",
+        "Bash"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Write",
+        "Bash"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "Bash",
+        "@test-fixer"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@test-fixer",
+        "@docs-writer"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@docs-writer",
+        "@general-purpose"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@general-purpose",
+        "@general-purpose"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@general-purpose",
+        "@i18n-specialist"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@i18n-specialist",
+        "@general-purpose"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@general-purpose",
+        "@security-reviewer"
+      ],
+      "sessions": 1
+    },
+    {
+      "count": 1,
+      "pair": [
+        "@security-reviewer",
+        "@docs-writer"
+      ],
+      "sessions": 1
+    }
+  ],
+  "tools": [
+    {
+      "count": 21,
+      "sessions": 3,
+      "tool": "Read"
+    },
+    {
+      "count": 16,
+      "sessions": 5,
+      "tool": "Bash"
+    },
+    {
+      "count": 12,
+      "sessions": 3,
+      "tool": "Grep"
+    },
+    {
+      "count": 9,
+      "sessions": 2,
+      "tool": "shell"
+    },
+    {
+      "count": 8,
+      "sessions": 2,
+      "tool": "Edit"
+    },
+    {
+      "count": 4,
+      "sessions": 2,
+      "tool": "Write"
+    },
+    {
+      "count": 1,
+      "sessions": 1,
+      "tool": "search_file_content"
+    }
+  ],
+  "totals": {
+    "days_active": 15,
+    "events": 270,
+    "projects": 2,
+    "providers": [
+      "claude-code",
+      "codex",
+      "gemini-cli"
+    ],
+    "sessions": 15
+  },
+  "usage": {
+    "claude-code": {
+      "output_tokens": 11710,
+      "requests": 115
+    },
+    "codex": {
+      "input_tokens": 1002000,
+      "output_tokens": 50000
+    }
+  }
+}

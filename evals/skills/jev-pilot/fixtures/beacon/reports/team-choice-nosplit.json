@@ -1,0 +1,67 @@
+{
+  "dataset": {
+    "fingerprint": "fba770e7cbf0be72",
+    "rows": 60,
+    "sources": [
+      "data/tickets-labelled.jsonl"
+    ]
+  },
+  "endpoint": "https://api.typesafe.ai",
+  "model": [
+    "jev-1.13.0"
+  ],
+  "model_requested": "jev-1.13.0",
+  "objective": {
+    "name": "min-accuracy",
+    "target": 0.9,
+    "threshold_field": "confidence"
+  },
+  "questions": {
+    "team": {
+      "accuracy": 0.95,
+      "brier_score": 0.12,
+      "calibration": {
+        "expected_error": 0.05
+      },
+      "headline": {
+        "interval_95": {
+          "lower": 0.8629948352086555,
+          "method": "wilson",
+          "upper": 0.9828504978395759
+        },
+        "metric": "accuracy",
+        "n": 60,
+        "value": 0.95
+      },
+      "labelled": 60,
+      "n": 60,
+      "objective_applies": true,
+      "threshold": 0.58,
+      "threshold_reachable": true,
+      "threshold_tie_break": "the lower threshold",
+      "type": "choice"
+    }
+  },
+  "request": {
+    "fingerprint": "ca8b22d0db83a22d"
+  },
+  "rows": {
+    "errors": {},
+    "evaluated": 60,
+    "failed": 0,
+    "interrupted": false,
+    "stopped_early": false,
+    "total": 60
+  },
+  "schema": "jev.eval/v1",
+  "split": {
+    "calibration_rows": 60,
+    "mode": "none",
+    "reported_rows": 60,
+    "seed": null,
+    "test_fraction": null
+  },
+  "warnings": [
+    "the threshold was selected and reported on the same rows (--no-split), so the reported performance is optimistic by an unknown amount. Drop --no-split, or pass separate --calibration and --test files, for a held-out estimate."
+  ]
+}

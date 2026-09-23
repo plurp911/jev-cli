@@ -1,0 +1,6 @@
+# Template. See ../README.md.
+PackageIdentifier: plurp911.jev
+PackageVersion: PLACEHOLDER_VERSION
+DefaultLocale: en-US
+ManifestType: version
+ManifestVersion: 1.6.0

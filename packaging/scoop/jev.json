@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
+  "version": "PLACEHOLDER_VERSION",
+  "description": "An unofficial, community command-line interface for TypeSafe's System One API and the Jev model.",
+  "homepage": "https://github.com/plurp911/jev-cli",
+  "license": "MIT OR Apache-2.0",
+  "notes": [
+    "jev is not affiliated with or endorsed by TypeSafe AI.",
+    "Authenticate with `jev auth login`, or set JEV_API_KEY.",
+    "Verify this artifact's provenance:",
+    "  gh attestation verify <archive> --repo plurp911/jev-cli"
+  ],
+  "architecture": {
+    "64bit": {
+      "url": "https://github.com/plurp911/jev-cli/releases/download/vPLACEHOLDER_VERSION/jev-cli-x86_64-pc-windows-msvc.zip",
+      "hash": "PLACEHOLDER_SHA256_X86_64",
+      "extract_dir": "jev-cli-x86_64-pc-windows-msvc"
+    }
+  },
+  "bin": "jev.exe",
+  "checkver": {
+    "github": "https://github.com/plurp911/jev-cli"
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "url": "https://github.com/plurp911/jev-cli/releases/download/v$version/jev-cli-x86_64-pc-windows-msvc.zip",
+        "extract_dir": "jev-cli-x86_64-pc-windows-msvc"
+      }
+    },
+    "hash": {
+      "url": "$url.sha256"
+    }
+  }
+}

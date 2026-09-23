@@ -1,0 +1,14 @@
+{
+  "questions": {
+    "severity": {
+      "type": "score",
+      "instructions": "How severe is the problem this ticket describes?",
+      "criteria": [
+        "Cosmetic: a typo, a misaligned label, nothing is broken.",
+        "Something is not working as expected for the customer.",
+        "A feature is broken or unusable for the customer.",
+        "An outage: the product is down or data is at risk for many customers."
+      ]
+    }
+  }
+}

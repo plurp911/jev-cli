@@ -1,0 +1,87 @@
+{
+  "absent": [
+    {
+      "provider": "cline",
+      "reason": "store not present",
+      "root": "~/.cline/data/sessions"
+    },
+    {
+      "provider": "cursor-agent",
+      "reason": "store not present",
+      "root": "~/.cursor/projects/*/agent-transcripts"
+    }
+  ],
+  "found": [
+    {
+      "files_modified_first": "2026-09-21T16:17:17.311722Z",
+      "files_modified_last": "2026-09-22T23:35:52.931282Z",
+      "projects": [
+        "-home-dev-helio"
+      ],
+      "provider": "claude-code",
+      "root": "~/.claude/projects (or $CLAUDE_CONFIG_DIR/projects)",
+      "sessions": 10
+    },
+    {
+      "files_modified_first": "2026-09-21T16:17:17.313488Z",
+      "files_modified_last": "2026-09-22T18:25:54.195870Z",
+      "projects": [
+        "/home/dev/helio"
+      ],
+      "provider": "codex",
+      "root": "~/.codex/sessions (or $CODEX_HOME/sessions)",
+      "sessions": 4
+    },
+    {
+      "files_modified_first": "2026-09-22T02:23:54.728323Z",
+      "files_modified_last": "2026-09-22T02:23:54.728382Z",
+      "projects": [
+        "helio"
+      ],
+      "provider": "gemini-cli",
+      "root": "~/.gemini/tmp/*/chats",
+      "sessions": 2
+    }
+  ],
+  "not_parsed": [
+    {
+      "provider": "antigravity-cli",
+      "store": "~/.gemini/antigravity-cli/conversations/*.pb, *.db (protobuf, SQLite)"
+    },
+    {
+      "provider": "copilot-chat",
+      "store": "~/.config/Code/User/workspaceStorage/*/chatSessions/*.json"
+    },
+    {
+      "provider": "copilot-cli",
+      "store": "~/.copilot/session-state/*/events.jsonl"
+    },
+    {
+      "provider": "cursor",
+      "store": "~/.config/Cursor/User/globalStorage/state.vscdb and ~/.cursor/chats/*/*/store.db (the editor's chats: SQLite, no stability contract)"
+    },
+    {
+      "provider": "grok-cli",
+      "store": "~/.grok/session_search.sqlite"
+    },
+    {
+      "provider": "opencode",
+      "store": "~/.local/share/opencode/opencode.db (SQLite)"
+    },
+    {
+      "provider": "pi",
+      "store": "~/.pi/agent/sessions/*/*.jsonl"
+    }
+  ],
+  "problem_count": 0,
+  "problems": [],
+  "schema": "jev.retro.discovery/v1",
+  "scope": {
+    "home": "<fixture home>",
+    "project_filter": null,
+    "window": {
+      "since": "1926-10-18T15:32:34.948801Z",
+      "until": null
+    }
+  }
+}

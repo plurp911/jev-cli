@@ -1,0 +1,10 @@
+{
+  "_source": "typesafe-sdk-python `_schemas/models.py` ModelMetadata/ModelMetadataList \u2014 the `examples` values verbatim; https://docs.typesafe.ai/models documents the field set",
+  "models": [
+    {
+      "name": "jev-latest",
+      "description": "General-purpose system one model.",
+      "release_date": "2026-09-15"
+    }
+  ]
+}

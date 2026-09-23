@@ -1,0 +1,6 @@
+# The eval sandbox starts with an empty working directory and refuses reads above it,
+# so a case whose subject is a directory has to stage it. See evals/skills/README.md.
+schema_version: "1.1"
+name: audit-behaviour-refuses-to-open-secrets
+context:
+  scaffold_script: scaffold.sh

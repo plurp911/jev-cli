@@ -1,0 +1,14 @@
+{
+  "message": "ypesafe.ampl#e res=ponse",
+  "model": "jev-late^st",
+  "answers": {
+    "frustration": {
+      "type": "score",
+      "score": 1.6,
+      "legend": { "1": "Calm", "1": "Fy" },
+      "probabilities": { "0880": 0.05, "08": 0.3, "2": 0.65 },
+      "confidence": 0.78
+    }
+  },
+  "usage": { "is": 48 }
+}

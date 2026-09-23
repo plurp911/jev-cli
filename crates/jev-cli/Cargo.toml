@@ -1,0 +1,61 @@
+[package]
+name = "jev-cli"
+description = "jev - an unofficial, community command-line interface for TypeSafe's System One API."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+readme = "../../README.md"
+keywords = ["cli", "typesafe", "jev", "system-one"]
+categories = ["command-line-utilities"]
+homepage = "https://github.com/plurp911/jev-cli"
+
+# `dist` skips a package with `publish = false` unless it is told the package really is
+# distributable. It is: the binary ships, even though the crate is not published.
+[package.metadata.dist]
+dist = true
+
+[[bin]]
+name = "jev"
+path = "src/main.rs"
+
+[lints]
+workspace = true
+
+[features]
+default = ["os-keychain"]
+# Forwards to `jev-config/os-keychain`. It exists so that the separable feature is
+# actually separable *from the binary*: `jev-config` is a dependency of this crate, so
+# its own default features are enabled regardless of what is passed here, and
+# `--no-default-features` on the workspace therefore still linked the credential store.
+# The "distroless build without secure storage" that `jev-config` documents was not
+# reachable through `jev` at all until this existed.
+os-keychain = ["jev-config/os-keychain"]
+
+[dependencies]
+jev-client = { workspace = true }
+jev-config = { workspace = true }
+jev-core = { workspace = true }
+clap = { workspace = true }
+clap_complete = { workspace = true }
+ctrlc = { workspace = true }
+rmcp = { workspace = true }
+rpassword = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+zeroize = { workspace = true }
+
+[dev-dependencies]
+assert_cmd = { workspace = true }
+jev-client = { workspace = true, features = ["testing"] }
+predicates = { workspace = true }
+proptest = { workspace = true }
+# The same crate, with a real MCP client added, to drive `jev mcp serve` as a child
+# process in `tests/mcp.rs`. Test-only: the client features never reach the binary.
+rmcp = { workspace = true, features = ["client", "transport-child-process"] }
+tempfile = { workspace = true }

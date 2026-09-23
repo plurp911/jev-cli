@@ -1,0 +1,7 @@
+{
+  "agentType": "test-fixer",
+  "toolUseId": "toolu_0001",
+  "spawnDepth": 1,
+  "model": "claude-opus-5",
+  "description": "handle: flaky auth test"
+}

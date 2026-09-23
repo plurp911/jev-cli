@@ -1,0 +1,26 @@
+# The MSRV is declared once, as `rust-version` in the workspace `Cargo.toml`; Clippy
+# reads it from there. Restating it here would be a second copy to keep in step, and it
+# already drifted once when the MSRV was raised to 1.88 for the Secret Service store.
+
+# Any `.unwrap()`/`.expect()` outside tests is already denied; this catches the
+# remaining "obviously fine" panics that hide in const contexts.
+allow-expect-in-tests = true
+allow-unwrap-in-tests = true
+allow-panic-in-tests = true
+allow-indexing-slicing-in-tests = true
+allow-print-in-tests = true
+
+# `doc_markdown` otherwise demands backticks around these proper nouns, which would be
+# wrong: they are names, not code identifiers. `..` keeps Clippy's own default list.
+doc-valid-idents = [
+    "TypeSafe",
+    "OpenSSF",
+    "GitHub",
+    "SBOM",
+    "JSONL",
+    # The name of the API description format, and of the document the official SDK is
+    # generated from. A name, not an identifier.
+    "OpenAPI",
+    "FastAPI",
+    "..",
+]

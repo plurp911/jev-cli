@@ -1,0 +1,1 @@
+{"a":{"type":"noul","instructions":"A?"},"b":{"type":"choice","instructions":"B?","criteria":{"x":null,"y":null}},"c":{"type":"score","instructions":"C?","criteria":["low","high"]}}

@@ -1,0 +1,104 @@
+[workspace]
+members = ["crates/*"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.1"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/plurp911/jev-cli"
+homepage = "https://github.com/plurp911/jev-cli"
+authors = ["jev-cli contributors"]
+# Every crate is publish = false until ADR-0005 release readiness is signed off by a
+# human maintainer. This is a deliberate guard against accidental publication.
+publish = false
+
+[workspace.dependencies]
+jev-client = { path = "crates/jev-client", version = "0.1.1" }
+# `default-features = false` here, with `jev-cli` re-enabling `os-keychain` through a
+# feature of its own. Left on, `jev-config`'s defaults were enabled by the dependency
+# edge no matter what was passed on the command line, so the separable feature was not
+# separable from the binary and the documented keychain-less build was unreachable.
+jev-config = { path = "crates/jev-config", version = "0.1.1", default-features = false }
+jev-core = { path = "crates/jev-core", version = "0.1.1" }
+
+# --- Runtime dependencies. Each one is justified in `docs/adr/0004-dependency-policy.md`.
+clap = { version = "4.6", default-features = false, features = ["std", "derive", "help", "usage", "error-context", "suggestions", "wrap_help"] }
+clap_complete = { version = "4.6", default-features = false }
+ctrlc = { version = "3.5", default-features = false }
+# The keyring ecosystem's own guidance is that an application choosing its stores
+# explicitly should depend on `keyring-core` plus the stores it wants, rather than on
+# the `keyring` facade — which would drag in a zbus-based Secret Service client and
+# roughly 200 transitive crates. Each store is target-gated, so a macOS build links
+# neither the Windows nor the D-Bus code.
+keyring-core = { version = "1.0", default-features = false }
+apple-native-keyring-store = { version = "1.0", default-features = false, features = ["keychain"] }
+windows-native-keyring-store = { version = "1.1", default-features = false }
+# `vendored` builds libdbus from source, so a Linux binary needs no `libdbus-1-dev` on
+# the build host and no shared library on the target. `crypto-rust` keeps the banned
+# OpenSSL out of the tree.
+dbus-secret-service-keyring-store = { version = "1.0", default-features = false, features = ["crypto-rust", "vendored"] }
+rpassword = { version = "7.5", default-features = false }
+serde = { version = "1.0", default-features = false, features = ["derive", "std"] }
+serde_json = { version = "1.0", default-features = false, features = ["std"] }
+thiserror = { version = "2.0", default-features = false, features = ["std"] }
+toml = { version = "1.1", default-features = false, features = ["parse", "display", "serde"] }
+# The official Model Context Protocol SDK, for `jev mcp serve` only (ADR-0012). `server`
+# and `transport-io` are the whole of what a tools-only stdio server needs; the HTTP,
+# OAuth, and client features -- and everything they would pull in -- stay off.
+rmcp = { version = "3.4", default-features = false, features = ["server", "transport-io"] }
+# The runtime rmcp requires. ADR-0012 confines it to `jev mcp serve`: no other command
+# builds a runtime, and `deny.toml` admits tokio only as a dependency of rmcp, its own
+# tokio-util, and `jev-cli`.
+tokio = { version = "1", default-features = false, features = ["rt", "macros", "time", "sync", "io-std"] }
+# Blocking HTTP with rustls and no async runtime (ADR-0007). `default-features = false`
+# keeps out gzip, charset conversion, and the native-tls path.
+ureq = { version = "3.4", default-features = false, features = ["rustls"] }
+zeroize = { version = "1.8", default-features = false, features = ["std", "zeroize_derive"] }
+
+# --- Development dependencies.
+assert_cmd = "2.2"
+predicates = "3.1"
+proptest = "1.11"
+tempfile = "3.24"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+missing_debug_implementations = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+# Correctness / safety-relevant denials: these are bugs, not style.
+dbg_macro = "deny"
+print_stderr = "deny"
+print_stdout = "deny"
+todo = "deny"
+unimplemented = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+integer_division = "deny"
+mem_forget = "deny"
+exit = "deny"
+# Noise reduction that does not weaken any invariant.
+module_name_repetitions = "allow"
+multiple_crate_versions = "allow"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+[profile.dist]
+inherits = "release"
+lto = "fat"

@@ -1,0 +1,67 @@
+version: 2
+
+updates:
+  # Rust dependencies. Grouped so that routine patch churn is one reviewable PR while
+  # anything that could change behaviour arrives on its own.
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    # Do not adopt a release until it has been in the wild for a while. A compromised
+    # crate or action is usually caught and yanked within days, so waiting is a direct
+    # mitigation for `docs/threat-model.md` T10 and T11. Dependabot exempts *security*
+    # updates from cooldown, so this does not delay a fix for a known vulnerability.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "deps"
+      include: scope
+    labels: ["dependencies", "rust"]
+    groups:
+      cargo-patch:
+        applies-to: version-updates
+        update-types: ["patch"]
+      cargo-minor:
+        applies-to: version-updates
+        update-types: ["minor"]
+      cargo-security:
+        applies-to: security-updates
+        patterns: ["*"]
+    # A major bump is a design decision: it gets its own PR and its own review.
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # The manual release workflow. Dependabot updates both the pinned SHA and its
+  # trailing version comment, which keeps SHA pinning honest.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    # Do not adopt a release until it has been in the wild for a while. A compromised
+    # crate or action is usually caught and yanked within days, so waiting is a direct
+    # mitigation for `docs/threat-model.md` T10 and T11. Dependabot exempts *security*
+    # updates from cooldown, so this does not delay a fix for a known vulnerability.
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 7
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: scope
+    labels: ["dependencies", "github-actions"]
+    groups:
+      actions:
+        patterns: ["*"]

@@ -1,0 +1,23 @@
+{
+  "questions": {
+    "public_api": {
+      "type": "noul",
+      "instructions": "Does this diff change a public interface -- something outside this repository could be depending on? Count exported functions and types, command-line flags, environment variable names, wire formats, and file formats.",
+      "criteria": {
+        "true": "A name, signature, default, or output shape that outside code can observe is added, changed, or removed.",
+        "false": "Only internal code, comments, tests, or documentation change."
+      }
+    },
+    "risk": {
+      "type": "score",
+      "instructions": "If this change is wrong, how hard is the failure to notice and recover from?",
+      "criteria": [
+        "Trivial: a comment, a test, or documentation.",
+        "Low: contained logic with tests covering it.",
+        "Medium: changes behaviour that tests do not fully cover.",
+        "High: touches persistence, authentication, or concurrency.",
+        "Critical: could lose data, leak a credential, or corrupt state irreversibly."
+      ]
+    }
+  }
+}

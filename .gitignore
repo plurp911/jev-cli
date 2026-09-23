@@ -1,0 +1,105 @@
+# Rust build output
+/target/
+**/*.rs.bk
+
+# Coverage
+/coverage/
+*.profraw
+*.profdata
+lcov.info
+
+# Release / packaging output
+/dist/
+/fuzz/target/
+*.sbom.json
+*.spdx.json
+*.tar.gz
+*.tar.xz
+*.zip
+
+# Python bytecode. `skills/` is a published surface a user copies into their own agent,
+# and a CPython-version-specific .pyc in it is build cruft that is not portable and was
+# never ours to ship. One got committed before this rule existed.
+__pycache__/
+*.py[cod]
+
+# Editor and OS noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*~
+*.log
+
+# Local agent scratch space. Never commit transcripts or scratch analysis.
+/.agent-scratch/
+/.agents/
+/.codex/
+/.claude/settings.local.json
+
+# Credential material must never be committed. These patterns are a backstop, not a
+# control: the real control is that `jev` never writes credentials to the repository.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.*
+credentials.*
+.jev/
+
+# The two patterns above are unanchored, so git applies them at every depth -- and
+# `credentials.*` therefore matched `crates/jev-config/src/credentials.rs`, silently
+# keeping a core source file out of the repository for four commits. Nothing local
+# noticed: the file was on disk, so every build and every test passed. CI, checking out
+# what was actually committed, failed with "failed to resolve mod `credentials`".
+#
+# Re-include source, which is never a secret dump. A negation cannot resurrect a file
+# whose parent directory is excluded, so this does not reach into `target/`.
+# `scripts/check-tracked-sources.py` fails the build if a source file is ignored again.
+!crates/**/*.rs
+!fuzz/fuzz_targets/*.rs
+
+# Fuzzing. The working corpus is regenerable and can grow to hundreds of megabytes; a
+# crash artifact is a finding to turn into a unit test next to the parser that produced
+# it, not a file to commit.
+/fuzz/corpus/
+/fuzz/artifacts/
+/fuzz/coverage/
+
+# Explicitly NOT ignored: `fuzz/seeds/` is the small, hand-written seed corpus that
+# `scripts/fuzz-smoke.sh` copies in before every run. It is what makes a short CI run
+# start from a real parse, and it is where an input that once found a bug lives.
+!/fuzz/seeds/
+
+# Explicitly NOT ignored: proptest regression seeds are checked in so that a failure
+# found once is replayed forever.
+!**/proptest-regressions/
+
+# Local research corpus of third-party reference repositories and documentation
+# snapshots. Untrusted material, never executed, never a dependency, never committed.
+# See docs/research/reference-manifest.md for the tracked provenance record.
+/references/
+
+# Skill-authoring development toolchain. Third-party agent skills, fetched verbatim at
+# pinned commits by `scripts/skill-authoring-setup.sh` from `skill-authoring-lock.json`.
+# They are not committed: AGENTS.md §8 keeps third-party source out of this repository,
+# and the lockfile plus the script make the set reproducible without it. The tracked
+# record is `docs/development/skill-authoring.md`.
+/.claude/skills/skill-creator/
+/.claude/skills/writing-skills/
+/.claude/skills/test-driven-development/
+/.claude/skills/verification-before-completion/
+/.claude/skills/dispatching-parallel-agents/
+
+# Staging tree that `scripts/skill-eval.sh` builds so `claude plugin eval` sees the
+# shipped skills as a plugin. Regenerated on every run; never edit it.
+/target/skill-evals/
+
+# Skill eval results: HTML reports and per-run JSON. Large, timestamped, and a record of
+# one run against one model version rather than a lasting fact about the skill.
+/evals/**/results/

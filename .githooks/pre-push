@@ -1,0 +1,12 @@
+#!/bin/sh
+# Git calls this hook before transferring refs. Each clone must opt in with
+# scripts/install-hooks.sh; Git does not distribute hook configuration.
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+if [ -n "$(git status --porcelain)" ]; then
+  printf 'The working tree is not clean. Commit or set aside local changes before pushing so verification checks the committed files.\n' >&2
+  exit 1
+fi
+exec scripts/verify.sh --push
