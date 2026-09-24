@@ -15,8 +15,8 @@
 # `cargo publish` is **not** here, and `publish = false` stays on every crate. That one
 # is irreversible on a public registry and is its own decision.
 #
-# Build provenance is opt-in. The publish job does not depend on its success, so a
-# release must not claim provenance until the attestation has been verified.
+# A dry run may omit build provenance. Publishing requires it, and waits for the
+# attestation job to succeed before attaching any artifact to a release.
 #
 # `dist` is used as a *builder only*. It never generates or manages this file;
 # `allow-dirty = ["ci"]` in `dist-workspace.toml` is what enforces that. See ADR-0009
@@ -47,8 +47,8 @@ on:
         required: false
       attest:
         description: >-
-          Also mint a build provenance attestation. Publishing does not wait for this
-          optional job; verify it before claiming provenance. Requires id-token: write.
+          Mint build provenance. Optional for a dry run; required for publication.
+          Verify the published artifact before claiming provenance.
         type: boolean
         default: false
         required: false
@@ -87,6 +87,7 @@ jobs:
         env:
           DRY_RUN: ${{ inputs.dry_run }}
           CONFIRM: ${{ inputs.confirm_tag }}
+          ATTEST: ${{ inputs.attest }}
           SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -103,6 +104,11 @@ jobs:
 
           if [ "$CONFIRM" != "$tag" ]; then
             echo "::error::To publish, set confirm_tag to exactly '$tag'. Got '$CONFIRM'." >&2
+            exit 1
+          fi
+
+          if [ "$ATTEST" != "true" ]; then
+            echo "::error::To publish, set attest to true." >&2
             exit 1
           fi
 
@@ -347,7 +353,7 @@ jobs:
           if-no-files-found: error
 
   attest:
-    name: build provenance (rehearsal)
+    name: build provenance
     needs: [build, smoke]
     if: ${{ inputs.attest }}
     runs-on: ubuntu-24.04
@@ -381,11 +387,9 @@ jobs:
 
   publish:
     name: publish the GitHub release
-    # Deliberately NOT `needs: attest`. That job is `if: inputs.attest`, so on a run
-    # that leaves it off it is *skipped*, and a skipped dependency blocks the dependent
-    # job forever. The tempting repair -- `if: always()` -- would also decouple publish
-    # from `guard`, which is the one job that must never be bypassed.
-    needs: [guard, plan, build, global, smoke, sbom]
+    # Publishing requires `attest: true`; the guard rejects any publish request that
+    # omits it. A failed attestation blocks this job before a release exists.
+    needs: [guard, plan, build, global, smoke, sbom, attest]
     if: ${{ needs.guard.outputs.publishing == 'true' }}
     runs-on: ubuntu-24.04
     permissions:

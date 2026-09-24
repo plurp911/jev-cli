@@ -12,12 +12,42 @@ System One API and the [Jev][jev-docs] model.
 > this project, this notice will say so; until then, assume it has not.
 
 > [!WARNING]
-> **Pre-1.0.** The current version is `0.1.1`, but nothing here has been exercised by
-> anyone outside the project. Exit codes and JSON documents may still change. Read the
-> `schema` field and pin the version if you script against it. The contract in
-> [`docs/cli-contract.md`](docs/cli-contract.md) takes effect at `1.0.0`, not today.
+> **Pre-1.0.** The current version is `0.2.0`. Exit codes and JSON documents may still
+> change. Read the `schema` field and pin the version if you script against it. The
+> contract in [`docs/cli-contract.md`](docs/cli-contract.md) takes effect at `1.0.0`,
+> not today.
 
 ---
+
+## Install and try it
+
+Download the archive for your platform from the [v0.2.0 release][release]. Verify its
+checksum before running it. For Linux x86-64:
+
+```sh
+base=https://github.com/plurp911/jev-cli/releases/download/v0.2.0
+archive=jev-cli-x86_64-unknown-linux-gnu.tar.xz
+curl -fLO "$base/$archive" -fLO "$base/$archive.sha256"
+sha256sum --check "$archive.sha256"
+tar -xJf "$archive"
+jev=./jev-cli-x86_64-unknown-linux-gnu/jev
+"$jev" doctor
+```
+
+See [Install jev](docs/install.md) for Linux ARM, macOS, Windows, and source builds.
+`doctor` does not contact the API unless you pass `--live`. To ask a question, first
+store your TypeSafe API key with `"$jev" auth login`, then run:
+
+```sh
+"$jev" choice "Which team should handle this?" \
+  -O returns="Exchanges and refunds" \
+  -O shipping="Delivery problems" \
+  --state "My order arrived damaged. Can I exchange it?"
+```
+
+The `--state` text is sent to TypeSafe. The answer includes a selected option and
+probabilities for both options. [More examples](#first-question) show JSON output,
+scripts, and batch processing.
 
 ## What Jev is
 
@@ -70,11 +100,9 @@ being safe to run:
 
 The full list is in [`SECURITY.md`](SECURITY.md).
 
-## Install
+## Build from source
 
-`0.1.1` is pre-1.0, and no public release artifact is available yet. The compatibility
-promises in [`docs/cli-contract.md`](docs/cli-contract.md) take effect at `1.0.0`. Build
-from source:
+If your platform has no archive, or you prefer to build the binary yourself:
 
 ```sh
 git clone https://github.com/plurp911/jev-cli
@@ -92,10 +120,8 @@ Requires Rust 1.88 or newer; the pinned toolchain is in
 toolchain for the linker — `cc` and `pkg-config` on Linux, the Xcode command line tools
 on macOS, the Visual Studio Build Tools on Windows.
 
-When releases begin, package managers and verifiable artifacts — with checksums, SBOMs,
-and build provenance attestations — will be the primary paths, and `curl | sh` will
-never be the only option. See [ADR-0014](docs/adr/0014-manual-release-gate.md) and
-[`docs/release-verification.md`](docs/release-verification.md).
+Release archives include checksums and an SPDX SBOM. See [the release verification
+guide](docs/release-verification.md) for the integrity and provenance checks.
 
 ## Authenticate
 
@@ -437,6 +463,7 @@ this work, as defined in the Apache-2.0 license, shall be dual-licensed as above
 without any additional terms or conditions.
 
 [typesafe]: https://typesafe.ai
+[release]: https://github.com/plurp911/jev-cli/releases/tag/v0.2.0
 [typesafe-docs]: https://docs.typesafe.ai
 [jev-docs]: https://docs.typesafe.ai/concepts/system-one
 [parallel]: https://docs.typesafe.ai/cookbooks/parallel_questions

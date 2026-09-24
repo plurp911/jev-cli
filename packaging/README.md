@@ -2,8 +2,10 @@
 
 Where each distribution channel's manifest comes from, and who updates it.
 
-**Nothing here is published.** Releasing is a human decision; see
-[`AGENTS.md`](../AGENTS.md) §12 and [ADR-0005](../docs/adr/0005-release-and-provenance.md).
+The Scoop and WinGet files here are unpublished templates. The release workflow
+publishes GitHub archives and generates a Homebrew formula and shell installer as
+release assets. Each release requires explicit human authorization; see
+[`AGENTS.md`](../AGENTS.md) §12 and [ADR-0014](../docs/adr/0014-manual-release-gate.md).
 
 ## Channels
 

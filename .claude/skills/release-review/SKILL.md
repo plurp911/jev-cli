@@ -3,7 +3,7 @@ name: release-review
 description: >
   Assess whether a release is ready — artifacts, changelog, versioning, checksums,
   SBOM, provenance attestations, and publishing prerequisites — without publishing
-  anything. Use before a human cuts a release, when reviewing a change to the release
+  anything. Use before an authorized release, when reviewing a change to the release
   workflow or packaging configuration, or to answer "could we ship this?". This skill
   never publishes, tags, or pushes.
 allowed-tools: Bash Read Grep Glob
@@ -13,10 +13,9 @@ allowed-tools: Bash Read Grep Glob
 
 > **This skill never releases anything.** It does not run `git push`, `git tag`,
 > `gh release create`, or `cargo publish`, and it does not dispatch the release
-> workflow with `dry_run: false`. Releasing is a human act requiring explicit
-> authorization for that specific release — `AGENTS.md` §12, `GOVERNANCE.md`,
-> `docs/adr/0005-release-and-provenance.md`. If asked to release, produce this review
-> and hand it to a human.
+> workflow with `dry_run: false`. Each tag and release requires explicit human
+> authorization for that specific act — `AGENTS.md` §12 and `GOVERNANCE.md`. If asked
+> to release, complete this review before any separately authorized release steps.
 
 ## 0. Confirm the pipeline is still disarmed
 
@@ -147,4 +146,4 @@ Not verified:
 
 Be conservative. A release is hard to unship, and a broken or leaky release from a
 community CLI that handles API keys does lasting damage to the project's credibility.
-End by restating that a human must perform the release.
+End by stating whether a human has authorized this specific release.

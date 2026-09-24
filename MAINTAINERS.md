@@ -6,7 +6,7 @@ This project is maintained by the community. It is not staffed by TypeSafe AI.
 | --- | --- |
 | Maintainer | Reviews and merges changes; owns the roadmap and scope decisions. |
 | Security responder | Triages private vulnerability reports; owns `SECURITY.md`, `deny.toml`, and the workflow permissions. |
-| Release manager | Runs the release process defined in `docs/adr/0014-manual-release-gate.md`. Releases require a human; no agent may release. |
+| Release manager | Reviews the release process defined in `docs/adr/0014-manual-release-gate.md` and authorizes each tag and release. |
 
 ## Current maintainers
 

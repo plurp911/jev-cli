@@ -46,9 +46,11 @@ pipes into this one.
 
 ## Releases
 
-Releases are made by a human. No AI agent and no automated merge may cut a release, push
-a tag, or publish a package. The release workflow runs only when a human dispatches it;
-publication also requires disabling its default dry run and confirming an existing tag.
+Each tag and release requires explicit human authorization for that specific act. An
+authorized agent may carry out the reviewed steps; an automated merge cannot cut a
+release, push a tag, or publish a package. The release workflow runs only when it is
+dispatched, and publication requires disabling its default dry run and confirming an
+existing tag.
 See `.github/workflows/release.yml` and `docs/adr/0014-manual-release-gate.md`.
 
 ## AI-authored code

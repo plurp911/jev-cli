@@ -16,6 +16,11 @@ policy, use `AGENTS.md` and [ADR-0014](docs/adr/0014-manual-release-gate.md).
 
 ## [Unreleased]
 
+## 0.2.0 — 2026-09-23
+
+The first public release. It includes the changes below and the command surface from
+the earlier `0.1.1` development milestone.
+
 ### Added
 
 - **`jev mcp serve`: a local, stdio-only Model Context Protocol server** ([`docs/mcp.md`](docs/mcp.md),

@@ -267,9 +267,9 @@ Ordered by how much each would cost to get wrong.
    `config`, and `completions` were not exercised. That is one account, one model
    version, and small synthetic inputs. Nothing runs it on a schedule, so a
    service change is found by a user first.
-2. **No public release artifact exists.** The pipeline has been rehearsed locally and
-   under the earlier CI setup, but no published artifact has been verified with
-   `gh attestation verify` for real.
+2. **Published artifacts need independent verification.** This comparison reviewed
+   local rehearsals and the earlier CI setup, not a downloaded release artifact. Check
+   the checksum and run `gh attestation verify` on the version you intend to install.
 3. **No external user has tried it.** Every usability judgment here is the author's own.
 4. **The `--require` grammar is frozen the moment someone scripts against it.** Adding
    `in` afterwards is easy; changing precedence or path syntax is not. Decide before 1.0.

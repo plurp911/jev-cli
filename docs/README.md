@@ -4,6 +4,7 @@
 
 | Document | What is in it |
 | --- | --- |
+| [`install.md`](install.md) | Download, verify, and run a release archive on each supported platform. |
 | [`commands.md`](commands.md) | Every command and flag, with examples. |
 | [`output-schema.md`](output-schema.md) | The JSON contract, document by document. |
 | [`cli-contract.md`](cli-contract.md) | What scripts and agents can depend on: streams, exit codes, environment, configuration. |

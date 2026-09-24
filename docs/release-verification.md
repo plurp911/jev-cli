@@ -1,20 +1,18 @@
 # Verifying a release
 
-> **No public release artifact exists yet.** This document describes the verification steps that will
-> apply when one does, so that the process is reviewable before it is used rather than
-> after. The release pipeline runs only after a human dispatches it; see
-> [ADR-0014](adr/0014-manual-release-gate.md).
+The release pipeline runs only when it is dispatched. Publication requires a matching
+existing tag and a successful build provenance job. See
+[ADR-0014](adr/0014-manual-release-gate.md).
 
 `jev` runs on developer machines and can hold a live API key in its environment. A
 compromised artifact is therefore a credential-harvesting vector across every machine
 that installs it. That is why this page exists and why `curl | sh` will never be the
 only install path.
 
-## Prefer a package manager
+## Check a downloaded archive
 
-Homebrew, Scoop, and WinGet already handle checksum verification, and they handle
-updates. Use one if you can. The verification below is for a directly downloaded
-artifact.
+No package manager installation channel is active yet. Download a release archive and
+its checksum file from GitHub. The steps below verify a directly downloaded archive.
 
 ## 1. Checksums
 
@@ -64,10 +62,9 @@ looks wrong. `scripts/check-installers.py` runs in the manual release workflow a
 
 ## 2. Build provenance attestation
 
-The release workflow creates an attestation only when a human selects `attest: true`.
-Publishing does not wait for that optional job. Check that an attestation exists for
-the artifact before treating a release as provenance-backed. If none exists, verify
-the checksum and consider building from source instead.
+Publishing requires `attest: true` and waits for that job to succeed. Still verify
+that an attestation exists for the archive you downloaded before treating it as
+provenance-backed.
 
 When selected, GitHub signs a statement about which workflow, in which repository, at
 which commit, produced the artifact.
@@ -136,7 +133,7 @@ The most direct verification is to build it yourself:
 ```sh
 git clone https://github.com/plurp911/jev-cli
 cd jev-cli
-git verify-tag vX.Y.Z      # once tags are signed
+git checkout vX.Y.Z
 cargo build --release --locked
 ```
 

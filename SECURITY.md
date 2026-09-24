@@ -87,8 +87,8 @@ The reasoning behind these, and the attacks they are meant to stop, is in
 
 ## Supported versions
 
-There is no public release artifact yet. Once releases begin, only the latest release
-is supported. This will be revised when the project reaches 1.0.
+Only the latest published release is supported. This will be revised when the project
+reaches 1.0.
 
 ## Supply chain
 
@@ -99,8 +99,8 @@ is supported. This will be revised when the project reaches 1.0.
   credential canary. The local hook can be bypassed; GitHub runs no automatic CI for
   this repository.
 - `Cargo.lock` is committed and local verification builds with `--locked`.
-- The manual release workflow builds checksums and an SBOM. Build provenance is an
-  optional workflow input and must be checked for each published release; see
+- The manual release workflow builds checksums and an SBOM. Publication requires build
+  provenance, which must be checked on each published release; see
   [ADR-0014](docs/adr/0014-manual-release-gate.md).
 
 If you believe a dependency or a release artifact has been compromised, report it
