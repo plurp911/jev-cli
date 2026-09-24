@@ -192,6 +192,43 @@ pub fn evaluation(
     Ok(notes)
 }
 
+/// The one-line stderr note for a `jev map` run's token totals, in the same words as the
+/// single-request note above. `None` when nothing was answered, because then there is
+/// no reported count to show and the failure warning is the line that matters.
+///
+/// A total over records that did not all report usage says so, rather than printing a
+/// number that looks complete and is low.
+#[must_use]
+pub(crate) fn map_usage(totals: &crate::commands::map::UsageTotals) -> Option<String> {
+    if totals.answered == 0 {
+        return None;
+    }
+    let answered = totals.answered;
+    if totals.input_tokens.is_none() && totals.output_tokens.is_none() {
+        return Some(format!(
+            "the API reported no token counts for the {answered} answered record(s)"
+        ));
+    }
+    // Each count on its own: one that was reported is shown even when the other was not.
+    let input = totals.input_tokens.map_or_else(
+        || "no input count".to_owned(),
+        |input| format!("{input} token{} in", if input == 1 { "" } else { "s" }),
+    );
+    let output = totals.output_tokens.map_or_else(
+        || "no output count".to_owned(),
+        |output| format!("{output} out"),
+    );
+    let mut line = format!("{input}, {output}, over {answered} answered record(s)");
+    if totals.rows_without_usage > 0 {
+        let _ = write!(
+            line,
+            "; {} of them reported no usage, so the totals are a lower bound",
+            totals.rows_without_usage
+        );
+    }
+    Some(line)
+}
+
 /// `items` in the order `names` lists them; anything unlisted follows, in its own order.
 ///
 /// A stable sort on the position in `names`, so the fallback order is the one `items`
@@ -317,6 +354,68 @@ mod tests {
                 .iter()
                 .any(|line| line.contains("similarly likely"))
         );
+    }
+
+    fn totals(
+        input_tokens: Option<u64>,
+        output_tokens: Option<u64>,
+        rows_without_usage: usize,
+        answered: usize,
+    ) -> crate::commands::map::UsageTotals {
+        crate::commands::map::UsageTotals {
+            input_tokens,
+            output_tokens,
+            rows_without_usage,
+            answered,
+        }
+    }
+
+    #[test]
+    fn a_map_usage_line_reads_like_the_single_request_one() {
+        assert_eq!(
+            map_usage(&totals(Some(624), Some(96), 0, 2)).as_deref(),
+            Some("624 tokens in, 96 out, over 2 answered record(s)")
+        );
+        assert_eq!(
+            map_usage(&totals(Some(1), Some(0), 0, 1)).as_deref(),
+            Some("1 token in, 0 out, over 1 answered record(s)")
+        );
+    }
+
+    /// A total over records that did not all report usage is low. Printing it without
+    /// saying so would be the silent understatement the summary field exists to prevent.
+    #[test]
+    fn a_map_usage_line_says_when_the_totals_are_low() {
+        let line = map_usage(&totals(Some(312), Some(48), 1, 2)).expect("a line");
+        assert!(line.starts_with("312 tokens in, 48 out"), "{line}");
+        assert!(line.contains("1 of them reported no usage"), "{line}");
+        assert!(line.contains("totals are a lower bound"), "{line}");
+
+        let line = map_usage(&totals(None, None, 3, 3)).expect("a line");
+        assert!(line.contains("no token counts"), "{line}");
+        assert!(
+            !line.contains('0'),
+            "an unreported count read as zero: {line}"
+        );
+    }
+
+    /// One count reported and the other not: the reported one is still shown, and so is
+    /// the warning, rather than the line collapsing to "nothing was reported".
+    #[test]
+    fn a_map_usage_line_shows_each_count_on_its_own() {
+        let line = map_usage(&totals(None, Some(9), 1, 1)).expect("a line");
+        assert!(line.starts_with("no input count, 9 out"), "{line}");
+        assert!(line.contains("totals are a lower bound"), "{line}");
+
+        let line = map_usage(&totals(Some(40), None, 1, 1)).expect("a line");
+        assert!(line.starts_with("40 tokens in, no output count"), "{line}");
+        assert!(line.contains("totals are a lower bound"), "{line}");
+    }
+
+    /// Nothing answered, nothing reported: the failure warning is the useful line.
+    #[test]
+    fn a_map_run_that_answered_nothing_prints_no_usage_line() {
+        assert_eq!(map_usage(&totals(None, None, 0, 0)), None);
     }
 
     #[test]

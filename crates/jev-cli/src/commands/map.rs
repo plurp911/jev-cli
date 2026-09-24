@@ -34,7 +34,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use jev_client::{ClientError, Credential, Transport};
-use jev_core::{Content, EvaluationRequest, ModelId, Question, QuestionId, State};
+use jev_core::{Content, EvaluationRequest, ModelId, Question, QuestionId, State, Usage};
 use serde_json::{Value, json};
 
 use crate::batch;
@@ -134,6 +134,140 @@ pub(crate) fn request_fingerprint(questions: &[(QuestionId, Question)], model: &
     fnv1a(&rendered)
 }
 
+/// What `--limit` and `--seed` asked for: run only some of the input.
+///
+/// A pilot run is the point. Trying a question set on a few records before billing the
+/// whole batch used to mean `head`ing the input, and the first N lines of a file sorted
+/// by date or by source are a biased sample of it. `--seed` gives an unbiased one that is
+/// still reproducible.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Selection {
+    limit: usize,
+    seed: Option<u64>,
+}
+
+impl Selection {
+    /// `None` without `--limit`. Checked before anything is read or sent, and with
+    /// `jev eval`'s wording, so the two `--limit`s refuse `0` the same way.
+    fn from_args(args: &MapArgs) -> Result<Option<Self>> {
+        let Some(limit) = args.limit else {
+            return Ok(None);
+        };
+        if limit == 0 {
+            return Err(CliError::usage("--limit must be at least 1"));
+        }
+        Ok(Some(Self {
+            limit,
+            seed: args.seed,
+        }))
+    }
+
+    /// The summary's `limit` object: what was asked for, and how much there was.
+    fn summary_value(self, input_records: usize) -> Value {
+        json!({
+            "limit": self.limit,
+            "seed": self.seed,
+            "input_records": input_records,
+        })
+    }
+}
+
+/// Where a record falls in a seeded `--limit` selection. Smaller is chosen first.
+///
+/// The same construction as `dataset::side` -- FNV-1a for stability across builds,
+/// `digest::mix` because FNV's high bits barely move between `0`, `1`, `2` -- keyed on
+/// the record's id, which is the `--id-field` value or the input index.
+///
+/// The `map-limit` prefix is load-bearing. Without it this would be exactly the value
+/// `jev eval` uses to split a dataset, and the natural workflow -- pilot a few records
+/// with `--seed 0`, label them, then run `jev eval`, whose seed also defaults to `0` --
+/// would hand eval rows that were chosen *for* having the smallest values, so every one
+/// of them would land on the test side and calibration would be empty.
+fn selection_key(seed: u64, id: &str) -> u64 {
+    let unit = digest::UNIT;
+    digest::mix(digest::fnv1a_u64(&format!(
+        "map-limit{unit}{seed}{unit}{id}"
+    )))
+}
+
+/// The records a `--limit` run evaluates, in input order, keeping their input indexes.
+///
+/// Without a seed, the first `limit`. With one, the `limit` records whose
+/// [`selection_key`] is smallest, ties broken by input index so that duplicate ids
+/// still select deterministically. Taking the smallest keys rather than, say, a
+/// fraction makes selections **nested**: with the same seed, the records chosen for
+/// `--limit 20` are among those chosen for `--limit 200`, so widening a pilot with
+/// `--resume` re-uses every row already paid for.
+///
+/// Indexes are never renumbered. `--resume` matches a row to a record by its index, and
+/// a selection that renumbered would make row `0` of a seeded pilot describe a
+/// different record from row `0` of the full run.
+fn select(mut records: Vec<Record>, selection: Selection) -> Vec<Record> {
+    if records.len() <= selection.limit {
+        return records;
+    }
+    let Some(seed) = selection.seed else {
+        records.truncate(selection.limit);
+        return records;
+    };
+    let mut keys: Vec<(u64, usize)> = records
+        .iter()
+        .map(|record| (selection_key(seed, &record.id), record.index))
+        .collect();
+    keys.sort_unstable();
+    let chosen: std::collections::BTreeSet<usize> = keys
+        .into_iter()
+        .take(selection.limit)
+        .map(|(_, index)| index)
+        .collect();
+    records.retain(|record| chosen.contains(&record.index));
+    records
+}
+
+/// Narrows `records` to a `--limit` selection, and `done` to the rows inside it.
+///
+/// `done` must already have been checked against the *whole* input. A row for a record
+/// outside the selection is left in the file exactly as it is, and is not counted:
+/// `total` is this run's selection, and counting a row from a wider earlier run as
+/// `resumed` would report `complete` above `total`.
+fn apply_selection(
+    session: &mut Session<'_>,
+    records: Vec<Record>,
+    selection: Selection,
+    done: &mut BTreeMap<usize, CompletedRow>,
+) -> Vec<Record> {
+    let input_records = records.len();
+    let selected = select(records, selection);
+    if selected.len() < input_records {
+        session.warn(&match selection.seed {
+            None => format!(
+                "--limit: evaluating the first {} of {input_records} input record(s)",
+                selected.len()
+            ),
+            Some(seed) => format!(
+                "--limit: evaluating {} of {input_records} input record(s), \
+                 chosen by --seed {seed}",
+                selected.len()
+            ),
+        });
+    }
+    // `selected` is in input order, so a binary search finds a member.
+    let before = done.len();
+    done.retain(|index, _| {
+        selected
+            .binary_search_by_key(index, |record| record.index)
+            .is_ok()
+    });
+    let outside = before - done.len();
+    if outside > 0 {
+        session.warn(&format!(
+            "resuming: {outside} record(s) already answered are outside this --limit \
+             selection; their rows are left where they are and not counted"
+        ));
+    }
+    selected
+}
+
 /// The `--require` expression `jev map` classifies each answered row with, if any.
 ///
 /// The raw text travels with the parsed form so that every row can carry the
@@ -222,6 +356,7 @@ pub(crate) fn run(
     transport: Option<&(dyn Transport + Send + Sync)>,
 ) -> Result<u8> {
     batch::check_concurrency(args.concurrency, "--concurrency")?;
+    let selection = Selection::from_args(args)?;
     let classifier = parse_classifier(args)?;
 
     let (questions, model) = load_questions(session, args)?;
@@ -231,13 +366,14 @@ pub(crate) fn run(
             "no input records were read; there is nothing to evaluate",
         ));
     }
+    let input_records = records.len();
 
     // Computed before the resume check, which needs it, and reused on every row. The
     // model here is the one the run will actually send, after `--model` and the request
     // file have been reconciled by `load_questions`.
     let request_fingerprint = request_fingerprint(&questions, &model);
 
-    let done = if args.resume {
+    let mut done = if args.resume {
         // Both files, because a row this run diverted for review is just as done as one
         // that passed. Reading only the output file would re-evaluate -- and re-bill --
         // every reviewed record on every resume, which is precisely the set a user
@@ -257,17 +393,26 @@ pub(crate) fn run(
         already.extend(from_review);
         check_resume_matches(&already, &records, &request_fingerprint)?;
         warn_about_a_review_file(session, &already, args);
-        if !already.is_empty() {
-            session.warn(&format!(
-                "resuming: {} record(s) already succeeded in the output file; \
-                 any that failed will be retried",
-                already.len()
-            ));
-        }
         already
     } else {
         BTreeMap::new()
     };
+
+    // Selected *after* the resume check, which is why that check still sees every
+    // record: a row in the file is validated against the whole input whether or not
+    // this run's selection includes it, so a changed input is refused exactly as it is
+    // without --limit.
+    let records = match selection {
+        Some(selection) => apply_selection(session, records, selection, &mut done),
+        None => records,
+    };
+    if !done.is_empty() {
+        session.warn(&format!(
+            "resuming: {} record(s) already succeeded in the output file; \
+             any that failed will be retried",
+            done.len()
+        ));
+    }
 
     let pending: Vec<Record> = records
         .into_iter()
@@ -342,6 +487,7 @@ pub(crate) fn run(
             stopped_early,
         },
         classifier.as_ref(),
+        selection.map(|selection| selection.summary_value(input_records)),
     )
 }
 
@@ -689,6 +835,12 @@ pub(crate) struct Outcome {
     /// The gate verdict, for the summary counts. `None` without `--require`, and for a
     /// row that failed before there was an answer to classify.
     gate: Option<GateOutcome>,
+    /// The token counts the API reported for this record, for the summary's totals.
+    ///
+    /// `None` for a row that failed: no response arrived, so there is nothing reported to
+    /// add up. Kept typed rather than read back out of `document`, for the same reason
+    /// `gate` is.
+    usage: Option<Usage>,
 }
 
 /// One file rows are appended to, and what to call it in an error.
@@ -924,6 +1076,10 @@ fn evaluate_one(
                     "gate": gate_value(classifier, verdict.as_ref()),
                 }),
                 gate: verdict,
+                // The final response's counts. A row that succeeded after retries reports
+                // only what the attempt that answered cost; `attempts` says whether there
+                // were others.
+                usage: Some(response.usage),
             };
             // As in `jev.evaluation/v1`: present only when the API skipped a question,
             // so a row without it is complete and a row with it says which are absent.
@@ -1004,6 +1160,7 @@ fn failure(
         // people, and the review file is worth much less if it is also the error log.
         route: Route::Primary,
         gate: None,
+        usage: None,
         document: json!({
             "schema": MAP_ROW_SCHEMA,
             "index": record.index,
@@ -1075,12 +1232,21 @@ fn write_results(
     outcomes: &[Outcome],
     totals: &Totals,
     classifier: Option<&Classifier>,
+    limit: Option<Value>,
 ) -> Result<u8> {
     let succeeded = outcomes.iter().filter(|outcome| outcome.ok).count();
     let failed = outcomes.len() - succeeded;
     let interrupted = interrupt::requested();
     let stopped_early = totals.stopped_early || outcomes.len() < totals.pending;
-    let summary = summary(outcomes, totals, classifier, interrupted);
+    let mut summary = summary(outcomes, totals, classifier, interrupted);
+    // Added here rather than in `summary`, which the MCP `map` tool shares and which has
+    // no `--limit`. Present only when `--limit` was given, so a summary without it still
+    // means "every input record was in this run".
+    if let Some(limit) = limit
+        && let Some(object) = summary.as_object_mut()
+    {
+        object.insert("limit".to_owned(), limit);
+    }
 
     // Rows that went to a file were written and flushed as they completed. What is left
     // to print is whatever was destined for stdout and buffered. The summary goes to
@@ -1098,6 +1264,12 @@ fn write_results(
         }
     }
     render_json::write_document(session.out, &summary)?;
+
+    // What this run cost, on stderr beside the counts the user already reads there. The
+    // same numbers are in the summary's `usage`; this is only their human view.
+    if let Some(line) = crate::render::text::map_usage(&UsageTotals::of(outcomes)) {
+        session.warn(&line);
+    }
 
     if sink.diverts() {
         let diverted = outcomes
@@ -1177,7 +1349,68 @@ pub(crate) fn summary(
         "stopped_early": stopped_early,
         "interrupted": interrupted,
         "gate": gate_counts(classifier, outcomes),
+        "usage": UsageTotals::of(outcomes).to_value(),
     })
+}
+
+/// The token counts the API reported for the records **this run evaluated**.
+///
+/// The same totals, and the same `null` rule, as `jev.eval/v1`'s `usage`: a total is
+/// `null` when no record reported that count, because "the API did not say" and "it cost
+/// nothing" are different facts. A resumed record is not in it -- it was not sent, and
+/// so not paid for, by this run.
+///
+/// `rows_without_usage` is what eval does not have. A sum over the records that
+/// reported a count is silently low whenever some did not, and a cost report must not
+/// understate without saying so; it counts the answered records missing either count.
+/// A *failed* record is counted in neither: it carries no response and so no usage, and
+/// whether its attempts were billed is not something the API reported. `failed` and
+/// each row's `attempts` are where that shows.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub(crate) struct UsageTotals {
+    pub(crate) input_tokens: Option<u64>,
+    pub(crate) output_tokens: Option<u64>,
+    /// Answered records whose response lacked `input_tokens` or `output_tokens`.
+    pub(crate) rows_without_usage: usize,
+    /// Answered records, the denominator the text line reports against.
+    pub(crate) answered: usize,
+}
+
+impl UsageTotals {
+    fn of(outcomes: &[Outcome]) -> Self {
+        let reported: Vec<Usage> = outcomes
+            .iter()
+            .filter_map(|outcome| outcome.usage)
+            .collect();
+        // Saturating rather than `sum`: a u64 of tokens will not overflow in practice,
+        // but a hostile endpoint can report any count it likes, and a panic on its
+        // numbers is not an acceptable way to lose a batch's summary.
+        let total = |pick: fn(&Usage) -> Option<u64>| {
+            reported
+                .iter()
+                .filter_map(pick)
+                .fold(None, |sum: Option<u64>, count| {
+                    Some(sum.unwrap_or(0).saturating_add(count))
+                })
+        };
+        Self {
+            input_tokens: total(|usage| usage.input_tokens),
+            output_tokens: total(|usage| usage.output_tokens),
+            rows_without_usage: reported
+                .iter()
+                .filter(|usage| usage.input_tokens.is_none() || usage.output_tokens.is_none())
+                .count(),
+            answered: reported.len(),
+        }
+    }
+
+    fn to_value(self) -> Value {
+        json!({
+            "input_tokens": self.input_tokens,
+            "output_tokens": self.output_tokens,
+            "rows_without_usage": self.rows_without_usage,
+        })
+    }
 }
 
 /// Opens a file rows are appended to, closing any partial final line first.
@@ -1540,6 +1773,124 @@ mod tests {
         assert_eq!(done, BTreeSet::from([2]));
     }
 
+    // --- Token totals ---------------------------------------------------------------
+
+    fn answered_with(index: usize, input: Option<u64>, output: Option<u64>) -> Outcome {
+        Outcome {
+            index,
+            document: json!({}),
+            ok: true,
+            auth_failed: false,
+            route: Route::Primary,
+            gate: None,
+            usage: Some(Usage {
+                input_tokens: input,
+                output_tokens: output,
+            }),
+        }
+    }
+
+    fn failed_at(index: usize) -> Outcome {
+        failure(
+            &record_at(index, &index.to_string()),
+            "503",
+            "unavailable",
+            3,
+            None,
+            None,
+            "same",
+        )
+    }
+
+    fn summary_usage(outcomes: &[Outcome], resumed: usize) -> Value {
+        let totals = Totals {
+            resumed,
+            pending: outcomes.len(),
+            stopped_early: false,
+        };
+        summary(outcomes, &totals, None, false)["usage"].clone()
+    }
+
+    #[test]
+    fn the_summary_totals_the_usage_every_answered_record_reported() {
+        let outcomes = [
+            answered_with(0, Some(312), Some(48)),
+            answered_with(1, Some(100), Some(2)),
+        ];
+        assert_eq!(
+            summary_usage(&outcomes, 0),
+            json!({"input_tokens": 412, "output_tokens": 50, "rows_without_usage": 0})
+        );
+    }
+
+    /// The sum over the records that reported is low when some did not. Eval reports it
+    /// without saying so; this summary says how many, so it cannot understate silently.
+    #[test]
+    fn a_record_without_usage_is_counted_rather_than_silently_left_out() {
+        let outcomes = [
+            answered_with(0, Some(312), Some(48)),
+            answered_with(1, None, None),
+            // Either count missing is enough to make a total low.
+            answered_with(2, Some(10), None),
+        ];
+        assert_eq!(
+            summary_usage(&outcomes, 0),
+            json!({"input_tokens": 322, "output_tokens": 48, "rows_without_usage": 2})
+        );
+    }
+
+    /// `null`, not `0`, as in `jev.eval/v1`: "the API did not say" is not "free".
+    #[test]
+    fn a_count_no_record_reported_is_null_not_zero() {
+        let outcomes = [answered_with(0, None, None), answered_with(1, None, None)];
+        assert_eq!(
+            summary_usage(&outcomes, 0),
+            json!({"input_tokens": null, "output_tokens": null, "rows_without_usage": 2})
+        );
+    }
+
+    /// A failed record has no response, so it has no reported usage -- and no guessed
+    /// one. It is not a record "without usage" either: that count is about answered
+    /// records whose total is low, and `failed` already counts this one.
+    #[test]
+    fn a_failed_record_adds_nothing_to_the_totals() {
+        let outcomes = [answered_with(0, Some(312), Some(48)), failed_at(1)];
+        assert_eq!(
+            summary_usage(&outcomes, 0),
+            json!({"input_tokens": 312, "output_tokens": 48, "rows_without_usage": 0})
+        );
+        assert_eq!(
+            summary_usage(&[failed_at(0)], 0),
+            json!({"input_tokens": null, "output_tokens": null, "rows_without_usage": 0})
+        );
+    }
+
+    /// A resumed record was not sent by this run and cost it nothing. The totals come
+    /// from this run's outcomes alone, so a resume cannot add a count read back out of
+    /// the file, however many records it skipped.
+    #[test]
+    fn resumed_records_are_not_in_the_totals() {
+        let outcomes = [answered_with(5, Some(7), Some(1))];
+        assert_eq!(
+            summary_usage(&outcomes, 5),
+            json!({"input_tokens": 7, "output_tokens": 1, "rows_without_usage": 0})
+        );
+        assert_eq!(
+            summary_usage(&[], 5),
+            json!({"input_tokens": null, "output_tokens": null, "rows_without_usage": 0})
+        );
+    }
+
+    /// Whatever a hostile endpoint reports, adding it up must not panic the summary away.
+    #[test]
+    fn an_absurd_count_saturates_rather_than_overflowing() {
+        let outcomes = [
+            answered_with(0, Some(u64::MAX), Some(1)),
+            answered_with(1, Some(u64::MAX), Some(1)),
+        ];
+        assert_eq!(summary_usage(&outcomes, 0)["input_tokens"], json!(u64::MAX));
+    }
+
     // --- The concurrency bound ------------------------------------------------------
 
     /// `-j 0` would spawn no workers and hang; `-j 65` is past the cap. Both ends are
@@ -1558,6 +1909,143 @@ mod tests {
         assert!(check(batch::MAX_CONCURRENCY).is_ok());
         assert!(check(batch::MAX_CONCURRENCY + 1).is_err());
         assert!(check(usize::MAX).is_err());
+    }
+
+    // --- --limit and --seed --------------------------------------------------------
+
+    /// `count` records whose id is their position, the shape a run without
+    /// `--id-field` has.
+    fn records(count: usize) -> Vec<Record> {
+        (0..count)
+            .map(|index| record_at(index, &index.to_string()))
+            .collect()
+    }
+
+    fn indexes(records: &[Record]) -> Vec<usize> {
+        records.iter().map(|record| record.index).collect()
+    }
+
+    const fn limit(limit: usize, seed: Option<u64>) -> Selection {
+        Selection { limit, seed }
+    }
+
+    #[test]
+    fn without_a_seed_the_limit_takes_the_first_records() {
+        assert_eq!(indexes(&select(records(10), limit(3, None))), [0, 1, 2]);
+    }
+
+    #[test]
+    fn a_limit_at_or_above_the_record_count_changes_nothing() {
+        for seed in [None, Some(7)] {
+            for at_least in [5, 6, usize::MAX] {
+                assert_eq!(
+                    indexes(&select(records(5), limit(at_least, seed))),
+                    [0, 1, 2, 3, 4],
+                    "--limit {at_least} with seed {seed:?} dropped a record"
+                );
+            }
+        }
+    }
+
+    /// The property `--resume` depends on: the same input and seed select the same
+    /// records on every run, and every build.
+    #[test]
+    fn a_seeded_selection_is_deterministic_and_keeps_input_order_and_indexes() {
+        let first = select(records(200), limit(20, Some(42)));
+        let again = select(records(200), limit(20, Some(42)));
+        assert_eq!(indexes(&first), indexes(&again));
+        assert_eq!(first.len(), 20);
+        // In input order, with the original indexes -- not renumbered 0..20.
+        assert!(indexes(&first).windows(2).all(|pair| pair[0] < pair[1]));
+        assert_ne!(indexes(&first), (0..20).collect::<Vec<_>>());
+        for record in &first {
+            assert_eq!(
+                record.id,
+                record.index.to_string(),
+                "a record was renumbered"
+            );
+        }
+    }
+
+    /// Pinned to literal values, like the digests: a selection that moved under a
+    /// refactor would make a `--resume` of yesterday's pilot evaluate a different set of
+    /// records.
+    #[test]
+    fn a_seeded_selection_is_pinned() {
+        assert_eq!(selection_key(0, "0"), 0xadd5_b95a_cb0c_dced);
+        assert_eq!(
+            indexes(&select(records(20), limit(4, Some(0)))),
+            [7, 13, 14, 15]
+        );
+    }
+
+    #[test]
+    fn a_different_seed_selects_different_records() {
+        let one = indexes(&select(records(200), limit(20, Some(1))));
+        let two = indexes(&select(records(200), limit(20, Some(2))));
+        assert_ne!(one, two);
+    }
+
+    /// Widening a pilot with the same seed keeps every record it already chose, which is
+    /// what lets `--resume` re-use the rows already paid for.
+    #[test]
+    fn a_wider_limit_with_the_same_seed_contains_the_narrower_one() {
+        let narrow = indexes(&select(records(500), limit(10, Some(9))));
+        let wide = indexes(&select(records(500), limit(100, Some(9))));
+        assert!(narrow.iter().all(|index| wide.contains(index)));
+    }
+
+    /// Keyed on the id, not the position: with `--id-field`, a record keeps its key
+    /// wherever it sits in the file.
+    #[test]
+    fn the_seeded_key_follows_the_id_not_the_position() {
+        let keyed: Vec<Record> = (0..50)
+            .map(|index| record_at(index, &format!("ticket-{index}")))
+            .collect();
+        let shifted: Vec<Record> = (0..50)
+            .map(|index| record_at(index + 1, &format!("ticket-{index}")))
+            .collect();
+        let ids = |records: Vec<Record>| -> Vec<String> {
+            select(records, limit(5, Some(3)))
+                .into_iter()
+                .map(|record| record.id)
+                .collect()
+        };
+        assert_eq!(ids(keyed), ids(shifted));
+    }
+
+    /// Duplicate ids hash identically; the input index decides, so the selection is
+    /// still deterministic and still exactly `limit` long.
+    #[test]
+    fn ties_are_broken_by_input_index() {
+        let duplicates: Vec<Record> = (0..6).map(|index| record_at(index, "same")).collect();
+        assert_eq!(indexes(&select(duplicates, limit(2, Some(5)))), [0, 1]);
+    }
+
+    /// `jev eval` splits on `mix(fnv1a("{seed}\x1f{id}"))`. A pilot chosen on the same
+    /// value would pick the rows eval puts on its test side, all of them.
+    #[test]
+    fn the_selection_key_is_not_evals_holdout_key() {
+        assert_ne!(
+            selection_key(0, "row-1"),
+            digest::mix(digest::fnv1a_u64("0\u{1f}row-1"))
+        );
+    }
+
+    #[test]
+    fn a_zero_limit_is_refused() {
+        use clap::Parser as _;
+        let cli = crate::cli::Cli::try_parse_from(["jev", "map", "-r", "q.json", "--limit", "0"])
+            .expect("parses");
+        let crate::cli::Command::Map(args) = cli.command else {
+            panic!("not map");
+        };
+        let error = Selection::from_args(&args).expect_err("0 must be refused");
+        assert_eq!(error.code(), exit::USAGE);
+        assert!(
+            error.to_string().contains("--limit must be at least 1"),
+            "{error}"
+        );
     }
 
     #[test]

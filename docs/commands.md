@@ -251,6 +251,7 @@ One question set over many records.
 
 ```
 jev map -r PATH [-i PATH] [--lines] [--state-field F] [--id-field F]
+        [--limit N [--seed S]]
         [--output-file PATH] [--resume] [-j N] [--fail-fast]
         [--require EXPR] [--review-file PATH]
 ```
@@ -262,6 +263,8 @@ jev map -r PATH [-i PATH] [--lines] [--state-field F] [--id-field F]
 | `--lines` | off | Treat each line as plain text rather than a JSON value. |
 | `--state-field <F>` | whole record | Use this field of each JSON record as the state. |
 | `--id-field <F>` | input index | Use this field as the row id. |
+| `--limit <N>` | every record | Run only N of the input records; at least 1. |
+| `--seed <S>` | first N | Choose the `--limit` records by a seeded hash of each id instead. Requires `--limit`. |
 | `--output-file <PATH>` | stdout | Write rows here; the summary still goes to stdout. Refused if it already has rows, unless `--resume`. |
 | `--resume` | off | Skip records already in the output file, and append. Requires `--output-file`. |
 | `-j, --concurrency <N>` | `4` | Requests in flight. Maximum 64. |
@@ -280,6 +283,14 @@ Properties worth relying on:
 - **Input order is output order**, whatever order the requests finished in.
 - **Rows fail independently.** A run with failures exits `5` and every successful row is
   still written.
+- **The summary totals the tokens the API reported.** Its `usage` adds up the counts on
+  the records this run answered, so there is no need to sum the rows with `jq`. It is
+  not a bill: a failed record reports no usage, even one whose response arrived and
+  could not be decoded, and neither does a failed earlier attempt of a retried record.
+  Records `--resume` skipped are not in it, because this run did not pay for them, and
+  `rows_without_usage` counts answered records whose response carried no usage, so a
+  total that is only a lower bound says so. The same totals are one line on stderr. See
+  [`output-schema.md`](output-schema.md#jevmaprowv1-and-jevmapsummaryv1).
 - **Nothing is cached.** `--resume` reads the output file to see which indexes are
   already done; it never replays a stored model judgment, so a resumed run is as fresh
   as a new one.
@@ -312,6 +323,39 @@ Properties worth relying on:
   ```
 - **A failed write ends the run** with exit `74` and no summary, rather than reporting a
   partial batch in which nothing failed.
+
+### Trying a question set on a few records first
+
+`--limit N` runs only N of the input records, so a question set can be tried before the
+whole batch is billed. On its own it takes the first N, which is what `head` would give
+you — and the first N lines of a file sorted by date or by source are a biased sample of
+it. `--seed S` takes N chosen by a hash of each record's id (the `--id-field` value, or
+the input index without one) instead: spread across the file, and the same N every time
+for the same input and seed.
+
+```console
+$ jev map -r classify.json -i tickets.jsonl --id-field ticket \
+    --limit 50 --seed 1 --output-file out.jsonl
+--limit: evaluating 50 of 12000 input record(s), chosen by --seed 1
+```
+
+- **Records keep their input `index`**, and are sent in input order; stdout is in input
+  order and row files in completion order, as for any run. A limit at or above the
+  number of records changes nothing. `--dry-run` previews the selection.
+- **The summary describes the selection.** `total` is the size of the selection — N, or
+  fewer when the input holds fewer records — so `complete` against `total`
+  still answers "is this run done?"; a `limit` object records what was asked for and
+  how many records the input held. See [`output-schema.md`](output-schema.md).
+- **Selections nest.** With the same seed, the records chosen for `--limit 50` are among
+  those chosen for `--limit 500`, and the first 50 are among the first 500. So widening a
+  pilot with `--resume` — or dropping `--limit` to run the rest — re-uses every row
+  already answered and sends only the new ones.
+- **`--resume` with a different selection is safe.** Every row already in the output
+  file is still checked against the whole input, so a changed input is refused whether or
+  not the changed record is in this run's selection. Rows for records outside the
+  selection are left in the file as they are, are not re-sent, and are not counted in the
+  summary; a line on stderr says how many there were. The file can therefore hold more
+  rows than the summary's `total`.
 
 ### Separating the rows worth looking at
 
@@ -389,7 +433,8 @@ export, a ticket dump, a diff. `--state-field` is the tool for narrowing that: i
 one field of each record instead of the whole thing.
 
 `--dry-run` prints the request that would be sent and sends nothing, but it samples only
-the first few records; it tells you the shape, not the whole payload. The row files hold
+the first few records (of the `--limit` selection, when there is one); it tells you the
+shape, not the whole payload. The row files hold
 the model's answers about your state and are created `0600` on Unix for that reason. The
 `state_digest` in each row is a 16-character FNV-1a change detector and carries no state
 content.

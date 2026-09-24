@@ -387,12 +387,13 @@ nothing is ever discarded.
   "succeeded": 97, "failed": 1, "complete": 99, "stopped_early": true,
   "interrupted": false,
   "gate": { "expression": "urgent.noul > 0.9", "passed": 80, "failed": 16,
-            "unevaluable": 1 } }
+            "unevaluable": 1 },
+  "usage": { "input_tokens": 30264, "output_tokens": 4656, "rows_without_usage": 0 } }
 ```
 
 | Field | Meaning |
 | --- | --- |
-| `total` | Records read from the input. |
+| `total` | Records in this run: every record read from the input, or the `--limit` selection. |
 | `resumed` | Records skipped because `--resume` found them already done. |
 | `evaluated` | Records actually sent this run. |
 | `succeeded` / `failed` | How those `evaluated` records turned out. |
@@ -400,11 +401,52 @@ nothing is ever discarded.
 | `stopped_early` | The run did not reach every pending record. |
 | `interrupted` | The specific reason was a signal. |
 | `gate` | How `--require` classified the rows **this run answered**, or `null`. |
+| `limit` | Present only when `--limit` was given; see below. |
+| `usage.input_tokens` | integer or null. Total the API reported for the records **this run answered**. Billable. `null` when no record reported a count. |
+| `usage.output_tokens` | integer or null. The same, for output tokens. Currently free of charge. |
+| `usage.rows_without_usage` | Answered records whose response lacked either count. Non-zero means the totals are only a lower bound. |
+
+`limit` records a `--limit` run, and is **absent** otherwise, so a summary without it
+means every input record was in the run:
+
+```json
+"limit": { "limit": 50, "seed": 1, "input_records": 12000 }
+```
+
+`limit` is the `--limit` value, `seed` the `--seed` value or `null` for the first N, and
+`input_records` the number of records read from the input. `total` is the size of the
+selection, which is `input_records` when the limit was at or above it. A resumed output
+file can hold rows for records outside the selection, from an earlier run with a wider
+or different one; they are not counted in `total`, `resumed`, or `complete`.
 
 The gate counts cover only the rows this run evaluated. A resumed row is not
 re-classified, because it is not re-evaluated — that is the point of `--resume` — so
 counting it would mean reading a verdict back out of a file and reporting it as though
 this run had reached it.
+
+`usage` is what the rows' own `usage` objects add up to, so it replaces summing them with
+`jq`. It follows `jev.eval/v1`'s `usage`, plus one field:
+
+- **It covers this run only.** A record `--resume` skipped was paid for by the run that
+  answered it, not this one, and is not in the total. Across resumed runs, add up each
+  run's summary, or sum the rows of the output file — and of the `--review-file` too,
+  when one diverted rows, since an answered record's row is in exactly one of them.
+- **`null` is not `0`.** A total is `null` when no answered record reported that count:
+  "the API did not say" and "it cost nothing" are different facts.
+- **A total is never low without saying so.** A record whose response carried no usage
+  cannot be added, so it is counted in `rows_without_usage` instead. When that is not
+  `0`, the totals are only a lower bound.
+- **Failed records are in neither.** A failed row carries no usage — including one
+  whose response arrived but could not be decoded, since the count is read from the
+  decoded response — and `jev` does not estimate one. Each of its `attempts` may still have
+  been billed; `failed` and the row's `attempts` are where that shows.
+- **A retried record reports the response that answered.** Earlier attempts that failed
+  reported no usage; `attempts` on the row says whether there were any.
+
+Whether a count is billable is TypeSafe's pricing, not this CLI's: at the time of writing
+<https://docs.typesafe.ai/models> says *"Charged per input token. Output tokens are
+free."* The same totals are printed on stderr after the run, as one line such as
+`624 tokens in, 96 out, over 2 answered record(s)`, unless `--quiet`.
 
 A successful row also carries `missing_answers`, an array of question ids, when the API
 returned no answer for them; the field is absent otherwise.

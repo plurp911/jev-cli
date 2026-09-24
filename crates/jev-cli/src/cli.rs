@@ -436,6 +436,14 @@ pub struct MapArgs {
     #[arg(long, value_name = "FIELD", conflicts_with = "lines")]
     pub(crate) id_field: Option<String>,
 
+    /// Run only N of the input records; at least 1. Without --seed, the first N
+    #[arg(long, value_name = "N")]
+    pub(crate) limit: Option<usize>,
+
+    /// Choose the --limit records by a hash of each id and this seed, not the first N
+    #[arg(long, value_name = "S", requires = "limit")]
+    pub(crate) seed: Option<u64>,
+
     /// Write results here instead of to standard output. Required by --resume.
     #[arg(long, value_name = "PATH")]
     pub(crate) output_file: Option<PathBuf>,

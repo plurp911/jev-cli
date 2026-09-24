@@ -580,6 +580,12 @@ fn map_returns_one_cli_row_per_record_in_input_order_and_keeps_failures_as_failu
         assert_eq!(document["summary"]["schema"], "jev.map.summary/v1");
         assert_eq!(document["summary"]["succeeded"], 2);
         assert_eq!(document["summary"]["failed"], 1);
+        // The CLI's summary, token totals included: the two answered records' counts,
+        // and nothing for the one that failed.
+        assert_eq!(
+            document["summary"]["usage"],
+            json!({"input_tokens": 624, "output_tokens": 96, "rows_without_usage": 0})
+        );
         client.cancel().await.unwrap();
     });
 }

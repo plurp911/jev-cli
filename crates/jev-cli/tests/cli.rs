@@ -1663,6 +1663,182 @@ fn map_resumes_without_re_evaluating_completed_records() {
     assert!(!written.contains("jev.map.summary"));
 }
 
+/// A one-question file for the token-total tests.
+fn usage_questions() -> tempfile::NamedTempFile {
+    let questions = tempfile::NamedTempFile::new().unwrap();
+    std::fs::write(
+        questions.path(),
+        json!({"urgent": {"type": "noul", "instructions": "Urgent?"}}).to_string(),
+    )
+    .unwrap();
+    questions
+}
+
+/// A Noul response with no `usage` object at all.
+fn noul_body_without_usage() -> String {
+    json!({"model": "jev-1.13.0", "answers": {"answer": {"type": "noul", "noul": 0.92}}})
+        .to_string()
+}
+
+#[test]
+fn map_summary_totals_the_usage_the_rows_report() {
+    // What users were summing rows with `jq` to learn. The failed record in the middle
+    // carries no usage and adds none: nothing reported a count for it.
+    let api = MockApi::start(vec![
+        Reply::ok(noul_body()),
+        Reply::status(400, r#"{"detail":"bad"}"#),
+        Reply::ok(noul_body()),
+    ]);
+    let questions = usage_questions();
+    let assert = jev_authed()
+        .args(["map", "-r", questions.path().to_str().unwrap()])
+        .args(["--endpoint", &api.endpoint(), "-j", "1", "--retries", "0"])
+        .write_stdin("\"a\"\n\"b\"\n\"c\"\n")
+        .assert()
+        .code(5);
+
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
+    let lines: Vec<serde_json::Value> = stdout
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    let summary = lines.last().unwrap();
+    assert_eq!(
+        summary["usage"],
+        json!({"input_tokens": 624, "output_tokens": 96, "rows_without_usage": 0})
+    );
+    // The same number the `jq` sum over the rows gives.
+    let summed: u64 = lines
+        .iter()
+        .filter(|line| line["schema"] == json!("jev.map.row/v1"))
+        .filter_map(|line| line["usage"]["input_tokens"].as_u64())
+        .sum();
+    assert_eq!(summary["usage"]["input_tokens"], json!(summed));
+
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+    assert!(
+        stderr.contains("624 tokens in, 96 out, over 2 answered record(s)"),
+        "{stderr}"
+    );
+}
+
+#[test]
+fn map_summary_usage_leaves_out_records_resumed_from_the_file() {
+    // Records 0 and 1 were paid for by an earlier run. Their rows say so, and this run's
+    // total must not repeat it.
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = usage_questions();
+    let out = tempfile::NamedTempFile::new().unwrap();
+    std::fs::write(
+        out.path(),
+        "{\"schema\":\"jev.map.row/v1\",\"index\":0,\"ok\":true,\
+          \"usage\":{\"input_tokens\":9000,\"output_tokens\":900}}\n\
+         {\"schema\":\"jev.map.row/v1\",\"index\":1,\"ok\":true,\
+          \"usage\":{\"input_tokens\":9000,\"output_tokens\":900}}\n",
+    )
+    .unwrap();
+
+    let assert = jev_authed()
+        .args(["map", "-r", questions.path().to_str().unwrap()])
+        .args(["--output-file", out.path().to_str().unwrap(), "--resume"])
+        .args(["--endpoint", &api.endpoint()])
+        .write_stdin("\"a\"\n\"b\"\n\"c\"\n")
+        .assert()
+        .success();
+
+    let summary = json_stdout(assert.get_output());
+    assert_eq!(summary["resumed"], json!(2));
+    assert_eq!(
+        summary["usage"],
+        json!({"input_tokens": 312, "output_tokens": 48, "rows_without_usage": 0})
+    );
+}
+
+#[test]
+fn map_summary_counts_the_records_whose_usage_was_not_reported() {
+    // The first response has no `usage`. Summing the other two alone would be a total
+    // that looks complete and is low; the count says it is not complete.
+    let api = MockApi::start(vec![
+        Reply::ok(noul_body_without_usage()),
+        Reply::ok(noul_body()),
+    ]);
+    let questions = usage_questions();
+    let assert = jev_authed()
+        .args(["map", "-r", questions.path().to_str().unwrap()])
+        .args(["--endpoint", &api.endpoint(), "-j", "1"])
+        .write_stdin("\"a\"\n\"b\"\n\"c\"\n")
+        .assert()
+        .success();
+
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
+    let summary: serde_json::Value = serde_json::from_str(stdout.lines().last().unwrap()).unwrap();
+    assert_eq!(
+        summary["usage"],
+        json!({"input_tokens": 624, "output_tokens": 96, "rows_without_usage": 1})
+    );
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+    assert!(stderr.contains("1 of them reported no usage"), "{stderr}");
+}
+
+#[test]
+fn map_summary_usage_is_null_when_no_record_reported_any() {
+    // `null`, as in `jev.eval/v1`: "the API did not say" is not "it cost nothing".
+    let api = MockApi::start(vec![Reply::ok(noul_body_without_usage())]);
+    let questions = usage_questions();
+    let assert = jev_authed()
+        .args(["map", "-r", questions.path().to_str().unwrap()])
+        .args(["--endpoint", &api.endpoint()])
+        .write_stdin("\"a\"\n\"b\"\n")
+        .assert()
+        .success();
+
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
+    let summary: serde_json::Value = serde_json::from_str(stdout.lines().last().unwrap()).unwrap();
+    assert_eq!(
+        summary["usage"],
+        json!({"input_tokens": null, "output_tokens": null, "rows_without_usage": 2})
+    );
+}
+
+#[test]
+fn map_summary_usage_after_a_retry_is_the_answering_responses() {
+    // The 503 reported nothing; the total is what the response that answered reported,
+    // and the row's `attempts` is what says there was an earlier attempt.
+    let api = MockApi::start(vec![
+        Reply::status(503, "{}").header("retry-after-ms", "1"),
+        Reply::ok(noul_body()),
+    ]);
+    let questions = usage_questions();
+    let assert = jev_authed()
+        .args(["map", "-r", questions.path().to_str().unwrap()])
+        .args(["--endpoint", &api.endpoint(), "--retries", "1"])
+        .write_stdin("\"a\"\n")
+        .assert()
+        .success();
+
+    let stdout = String::from_utf8_lossy(&assert.get_output().stdout);
+    let lines: Vec<serde_json::Value> = stdout
+        .lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect();
+    assert_eq!(lines[0]["attempts"], json!(2));
+    assert_eq!(lines[1]["usage"]["input_tokens"], json!(312));
+}
+
+#[test]
+fn map_usage_line_respects_quiet() {
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = usage_questions();
+    let assert = jev_authed()
+        .args(["--quiet", "map", "-r", questions.path().to_str().unwrap()])
+        .args(["--endpoint", &api.endpoint()])
+        .write_stdin("\"a\"\n")
+        .assert()
+        .success();
+    let stderr = String::from_utf8_lossy(&assert.get_output().stderr);
+    assert!(!stderr.contains("tokens in"), "{stderr}");
+}
+
 #[test]
 fn map_resume_does_not_append_onto_a_truncated_line() {
     // The failure `--resume` exists to handle: a `SIGKILL` or a power cut leaves the
@@ -2693,8 +2869,9 @@ fn the_map_documents_have_their_documented_fields() {
         .assert()
         .success();
 
+    let summary = json_stdout(assert.get_output());
     assert_keys(
-        &json_stdout(assert.get_output()),
+        &summary,
         &[
             "schema",
             "total",
@@ -2706,7 +2883,12 @@ fn the_map_documents_have_their_documented_fields() {
             "stopped_early",
             "interrupted",
             "gate",
+            "usage",
         ],
+    );
+    assert_keys(
+        &summary["usage"],
+        &["input_tokens", "output_tokens", "rows_without_usage"],
     );
 
     let row: serde_json::Value =
@@ -3165,6 +3347,52 @@ fn map_an_unevaluable_expression_is_diverted_not_treated_as_a_pass() {
     let summary = json_stdout(assert.get_output());
     assert_eq!(summary["gate"]["unevaluable"], json!(1));
     assert_eq!(summary["gate"]["passed"], json!(0));
+}
+
+#[test]
+fn map_summary_usage_includes_the_rows_diverted_to_the_review_file() {
+    // A diverted row was answered and paid for like any other. A tally over the output
+    // file alone would miss it; the summary must not.
+    let api = MockApi::start(vec![
+        Reply::ok(noul_body_with(0.92)),
+        Reply::ok(noul_body_with(0.10)),
+    ]);
+    let questions = urgent_questions();
+    let out = tempfile::NamedTempFile::new().unwrap();
+    let review = tempfile::NamedTempFile::new().unwrap();
+
+    let assert = jev_authed()
+        .args(["map", "-r", questions.path().to_str().unwrap()])
+        .args(["--endpoint", &api.endpoint(), "-j", "1"])
+        .args(["--require", "answer.noul > 0.9"])
+        .args(["--output-file", out.path().to_str().unwrap()])
+        .args(["--review-file", review.path().to_str().unwrap()])
+        .write_stdin("\"a\"\n\"b\"\n")
+        .assert()
+        .success();
+
+    let rows = |path: &std::path::Path| -> Vec<serde_json::Value> {
+        std::fs::read_to_string(path)
+            .unwrap()
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .map(|line| serde_json::from_str(line).unwrap())
+            .collect()
+    };
+    let (passed, diverted) = (rows(out.path()), rows(review.path()));
+    assert_eq!((passed.len(), diverted.len()), (1, 1));
+
+    let summary = json_stdout(assert.get_output());
+    assert_eq!(
+        summary["usage"],
+        json!({"input_tokens": 2, "output_tokens": 2, "rows_without_usage": 0})
+    );
+    let summed: u64 = passed
+        .iter()
+        .chain(&diverted)
+        .filter_map(|row| row["usage"]["input_tokens"].as_u64())
+        .sum();
+    assert_eq!(summary["usage"]["input_tokens"], json!(summed));
 }
 
 #[test]
@@ -5318,6 +5546,399 @@ fn map_resume_refuses_an_output_file_that_describes_more_records_than_the_input_
         .assert()
         .code(2)
         .stderr(predicate::str::contains("different input"));
+}
+
+// --- map --limit and --seed ---------------------------------------------------------
+
+/// `count` plain-text records, `line-0` to `line-{count - 1}`, for `--lines`.
+fn numbered_lines(count: usize) -> String {
+    (0..count).fold(String::new(), |mut text, index| {
+        text.push_str("line-");
+        text.push_str(&index.to_string());
+        text.push('\n');
+        text
+    })
+}
+
+/// Every JSON line of `text`, in order.
+fn jsonl(text: &str) -> Vec<serde_json::Value> {
+    text.lines()
+        .map(|line| serde_json::from_str(line).unwrap())
+        .collect()
+}
+
+/// The `index` of each row document among `documents`, skipping the summary.
+fn row_indexes(documents: &[serde_json::Value]) -> Vec<u64> {
+    documents
+        .iter()
+        .filter(|document| document["schema"] == json!("jev.map.row/v1"))
+        .map(|document| document["index"].as_u64().unwrap())
+        .collect()
+}
+
+/// `jev map --lines` over `input` against `api`, with `extra` arguments.
+fn map_lines(
+    api: &MockApi,
+    questions: &tempfile::NamedTempFile,
+    extra: &[&str],
+) -> assert_cmd::Command {
+    let mut command = jev_authed();
+    command.args([
+        "map",
+        "-r",
+        questions.path().to_str().unwrap(),
+        "--lines",
+        "--endpoint",
+        &api.endpoint(),
+    ]);
+    command.args(extra);
+    command
+}
+
+#[test]
+fn map_limit_evaluates_only_the_first_records_and_says_so() {
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = one_noul_question();
+
+    let assert = map_lines(&api, &questions, &["--limit", "2"])
+        .write_stdin(numbered_lines(5))
+        .assert()
+        .success()
+        .stderr(predicate::str::contains(
+            "--limit: evaluating the first 2 of 5 input record(s)",
+        ))
+        .stderr(predicate::str::contains("sending 2 record(s)"));
+
+    assert_eq!(
+        api.hits(),
+        2,
+        "--limit 2 sent a different number of requests"
+    );
+    let documents = jsonl(&String::from_utf8_lossy(&assert.get_output().stdout));
+    assert_eq!(row_indexes(&documents), [0, 1]);
+    let summary = documents.last().unwrap();
+    // `total` is the run's universe, so `complete == total` still means "done".
+    assert_eq!(summary["total"], json!(2));
+    assert_eq!(summary["complete"], json!(2));
+    assert_eq!(
+        summary["limit"],
+        json!({"limit": 2, "seed": null, "input_records": 5})
+    );
+    assert_no_canary(assert.get_output());
+
+    // `--quiet` silences the diagnostic, like every other warning.
+    map_lines(&api, &questions, &["--limit", "2", "--quiet"])
+        .write_stdin(numbered_lines(5))
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("--limit:").not());
+}
+
+#[test]
+fn map_limit_at_or_above_the_record_count_changes_nothing_but_is_still_reported() {
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = one_noul_question();
+
+    let assert = map_lines(&api, &questions, &["--limit", "3", "--seed", "4"])
+        .write_stdin(numbered_lines(3))
+        .assert()
+        .success()
+        // Nothing was dropped, so there is nothing to say.
+        .stderr(predicate::str::contains("--limit:").not());
+
+    assert_eq!(api.hits(), 3);
+    let documents = jsonl(&String::from_utf8_lossy(&assert.get_output().stdout));
+    assert_eq!(row_indexes(&documents), [0, 1, 2]);
+    let summary = documents.last().unwrap();
+    assert_eq!(summary["total"], json!(3));
+    // Present because the flag was passed, even though it dropped nothing.
+    assert_eq!(
+        summary["limit"],
+        json!({"limit": 3, "seed": 4, "input_records": 3})
+    );
+}
+
+#[test]
+fn the_map_summary_gains_only_a_limit_key_under_limit() {
+    let api = MockApi::start(vec![Reply::ok(urgent_body())]);
+    let questions = one_noul_question();
+
+    let assert = map_lines(&api, &questions, &["--limit", "1"])
+        .write_stdin(numbered_lines(2))
+        .assert()
+        .success();
+    let documents = jsonl(&String::from_utf8_lossy(&assert.get_output().stdout));
+    assert_keys(
+        documents.last().unwrap(),
+        &[
+            "schema",
+            "total",
+            "resumed",
+            "evaluated",
+            "succeeded",
+            "failed",
+            "complete",
+            "stopped_early",
+            "interrupted",
+            "gate",
+            "usage",
+            "limit",
+        ],
+    );
+    assert_keys(
+        &documents.last().unwrap()["limit"],
+        &["limit", "seed", "input_records"],
+    );
+}
+
+#[test]
+fn map_seed_selects_the_same_records_every_time_and_keeps_their_indexes() {
+    let questions = one_noul_question();
+    let mut runs = Vec::new();
+    for _ in 0..2 {
+        let api = MockApi::start(vec![Reply::ok(noul_body())]);
+        let assert = map_lines(&api, &questions, &["--limit", "4", "--seed", "0"])
+            .write_stdin(numbered_lines(20))
+            .assert()
+            .success()
+            .stderr(predicate::str::contains(
+                "--limit: evaluating 4 of 20 input record(s), chosen by --seed 0",
+            ));
+        let documents = jsonl(&String::from_utf8_lossy(&assert.get_output().stdout));
+        // The same selection the unit test pins, reached through the real binary: the
+        // original indexes, in input order, never renumbered 0..4.
+        assert_eq!(row_indexes(&documents), [7, 13, 14, 15]);
+        for row in documents.iter().take(4) {
+            assert_eq!(row["id"], json!(row["index"].to_string()));
+        }
+        // And what was sent is those records' states, not the first four lines.
+        let mut sent: Vec<String> = api
+            .requests()
+            .iter()
+            .map(|request| {
+                let body: serde_json::Value = serde_json::from_str(&request.body).unwrap();
+                body["state"].to_string()
+            })
+            .collect();
+        sent.sort();
+        assert_eq!(
+            sent,
+            ["line-13", "line-14", "line-15", "line-7"]
+                .map(|line| json!(line).to_string())
+                .to_vec()
+        );
+        assert_eq!(
+            documents.last().unwrap()["limit"],
+            json!({"limit": 4, "seed": 0, "input_records": 20})
+        );
+        runs.push(row_indexes(&documents));
+    }
+    assert_eq!(runs[0], runs[1]);
+
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let other = map_lines(&api, &questions, &["--limit", "4", "--seed", "1"])
+        .write_stdin(numbered_lines(20))
+        .assert()
+        .success();
+    let documents = jsonl(&String::from_utf8_lossy(&other.get_output().stdout));
+    assert_ne!(
+        row_indexes(&documents),
+        runs[0],
+        "the seed did not move the selection"
+    );
+}
+
+#[test]
+fn map_seed_without_limit_is_refused() {
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = one_noul_question();
+
+    map_lines(&api, &questions, &["--seed", "3"])
+        .write_stdin(numbered_lines(3))
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("--limit"));
+    assert_eq!(api.hits(), 0);
+}
+
+#[test]
+fn map_limit_zero_is_refused_before_anything_is_sent_or_read() {
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = one_noul_question();
+
+    // Input that is not valid JSON: had it been read, that would be the error.
+    jev_authed()
+        .args([
+            "map",
+            "-r",
+            questions.path().to_str().unwrap(),
+            "--limit",
+            "0",
+            "--endpoint",
+            &api.endpoint(),
+        ])
+        .write_stdin("not json\n")
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("--limit must be at least 1"));
+    assert_eq!(api.hits(), 0);
+}
+
+#[test]
+fn map_dry_run_shows_the_limited_selection() {
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    let questions = one_noul_question();
+
+    let assert = map_lines(
+        &api,
+        &questions,
+        &["--limit", "4", "--seed", "0", "--dry-run"],
+    )
+    .write_stdin(numbered_lines(20))
+    .assert()
+    .success()
+    .stderr(predicate::str::contains("4 record(s) would be evaluated"));
+
+    assert_eq!(api.hits(), 0, "a dry run sent a request");
+    let document = json_stdout(assert.get_output());
+    assert_eq!(document["records"], json!(4));
+    let sampled: Vec<u64> = document["sample"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["index"].as_u64().unwrap())
+        .collect();
+    assert_eq!(sampled, [7, 13, 14], "the preview is not the selection");
+    assert_eq!(document["sample"][0]["body"]["state"], json!("line-7"));
+    assert_eq!(document["sample_truncated"], json!(true));
+}
+
+/// The workflow `--limit` exists for: pilot a few records, then widen, then run the
+/// rest, all against one output file, with nothing evaluated -- or billed -- twice.
+#[test]
+fn map_limit_resumes_and_widens_without_re_evaluating_anything() {
+    let questions = one_noul_question();
+    let directory = tempfile::tempdir().unwrap();
+    let out = directory.path().join("out.jsonl");
+    let out_path = out.to_str().unwrap();
+    let input = numbered_lines(10);
+
+    let run = |extra: &[&str], expect_hits: usize| {
+        let api = MockApi::start(vec![Reply::ok(noul_body())]);
+        let mut args = vec!["--output-file", out_path];
+        args.extend_from_slice(extra);
+        let assert = map_lines(&api, &questions, &args)
+            .write_stdin(input.clone())
+            .assert()
+            .success();
+        assert_eq!(
+            api.hits(),
+            expect_hits,
+            "{extra:?} sent the wrong number of requests"
+        );
+        (
+            json_stdout(assert.get_output()),
+            String::from_utf8_lossy(&assert.get_output().stderr).into_owned(),
+        )
+    };
+
+    // A seeded pilot of three.
+    let (pilot, _) = run(&["--limit", "3", "--seed", "2"], 3);
+    assert_eq!(pilot["total"], json!(3));
+    let piloted = row_indexes(&jsonl(&std::fs::read_to_string(&out).unwrap()));
+    assert_eq!(piloted.len(), 3);
+
+    // The same pilot again, resumed: nothing is sent, and it is complete.
+    let (again, _) = run(&["--limit", "3", "--seed", "2", "--resume"], 0);
+    assert_eq!(again["total"], json!(3));
+    assert_eq!(again["resumed"], json!(3));
+    assert_eq!(again["complete"], json!(3));
+
+    // Widened with the same seed: the three already answered are inside the new
+    // selection, so only three more are sent.
+    let (wider, _) = run(&["--limit", "6", "--seed", "2", "--resume"], 3);
+    assert_eq!(wider["total"], json!(6));
+    assert_eq!(wider["resumed"], json!(3));
+    assert_eq!(wider["complete"], json!(6));
+
+    // A different seed selecting fewer: every chosen record is in the file already, and
+    // the rows outside the selection are left alone and not counted.
+    let (narrower, stderr) = run(&["--limit", "2", "--seed", "99", "--resume"], {
+        // How many of seed 99's two are among the six done depends on the hash; work
+        // it out from the file rather than asserting a guess.
+        let done: Vec<u64> = row_indexes(&jsonl(&std::fs::read_to_string(&out).unwrap()));
+        let api = MockApi::start(vec![Reply::ok(noul_body())]);
+        let preview = map_lines(
+            &api,
+            &questions,
+            &["--limit", "2", "--seed", "99", "--dry-run"],
+        )
+        .write_stdin(input.clone())
+        .assert()
+        .success();
+        json_stdout(preview.get_output())["sample"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|entry| !done.contains(&entry["index"].as_u64().unwrap()))
+            .count()
+    });
+    assert_eq!(narrower["total"], json!(2));
+    assert_eq!(narrower["complete"], json!(2));
+    let resumed = narrower["resumed"].as_u64().unwrap();
+    assert!(
+        stderr.contains(&format!(
+            "{} record(s) already answered are outside this --limit selection",
+            6 - resumed
+        )),
+        "{stderr}"
+    );
+
+    // Finally the whole input, still resumed: only what no earlier run reached.
+    let before = row_indexes(&jsonl(&std::fs::read_to_string(&out).unwrap())).len();
+    let (all, _) = run(&["--resume"], 10 - before);
+    assert_eq!(all["total"], json!(10));
+    assert_eq!(all["complete"], json!(10));
+    assert!(all.get("limit").is_none(), "no --limit, so no limit object");
+
+    // Every record is in the file exactly once.
+    let mut indexes = row_indexes(&jsonl(&std::fs::read_to_string(&out).unwrap()));
+    indexes.sort_unstable();
+    assert_eq!(indexes, (0..10).collect::<Vec<u64>>());
+}
+
+/// The resume check still sees the whole input under `--limit`: a row for a record the
+/// selection leaves out is validated all the same, so a changed input is refused rather
+/// than quietly ignored because it happened to fall outside this run's sample.
+#[test]
+fn map_limit_resume_still_refuses_a_changed_record_outside_the_selection() {
+    let questions = one_noul_question();
+    let directory = tempfile::tempdir().unwrap();
+    let out = directory.path().join("out.jsonl");
+
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    map_lines(&api, &questions, &["--output-file", out.to_str().unwrap()])
+        .write_stdin(numbered_lines(4))
+        .assert()
+        .success();
+
+    let api = MockApi::start(vec![Reply::ok(noul_body())]);
+    map_lines(
+        &api,
+        &questions,
+        &[
+            "--output-file",
+            out.to_str().unwrap(),
+            "--resume",
+            "--limit",
+            "1",
+        ],
+    )
+    .write_stdin("line-0\nline-1\nline-2\nCHANGED\n")
+    .assert()
+    .code(2)
+    .stderr(predicate::str::contains("different input"));
+    assert_eq!(api.hits(), 0);
 }
 
 /// A request file with one question of each type, and a matching labelled dataset.

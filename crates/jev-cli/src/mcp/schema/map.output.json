@@ -196,7 +196,8 @@
         "complete",
         "stopped_early",
         "interrupted",
-        "gate"
+        "gate",
+        "usage"
       ],
       "description": "The `jev.map.summary/v1` document.",
       "properties": {
@@ -245,6 +246,44 @@
               "type": "null"
             }
           ]
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "input_tokens",
+            "output_tokens",
+            "rows_without_usage"
+          ],
+          "description": "Token totals the API reported for the records answered by this call. A total is null when no record reported that count. `input_tokens` is billable; `output_tokens` is currently free. `rows_without_usage` counts answered records that reported no count, so a non-zero value means the totals are only a lower bound. Failed records carry no usage and are in neither.",
+          "properties": {
+            "input_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "output_tokens": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "rows_without_usage": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
         }
       }
     }
