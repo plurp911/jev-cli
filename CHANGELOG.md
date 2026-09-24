@@ -16,6 +16,29 @@ policy, use `AGENTS.md` and [ADR-0014](docs/adr/0014-manual-release-gate.md).
 
 ## [Unreleased]
 
+## 0.2.1 — 2026-09-24
+
+### Added
+
+- **`jev map --limit N` and `--seed S`: run a question set on a few records before
+  billing the whole batch** ([`docs/commands.md`](docs/commands.md)). `jev eval` had
+  `--limit` and `jev map` did not, so a pilot meant `head`ing the input — and the first N
+  rows of a file sorted by date or by source are a biased sample. `--limit` alone takes
+  the first N; with `--seed` it takes N chosen by a hash of each record's id, the same N
+  for the same input and seed. Records keep their input `index`, selections nest as N
+  grows, and `--resume` re-uses rows already answered, so a pilot can be widened into
+  the full run without re-sending anything. `--limit 0` is refused, as in `jev eval`.
+  The `jev.map.summary/v1` document gains a `limit` object, present only under
+  `--limit`; `total` counts the selection.
+- `usage` in `jev.map.summary/v1`, and so in the MCP `map` tool's `summary`: the
+  `input_tokens` and `output_tokens` the API reported for the records this run
+  answered, which users were summing out of the rows with `jq`. It follows
+  `jev.eval/v1`'s `usage` — a total is `null` when nothing reported it, never `0` —
+  and adds `rows_without_usage`, the answered records whose response carried no count,
+  so a total that is only a lower bound says so. Records skipped by `--resume` are
+  not in it; failed records carry no usage and are in neither. The same totals are one
+  line on stderr.
+
 ## 0.2.0 — 2026-09-23
 
 The first public release. It includes the changes below and the command surface from

@@ -12,7 +12,7 @@ System One API and the [Jev][jev-docs] model.
 > this project, this notice will say so; until then, assume it has not.
 
 > [!WARNING]
-> **Pre-1.0.** The current version is `0.2.0`. Exit codes and JSON documents may still
+> **Pre-1.0.** The current version is `0.2.1`. Exit codes and JSON documents may still
 > change. Read the `schema` field and pin the version if you script against it. The
 > contract in [`docs/cli-contract.md`](docs/cli-contract.md) takes effect at `1.0.0`,
 > not today.
@@ -21,11 +21,11 @@ System One API and the [Jev][jev-docs] model.
 
 ## Install and try it
 
-Download the archive for your platform from the [v0.2.0 release][release]. Verify its
+Download the archive for your platform from the [v0.2.1 release][release]. Verify its
 checksum before running it. For Linux x86-64:
 
 ```sh
-base=https://github.com/plurp911/jev-cli/releases/download/v0.2.0
+base=https://github.com/plurp911/jev-cli/releases/download/v0.2.1
 archive=jev-cli-x86_64-unknown-linux-gnu.tar.xz
 curl -fLO "$base/$archive" -fLO "$base/$archive.sha256"
 sha256sum --check "$archive.sha256"
@@ -463,7 +463,7 @@ this work, as defined in the Apache-2.0 license, shall be dual-licensed as above
 without any additional terms or conditions.
 
 [typesafe]: https://typesafe.ai
-[release]: https://github.com/plurp911/jev-cli/releases/tag/v0.2.0
+[release]: https://github.com/plurp911/jev-cli/releases/tag/v0.2.1
 [typesafe-docs]: https://docs.typesafe.ai
 [jev-docs]: https://docs.typesafe.ai/concepts/system-one
 [parallel]: https://docs.typesafe.ai/cookbooks/parallel_questions

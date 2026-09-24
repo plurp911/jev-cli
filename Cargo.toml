@@ -3,7 +3,7 @@ members = ["crates/*"]
 resolver = "3"
 
 [workspace.package]
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.88"
 license = "MIT OR Apache-2.0"
@@ -15,13 +15,13 @@ authors = ["jev-cli contributors"]
 publish = false
 
 [workspace.dependencies]
-jev-client = { path = "crates/jev-client", version = "0.2.0" }
+jev-client = { path = "crates/jev-client", version = "0.2.1" }
 # `default-features = false` here, with `jev-cli` re-enabling `os-keychain` through a
 # feature of its own. Left on, `jev-config`'s defaults were enabled by the dependency
 # edge no matter what was passed on the command line, so the separable feature was not
 # separable from the binary and the documented keychain-less build was unreachable.
-jev-config = { path = "crates/jev-config", version = "0.2.0", default-features = false }
-jev-core = { path = "crates/jev-core", version = "0.2.0" }
+jev-config = { path = "crates/jev-config", version = "0.2.1", default-features = false }
+jev-core = { path = "crates/jev-core", version = "0.2.1" }
 
 # --- Runtime dependencies. Each one is justified in `docs/adr/0004-dependency-policy.md`.
 clap = { version = "4.6", default-features = false, features = ["std", "derive", "help", "usage", "error-context", "suggestions", "wrap_help"] }
