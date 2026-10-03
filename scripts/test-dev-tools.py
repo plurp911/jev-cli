@@ -148,18 +148,27 @@ class HookSetup(unittest.TestCase):
     def setUp(self):
         self.work = tempfile.TemporaryDirectory(prefix="jev-hook-test-")
         self.root = Path(self.work.name)
-        subprocess.run(["git", "init", "--quiet", str(self.root)], check=True)
+        self.environment = os.environ.copy()
+        # A linked-worktree hook exports GIT_DIR/GIT_COMMON_DIR. Leaving them set
+        # redirects fixture init/config into the real repository, even with cwd set.
+        selectors = subprocess.run(["git", "rev-parse", "--local-env-vars"],
+                                   capture_output=True, text=True, check=True).stdout.splitlines()
+        for name in selectors:
+            self.environment.pop(name, None)
+        self.environment.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
+        subprocess.run(["git", "init", "--quiet", str(self.root)], env=self.environment, check=True)
         (self.root / ".githooks").mkdir()
 
     def tearDown(self):
         self.work.cleanup()
 
     def git(self, *args):
-        return subprocess.run(["git", *args], cwd=self.root, capture_output=True, text=True, check=True).stdout.strip()
+        return subprocess.run(["git", *args], cwd=self.root, env=self.environment,
+                              capture_output=True, text=True, check=True).stdout.strip()
 
     def install(self):
         return subprocess.run(["sh", str(ROOT / "scripts/install-hooks.sh")], cwd=self.root,
-                              capture_output=True, text=True, check=False)
+                              env=self.environment, capture_output=True, text=True, check=False)
 
     def test_absolute_equivalent_hook_path_and_rerun_converge(self):
         self.git("config", "core.hooksPath", str(self.root / ".githooks"))
@@ -181,6 +190,41 @@ class HookSetup(unittest.TestCase):
                 self.git("config", "core.hooksPath", path)
                 self.assertEqual(0, self.install().returncode)
                 self.assertEqual(".githooks", self.git("config", "--get", "core.hooksPath"))
+
+
+class HookEnvironment(unittest.TestCase):
+    def test_hook_fixtures_preserve_a_linked_worktrees_shared_git_configuration(self):
+        with tempfile.TemporaryDirectory(prefix="jev-hook-environment-") as work:
+            parent = Path(work) / "parent"
+            linked = Path(work) / "linked"
+            # This outer fixture starts without Git's repository-local selectors;
+            # the child then receives the same selectors a worktree hook inherits.
+            environment = os.environ.copy()
+            selectors = subprocess.run(["git", "rev-parse", "--local-env-vars"],
+                                       capture_output=True, text=True, check=True).stdout.splitlines()
+            for name in selectors:
+                environment.pop(name, None)
+            environment.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1")
+
+            def git(*args, cwd=parent):
+                return subprocess.run(["git", *args], cwd=cwd, env=environment,
+                                      capture_output=True, text=True, check=True).stdout.strip()
+
+            git("init", "--quiet", str(parent), cwd=work)
+            git("-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid",
+                "commit", "--allow-empty", "--quiet", "-m", "fixture")
+            git("worktree", "add", "--quiet", "--detach", str(linked))
+            git("config", "core.hooksPath", ".githooks")
+            hook_environment = {**environment,
+                                "GIT_DIR": git("rev-parse", "--path-format=absolute", "--git-dir", cwd=linked),
+                                "GIT_COMMON_DIR": git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=linked)}
+            result = subprocess.run([sys.executable, str(Path(__file__).resolve()), "HookSetup"],
+                                    cwd=linked, env=hook_environment,
+                                    capture_output=True, text=True, check=False)
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual("false", git("config", "--local", "--get", "core.bare"))
+            self.assertEqual(".githooks", git("config", "--local", "--get", "core.hooksPath"))
+            self.assertEqual("", git("status", "--porcelain"))
 
 
 class ReleaseCredentialProbe(unittest.TestCase):
