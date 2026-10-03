@@ -9,6 +9,17 @@ document, comment, or prompt contradicts this one, this one wins — say so, and
 
 ---
 
+## Start here
+
+Run `python3 scripts/dev-setup.py bootstrap` for a new clone, then
+`python3 scripts/dev-setup.py doctor` for read-only environment diagnosis.
+`scripts/verify.sh` remains the completion gate. The operational capability map,
+golden exemplars, context sources, and verification maintenance procedure are in
+[`docs/development/agent-workflows.md`](docs/development/agent-workflows.md).
+Run `python3 scripts/check-agent-readiness.py` to detect drift in those paths.
+Development skills have one canonical home at `.claude/skills/`; any agent can read
+the relevant `SKILL.md` directly. Do not maintain separate copies for other runtimes.
+
 ## 1. Mission
 
 `jev` is an independent, community-maintained command-line interface for TypeSafe AI's
@@ -295,7 +306,7 @@ coverage.
 | Integration | `crates/jev-cli/tests/` | Real process, real exit codes, real stream separation |
 | Compatibility | `crates/jev-client/tests/fixtures/` | Recorded official documents still encode and decode |
 | Transport | `crates/jev-client/tests/transport.rs` | The real HTTP client against a real socket |
-| Fuzz | `fuzz/` | Five targets over hostile bytes, each asserting a domain invariant |
+| Fuzz | `fuzz/` | Six targets over hostile bytes, each asserting a domain invariant |
 | Live | `crates/jev-cli/tests/live.rs` | Opt-in, `#[ignore]`d, run with a real key |
 
 Coverage can be measured locally with `cargo llvm-cov`. It is deliberately **not** a

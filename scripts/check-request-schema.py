@@ -10,7 +10,8 @@ something keeps it true. This is that something.
 Every file in `examples/requests/` must validate. The negative cases below must not:
 a schema that accepts everything would pass the first check and tell nobody anything.
 
-`jsonschema` is optional; without it this reports `skip`, never a silent pass.
+Without `jsonschema`, exit 77 reports that validation did not run. The repository
+verifier records a skip locally and refuses a push until the module is installed.
 """
 
 from __future__ import annotations
@@ -82,7 +83,7 @@ def main() -> int:
         import jsonschema
     except ImportError:
         print("skip  jsonschema is not installed; cannot validate the request schema")
-        return 0
+        return 77
 
     schema = json.loads(SCHEMA.read_text())
     validator_for = jsonschema.validators.validator_for(schema)

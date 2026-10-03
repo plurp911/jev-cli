@@ -101,9 +101,26 @@ fi
 chmod +x "$binary"
 
 # Run it the way a user would, from an unpacked archive, with nothing inherited.
-env -i "JEV_CONFIG_DIR=$STAGE/config" "PATH=/usr/bin:/bin" "$binary" --version
-env -i "JEV_CONFIG_DIR=$STAGE/config" "PATH=/usr/bin:/bin" "$binary" doctor >/dev/null
-printf '  ok  the unpacked binary runs and reports its configuration\n'
+env -i "JEV_CONFIG_DIR=$STAGE/config" "JEV_NO_KEYCHAIN=1" "PATH=/usr/bin:/bin" "$binary" --version
+env -i "JEV_CONFIG_DIR=$STAGE/config" "JEV_NO_KEYCHAIN=1" "PATH=/usr/bin:/bin" "$binary" doctor >/dev/null
+# A missing credential must fail locally, before the artifact can contact the API.
+# Disabling the OS store makes this independent of the releaser's real keychain.
+set +e
+printf 'state' | env -i "JEV_CONFIG_DIR=$STAGE/config" "JEV_NO_KEYCHAIN=1" \
+  "PATH=/usr/bin:/bin" "$binary" noul "is this urgent?" >"$STAGE/no-key.stdout" 2>"$STAGE/no-key.stderr"
+code=$?
+set -e
+# Exit 3 also covers an HTTP authentication rejection. Check the local reason and
+# disabled store explicitly; never echo an unexpected diagnostic into a release log.
+if [ "$code" != 3 ] || [ -s "$STAGE/no-key.stdout" ] || \
+  ! grep -Fq 'no TypeSafe API key found' "$STAGE/no-key.stderr" || \
+  ! grep -Fq 'disabled by JEV_NO_KEYCHAIN' "$STAGE/no-key.stderr" || \
+  ! grep -Fq 'JEV_API_KEY' "$STAGE/no-key.stderr" || \
+  grep -Fiq 'HTTP' "$STAGE/no-key.stderr"; then
+  printf 'expected a local missing-credential refusal with the OS store disabled (exit 3), got exit %s\n' "$code" >&2
+  exit 1
+fi
+printf '  ok  the unpacked binary runs, reports configuration, and refuses missing credentials\n'
 
 # The archive must also carry the licences and the changelog, because a binary
 # distributed without its licence text is a licence violation.

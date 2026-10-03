@@ -18,7 +18,7 @@ if ! command -v cargo-fuzz >/dev/null 2>&1; then
   printf 'cargo-fuzz is not installed.\n  cargo install cargo-fuzz --locked\n' >&2
   exit 127
 fi
-if ! rustup toolchain list 2>/dev/null | grep -q '^nightly'; then
+if ! rustup toolchain list 2>/dev/null | grep -Eq '^nightly(-[a-zA-Z]|[[:space:]]|$)'; then
   printf 'a nightly toolchain is required.\n  rustup toolchain install nightly\n' >&2
   exit 127
 fi

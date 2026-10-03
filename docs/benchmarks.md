@@ -19,15 +19,31 @@ made, no credential is needed, and nothing leaves the machine.
 scripts/bench.sh 300      # 300 iterations per measurement
 ```
 
-The script builds the release binary, starts the mock, and prints the table. It is
-about two hundred and forty lines of shell and one small Python server; read it before
-trusting it.
+The script builds the release binary, starts the mock, and prints the table. Fixtures
+stay fixed at 200 and 2000 records; the argument controls process measurements. Use
+`scripts/bench.sh 1` for a small process run with the full batch fixtures.
+
+`scripts/benchmark.py` times successful subprocesses with Python's monotonic clock and
+reports peak child memory in KiB on Linux and macOS. A failed command stops the run
+without reporting a timing. Its own startup is outside the measured interval. Run
+`python3 scripts/test-benchmark.py` to check those failure and success paths.
+Memory includes the child's process launch, whose inherited memory can set a floor
+above the executable's own needs. The `/bin/true` memory probe makes that floor visible;
+figures close to it cannot distinguish the CLI's allocations.
+
+The harness clears inherited credential sources, uses a dummy credential for its local
+mock, disables the real OS keychain, and gives configuration and files an isolated
+scratch directory. Cleanup stops and reaps its own server before removing that directory.
+The current offline doctor measurement therefore excludes a real keychain round trip.
 
 ## Results
 
 Recorded 2026-09-19 on Linux x86_64, with the calibration section added 2026-09-20, `rustc` 1.94.1, release profile (`lto = "thin"`,
 `codegen-units = 1`, `panic = "abort"`, symbols stripped). **One machine, one run.**
-Treat these as an order of magnitude, not a specification.
+Treat these as an order of magnitude, not a specification. These historical figures
+predate the MCP server in ADR-0012. The current binary includes its async dependencies,
+with a runtime constructed only for `jev mcp serve`; rerun the harness for current
+size, dependency counts, and timings.
 
 ### Process overhead
 
@@ -159,7 +175,8 @@ the same reason `map`'s does, and the same `--max-input-bytes` ceiling applies â
 | Peak RSS, `eval` over 2000 rows at `-j 16` | 16.2 MB |
 
 The 89 crates are mostly TLS: `rustls`, `ring`, and the Mozilla root store, plus the
-platform credential store. There is no async runtime.
+platform credential store. That historical build had no async runtime; the MCP server
+added one subsequently (ADR-0012).
 
 ## Two bugs this benchmark found
 

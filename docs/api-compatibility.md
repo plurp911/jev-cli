@@ -211,13 +211,16 @@ JEV_LIVE_TESTS=1 JEV_API_KEY=… cargo test -p jev-cli --test live -- --ignored 
 | `a_pinned_model_answers_and_reports_itself` | An alias resolves, the resolved version is reported, and pinning it reaches the same model |
 | `a_validation_error_is_reported_with_its_field` | A server-side rejection is classified and reported without panicking |
 | `a_gate_against_a_live_answer_exits_as_documented` | Exit `1` on a failed gate, with the answer still on stdout |
+| `a_rejected_credential_exits_3_after_one_attempt` | A deliberately invalid credential produces exit `3` after one attempt |
 
 They never print the key, never write it anywhere, and send only synthetic text.
 `usage.input_tokens` is asserted present on every response, so the cost of a run is
 visible in its output rather than assumed.
 
-**Status: run on 2026-09-23 against `jev-1.13.0`, all ten passing** (about 1,700 input
-tokens in total). The same day, a wider manual pass exercised `ask`, `map`, `eval`,
+**Historical status: run on 2026-09-23 against `jev-1.13.0`, all ten then recorded passing**
+(about 1,700 input tokens in total). The current suite contains eleven ignored tests;
+the historical count does not establish a live result for every current test. The same
+day, a wider manual pass exercised `ask`, `map`, `eval`,
 `mcp serve`, credential handling and server-side validation against the live API, about
 185 requests in all: `ask`, `map`, `eval`, `doctor --live`, `auth status`, credential
 errors, server-side validation, and all five `jev mcp serve` tools. `auth login` against

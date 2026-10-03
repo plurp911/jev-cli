@@ -35,6 +35,9 @@ Thumbs.db
 
 # Local agent scratch space. Never commit transcripts or scratch analysis.
 /.agent-scratch/
+/.agent/bootstrap/
+/.agent/bootstrap-state.json
+/.agent/bootstrap-history/
 /.agents/
 /.codex/
 /.claude/settings.local.json
@@ -95,6 +98,9 @@ credentials.*
 /.claude/skills/test-driven-development/
 /.claude/skills/verification-before-completion/
 /.claude/skills/dispatching-parallel-agents/
+
+# Local agent-ready-repo skill.
+/.claude/skills/agent-ready-repo/
 
 # Staging tree that `scripts/skill-eval.sh` builds so `claude plugin eval` sees the
 # shipped skills as a plugin. Regenerated on every run; never edit it.

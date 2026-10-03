@@ -1,6 +1,6 @@
 # Fuzzing
 
-Five targets, over the five places attacker-influenced bytes enter `jev`.
+Six targets, over six places attacker-influenced bytes enter `jev`.
 
 | Target | Input | Also asserts |
 | --- | --- | --- |
@@ -9,6 +9,7 @@ Five targets, over the five places attacker-influenced bytes enter `jev`.
 | `gate_expression` | a `--require` expression | an unevaluable gate never reports a pass |
 | `endpoint_url` | a base URL from a flag or the config file | anything accepted is TLS-protected or unambiguously loopback; normalization is idempotent |
 | `state_input` | state from stdin or a file | the byte limit is respected exactly; nothing is silently truncated |
+| `eval_dataset` | a labelled JSONL dataset | each label is valid for its question and every row id is unique |
 
 Each target asserts more than "does not panic". A fuzzer that only checks for crashes
 finds crashes; these check the invariants the rest of the codebase is allowed to assume.
@@ -22,14 +23,17 @@ cargo install cargo-fuzz --locked
 cargo +nightly fuzz run api_response -- -max_total_time=60
 ```
 
-`scripts/fuzz-smoke.sh` runs every target briefly, which is what CI does. It is a smoke
-test, not a campaign: it catches a target that stopped building or an invariant that
-broke, not deep bugs. Long runs are worth doing by hand before a release.
+`scripts/fuzz-smoke.sh` runs every target briefly. The full local verifier runs it when
+`cargo-fuzz` and nightly are available; `scripts/verify.sh --push` requires the local
+tools (ADR-0013). It is a smoke test, not a campaign: it catches a target that stopped
+building or an invariant that broke, not deep bugs. Long runs are worth doing by hand
+before a release.
 
 ## Corpus
 
-`corpus/<target>/` is not committed. Seed `api_response` from the compatibility
-fixtures, which are real documents:
+`corpus/<target>/` is not committed. The smoke script seeds every target from the
+committed `seeds/<target>/` fixtures and seeds `api_response` from the compatibility
+fixtures, which are real documents. To seed that target manually:
 
 ```sh
 mkdir -p fuzz/corpus/api_response

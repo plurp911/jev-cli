@@ -17,6 +17,10 @@ set -Eeuo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 ITERATIONS="${1:-200}"
+if ! [[ "$ITERATIONS" =~ ^[0-9]+$ ]] || ! [[ "$ITERATIONS" =~ [1-9] ]]; then
+  printf 'iterations must be a positive integer\n' >&2
+  exit 2
+fi
 BIN=target/release/jev
 
 printf 'building the release binary\n'
@@ -28,11 +32,19 @@ if [ ! -x "$BIN" ]; then
 fi
 
 WORK="$(mktemp -d)"
-trap 'rm -rf "$WORK"; [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null || true' EXIT
+cleanup() {
+  if [ -n "${SERVER_PID:-}" ]; then
+    kill "$SERVER_PID" 2>/dev/null || true
+    wait "$SERVER_PID" 2>/dev/null || true
+  fi
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
 
 export JEV_CONFIG_DIR="$WORK/config"
+export JEV_NO_KEYCHAIN=1
 export JEV_CUSTOM_API_KEY="sk-bench-not-a-real-key"
-unset JEV_API_KEY TYPESAFE_API_KEY JEV_API_KEY_FILE || true
+unset JEV_API_KEY TYPESAFE_API_KEY JEV_API_KEY_FILE JEV_CUSTOM_API_KEY_FILE || true
 
 # --- A local mock API. Python's stdlib only; nothing is installed. -------------------
 cat > "$WORK/server.py" <<'PY'
@@ -144,19 +156,10 @@ labelled 2000 "$WORK/labelled-2000.jsonl"
 cut -c1- "$WORK/records.jsonl" | sed 's/.*"body":"//; s/"}$//' > "$WORK/records.txt"
 
 # --- Measurement ----------------------------------------------------------------------
-# `time` over a loop rather than per-invocation: the per-call cost here is close to the
-# resolution of the shell's own timing, so a loop is the honest way to measure it.
+# Timing is inside the Python helper, so its startup is not part of ms/op. Every
+# subprocess must succeed; failed requests are not a faster benchmark result.
 measure() {
-  local label="$1" iterations="$2"; shift 2
-  local start end total per
-  start="$(date +%s%N)"
-  for _ in $(seq 1 "$iterations"); do
-    "$@" > /dev/null 2>&1 || true
-  done
-  end="$(date +%s%N)"
-  total=$(( (end - start) / 1000000 ))
-  per="$(awk "BEGIN {printf \"%.2f\", $total / $iterations}")"
-  printf '  %-44s %8s ms/op   (%s iterations, %s ms total)\n' "$label" "$per" "$iterations" "$total"
+  python3 scripts/benchmark.py time "$@"
 }
 
 printf '\njev benchmark\n'
@@ -211,9 +214,10 @@ measure "plain lines in, stdout out" 5 \
   "$BIN" map --request "$WORK/request.json" --input "$WORK/records.txt" \
   --lines --endpoint "$ENDPOINT" -j 16
 measure "JSONL in, file out" 5 \
-  sh -c "rm -f '$WORK/out.jsonl'; '$BIN' map --request '$WORK/request.json' \
-    --input '$WORK/records.jsonl' --state-field body --id-field id \
-    --endpoint '$ENDPOINT' -j 16 --output-file '$WORK/out.jsonl'"
+  sh -c "rm -f \"\$1\"; shift; exec \"\$@\"" sh "$WORK/out.jsonl" \
+    "$BIN" map --request "$WORK/request.json" \
+    --input "$WORK/records.jsonl" --state-field body --id-field id \
+    --endpoint "$ENDPOINT" -j 16 --output-file "$WORK/out.jsonl"
 
 # A second size, so the table shows whether cost is linear in records or has a fixed
 # component that a single size cannot distinguish.
@@ -254,29 +258,21 @@ printf '  %-44s %8s\n' "crates in the runtime graph" \
   "$(cargo tree -p jev-cli -e normal --quiet --prefix none 2>/dev/null \
      | awk '{print $1, $2}' | sort -u | grep -c . || echo '?')"
 
-if command -v /usr/bin/time >/dev/null 2>&1; then
-  printf '\npeak resident memory\n'
-  rss="$(/usr/bin/time -f '%M' "$BIN" ask --questions "$WORK/request.json" \
-      --state-file "$WORK/state.txt" --endpoint "$ENDPOINT" --output json 2>&1 >/dev/null \
-      | tail -1)"
-  printf '  %-44s %8s KB\n' "ask, 3 questions" "$rss"
-  rss="$(/usr/bin/time -f '%M' "$BIN" map --request "$WORK/request.json" \
-      --input "$WORK/records.jsonl" --state-field body --id-field id \
-      --endpoint "$ENDPOINT" -j 16 2>&1 >/dev/null | tail -1)"
-  printf '  %-44s %8s KB\n' "map, 200 records, -j 16" "$rss"
-  # Records are read up front, so memory is expected to grow with the input. Measuring
-  # both sizes is what makes that a stated property rather than an assumption.
-  rss="$(/usr/bin/time -f '%M' "$BIN" map --request "$WORK/request.json" \
-      --input "$WORK/records-2000.jsonl" --state-field body --id-field id \
-      --endpoint "$ENDPOINT" -j 16 2>&1 >/dev/null | tail -1)"
-  printf '  %-44s %8s KB\n' "map, 2000 records, -j 16" "$rss"
-  # `eval` holds every row *and* every answer, because the metrics need the whole set
-  # at once. That is a real difference from `map`, which discards a row once written,
-  # and it is why this is measured rather than assumed.
-  rss="$(/usr/bin/time -f '%M' "$BIN" eval --request "$WORK/request.json" \
-      --dataset "$WORK/labelled-2000.jsonl" --endpoint "$ENDPOINT" -j 16 \
-      --objective maximize-f1 --output json 2>&1 >/dev/null | tail -1)"
-  printf '  %-44s %8s KB\n' "eval, 2000 rows, -j 16" "$rss"
-fi
+# Each memory probe starts a fresh helper, so child RSS cannot inherit the maximum
+# of an earlier probe. Python normalizes macOS bytes and Linux KiB to the same unit.
+printf '\npeak resident memory\n'
+python3 scripts/benchmark.py rss "/bin/true (measurement floor)" /bin/true
+python3 scripts/benchmark.py rss "ask, 3 questions" \
+  "$BIN" ask --questions "$WORK/request.json" --state-file "$WORK/state.txt" \
+  --endpoint "$ENDPOINT" --output json
+python3 scripts/benchmark.py rss "map, 200 records, -j 16" \
+  "$BIN" map --request "$WORK/request.json" --input "$WORK/records.jsonl" \
+  --state-field body --id-field id --endpoint "$ENDPOINT" -j 16
+python3 scripts/benchmark.py rss "map, 2000 records, -j 16" \
+  "$BIN" map --request "$WORK/request.json" --input "$WORK/records-2000.jsonl" \
+  --state-field body --id-field id --endpoint "$ENDPOINT" -j 16
+python3 scripts/benchmark.py rss "eval, 2000 rows, -j 16" \
+  "$BIN" eval --request "$WORK/request.json" --dataset "$WORK/labelled-2000.jsonl" \
+  --endpoint "$ENDPOINT" -j 16 --objective maximize-f1 --output json
 
 printf '\nMeasured: this CLI. Not measured: Jev itself.\n'

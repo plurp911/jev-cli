@@ -70,6 +70,21 @@ optional() {
   fi
 }
 
+# Python modules need the same honest missing-tool treatment as executables.
+optional_module() {
+  local name="$1" module="$2" hint="$3"; shift 3
+  if python3 -c 'import importlib.util, sys; sys.exit(importlib.util.find_spec(sys.argv[1]) is None)' "$module"; then
+    run "$name" "$hint" "$@"
+  else
+    [ "$MODE" = "list" ] && printf '  %s (missing: %s)\n' "$name" "$hint"
+    if [ "$MODE" = "push" ]; then
+      FAILED+=("$name (missing Python module: $module; install: $hint)")
+    else
+      SKIPPED+=("$name (install: $hint)")
+    fi
+  fi
+}
+
 # --- Always-on gates. These must pass before any work is called complete. ----------
 
 run "format"  "rustup component add rustfmt" \
@@ -156,12 +171,18 @@ else
   # The manual release workflow must stay manual and keep its tool pins in step with
   # dist-workspace.toml.
   run "workflow consistency" "" python3 scripts/check-workflows.py
+  run "workspace architecture" "" python3 scripts/check-architecture.py
+  run "architecture guard tests" "" python3 scripts/test-check-architecture.py
+  run "developer tooling tests" "" python3 scripts/test-dev-tools.py
+  run "benchmark harness tests" "" python3 scripts/test-benchmark.py
+  run "agent readiness drift" "" python3 scripts/check-agent-readiness.py
 
   # Command, flag, and environment variable *names* are a compatibility promise
   # (ADR-0003). A promise nothing checks is one a refactor can break quietly, so this
   # compares the clap definition against the documents that publish it.
   run "cli matches its docs" "" python3 scripts/check-cli-docs.py
-  run "request schema" "" python3 scripts/check-request-schema.py
+  optional_module "request schema" jsonschema "python3 -m pip install jsonschema" \
+      python3 scripts/check-request-schema.py
   run "cookbook gates" "" python3 scripts/check-examples.py
 
   # A working tree is not the repository. An ignore rule once swallowed a source file

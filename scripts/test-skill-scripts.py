@@ -25,7 +25,9 @@ import json
 import sys
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "skills" / "jev-workflow-retro" / "scripts" / "transcripts.py"
@@ -61,10 +63,22 @@ def load_module():
 transcripts = load_module()
 
 
+class FixtureDatetime(datetime):
+    """Keep dated transcript fixtures inside a reproducible default window."""
+
+    @classmethod
+    def now(cls, tz=None):
+        moment = cls(2026, 9, 20, 12, tzinfo=timezone.utc)
+        return moment.astimezone(tz) if tz is not None else moment.replace(tzinfo=None)
+
+
 def run(*argv: str) -> tuple[str, str]:
     """Invoke the script's own entry point and capture both streams."""
     out, err = io.StringIO(), io.StringIO()
-    with redirect_stdout(out), redirect_stderr(err):
+    # Fixture timestamps are immutable. A real clock made three normalization tests
+    # lose their September sidechain/spawn events as the 30-day window advanced.
+    # Pin the clock, preserving the default window and every explicit filter.
+    with redirect_stdout(out), redirect_stderr(err), patch.object(transcripts, "datetime", FixtureDatetime):
         transcripts.main(list(argv))
     return out.getvalue(), err.getvalue()
 
@@ -831,6 +845,22 @@ class UsageIsNeverPooled(unittest.TestCase):
 
 
 class Window(unittest.TestCase):
+    def test_the_default_window_includes_the_cutoff_but_not_the_previous_second(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            path = _jsonl(home / ".claude" / "projects" / "-w" / "s1.jsonl", [
+                {"type": "user", "uuid": "old", "sessionId": "s1", "cwd": "/w",
+                 "timestamp": "2026-08-21T11:59:59Z", "message": {"role": "user", "content": "old"}},
+                {"type": "user", "uuid": "boundary", "sessionId": "s1", "cwd": "/w",
+                 "timestamp": "2026-08-21T12:00:00Z", "message": {"role": "user", "content": "boundary"}},
+            ])
+            # Discovery first checks file mtimes; use the same fixed clock here so
+            # the event-level cutoff is what determines the result on every host.
+            stamp = FixtureDatetime.now(timezone.utc).timestamp()
+            transcripts.os.utime(path, (stamp, stamp))
+            texts = [e["text"] for e in events("--home", str(home)) if e["kind"] == "prompt"]
+            self.assertEqual(["boundary"], texts)
+
     def test_the_window_applies_to_events_not_just_file_mtimes(self):
         # A long-running file touched today still holds last month's turns.
         with tempfile.TemporaryDirectory() as tmp:

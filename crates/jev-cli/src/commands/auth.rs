@@ -330,7 +330,7 @@ fn logout(session: &mut Session<'_>) -> Result<u8> {
 mod tests {
     use std::process::ExitCode;
 
-    use jev_config::{MapEnvironment, MemoryStore, SecretStore as _};
+    use jev_config::{Environment as _, MapEnvironment, MemoryStore, Secret, SecretStore as _};
 
     use crate::commands::{Streams, run_with_store};
     use crate::exit;
@@ -403,6 +403,133 @@ mod tests {
                 !output.contains("sk-first-half") && !output.contains("sk-second-half"),
                 "the refusal echoed the key: {output}"
             );
+        }
+    }
+
+    fn logout(
+        store: &MemoryStore,
+        environment: &MapEnvironment,
+    ) -> (ExitCode, serde_json::Value, String) {
+        let mut out = Vec::new();
+        let mut err = Vec::new();
+        let code = run_with_store(
+            ["jev", "--no-config", "auth", "logout", "--output", "json"],
+            &mut out,
+            &mut err,
+            &mut std::io::empty(),
+            environment,
+            Streams {
+                stdin_is_terminal: false,
+                stdout_is_terminal: false,
+                stderr_is_terminal: false,
+            },
+            store,
+            None,
+        );
+        let document = serde_json::from_slice(&out).expect("logout writes a JSON document");
+        let combined = format!(
+            "{}{}",
+            String::from_utf8_lossy(&out),
+            String::from_utf8_lossy(&err)
+        );
+        (code, document, combined)
+    }
+
+    #[test]
+    fn logout_removes_only_its_stored_credential_and_reports_the_remaining_environment() {
+        let store = MemoryStore::new();
+        let official = Secret::new("logout-official-canary".to_owned());
+        let unrelated = Secret::new("logout-unrelated-canary".to_owned());
+        store
+            .set(jev_config::OFFICIAL_ACCOUNT, &official)
+            .expect("the memory store never fails");
+        store
+            .set("unrelated-account", &unrelated)
+            .expect("the memory store never fails");
+        let environment =
+            MapEnvironment::default().with("JEV_API_KEY", "logout-environment-canary");
+
+        let (code, document, output) = logout(&store, &environment);
+
+        assert_eq!(code, ExitCode::from(exit::SUCCESS));
+        assert_eq!(document["schema"], "jev.auth/v1");
+        assert_eq!(document["action"], "logout");
+        assert_eq!(document["removed"], true);
+        assert_eq!(document["still_set"], serde_json::json!(["JEV_API_KEY"]));
+        assert!(
+            store
+                .get(jev_config::OFFICIAL_ACCOUNT)
+                .expect("the memory store never fails")
+                .is_none()
+        );
+        assert_eq!(
+            store
+                .get("unrelated-account")
+                .expect("the memory store never fails")
+                .expect("the unrelated credential remains")
+                .expose(),
+            unrelated.expose()
+        );
+        assert_eq!(
+            environment.var("JEV_API_KEY").as_deref(),
+            Some("logout-environment-canary")
+        );
+        assert!(output.contains("still set in your environment"));
+        for canary in [
+            official.expose(),
+            unrelated.expose(),
+            "logout-environment-canary",
+        ] {
+            assert!(!output.contains(canary), "logout disclosed a credential");
+        }
+    }
+
+    #[test]
+    fn logout_with_no_stored_credential_remains_a_success_on_repeated_calls() {
+        let store = MemoryStore::new();
+        let environment = MapEnvironment::default();
+        for _ in 0..2 {
+            let (code, document, output) = logout(&store, &environment);
+            assert_eq!(code, ExitCode::from(exit::SUCCESS));
+            assert_eq!(document["schema"], "jev.auth/v1");
+            assert_eq!(document["action"], "logout");
+            assert_eq!(document["removed"], false);
+            assert_eq!(document["still_set"], serde_json::json!([]));
+            assert!(output.contains("nothing was removed"));
+            assert!(
+                store
+                    .get(jev_config::OFFICIAL_ACCOUNT)
+                    .expect("the memory store never fails")
+                    .is_none()
+            );
+        }
+    }
+
+    #[test]
+    fn logout_reports_each_populated_official_source_and_omits_blank_values() {
+        for name in [
+            jev_config::API_KEY_ENV,
+            jev_config::API_KEY_FILE_ENV,
+            jev_config::TYPESAFE_API_KEY_ENV,
+        ] {
+            for value in ["logout-source-canary", " \t\n"] {
+                let store = MemoryStore::new();
+                let environment = MapEnvironment::default().with(name, value);
+                let (code, document, output) = logout(&store, &environment);
+                assert_eq!(code, ExitCode::from(exit::SUCCESS));
+                let expected = if value.trim().is_empty() {
+                    serde_json::json!([])
+                } else {
+                    serde_json::json!([name])
+                };
+                assert_eq!(document["still_set"], expected);
+                assert_eq!(environment.var(name).as_deref(), Some(value));
+                assert!(!output.contains("logout-source-canary"));
+                assert_eq!(
+                    output.contains("still set in your environment"),
+                    !value.trim().is_empty()
+                );
+            }
         }
     }
 }

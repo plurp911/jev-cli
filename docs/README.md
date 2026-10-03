@@ -23,6 +23,7 @@
 | [`adr/`](adr/) | Architecture decision records. |
 | [`repo-settings.md`](repo-settings.md) | GitHub settings for local verification and no automatic Actions. |
 | [`development/skill-authoring.md`](development/skill-authoring.md) | How a shipped Agent Skill is written, evaluated, and called done. |
+| [`development/agent-workflows.md`](development/agent-workflows.md) | Setup, read-only doctor, per-command proofs, exemplars, context sources, and drift maintenance. |
 | [`research/comparison.md`](research/comparison.md) | How `jev` compares with the other Jev CLIs, including where they are ahead. |
 | [`research/`](research/) | The competitive landscape, and the provenance of the local reference corpus. |
 

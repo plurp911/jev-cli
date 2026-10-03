@@ -249,8 +249,10 @@ Stated as a contract because scripts and CI jobs depend on them:
 - It makes no network request other than the API call you asked for. No telemetry, no
   analytics, no update check. `jev doctor` makes none at all unless you pass `--live`.
 - It reads no file you did not name, and walks no directory.
-- It writes no file unless you asked it to. `jev config set` and `jev map --output-file`
-  are the only commands that write, and both name the file. On Unix, a file `jev`
+- It writes no file unless you asked it to. `jev config set` and `unset` mutate the
+  explicit configuration; `jev map --output-file` and `--review-file`, and
+  `jev eval --report`, write to the named paths. `jev auth login` and `logout`
+  explicitly mutate OS secure storage, never a plaintext credential file. On Unix, a file `jev`
   creates is `0600` — batch rows hold the model's answers about your state. A file you
   created keeps the permissions you gave it.
 - It caches nothing. `jev map --resume` reads the output file you specified; it never

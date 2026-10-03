@@ -441,6 +441,7 @@ Open:
   fix and is not implemented.
 - **Certificate pinning is not planned.** It breaks corporate TLS inspection for little
   gain against the modelled adversaries.
-- **The live integration tests have not been run.** Everything is verified against
-  recorded official documents and a local mock; nothing here has been checked against
-  the real API. See `docs/api-compatibility.md`.
+- **Live validation is opt-in, not part of the local gate.** The dated live results
+  are recorded in `docs/api-compatibility.md`. A default verification run exercises
+  recorded official documents and local mocks, and reports the live tests as ignored.
+  Earlier live results do not prove current provider behavior.

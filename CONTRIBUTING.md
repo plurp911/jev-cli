@@ -9,10 +9,14 @@ contributors alike. Please read it before your first change.
 ```sh
 git clone https://github.com/plurp911/jev-cli
 cd jev-cli
-scripts/install-hooks.sh
-cargo build --workspace
+python3 scripts/dev-setup.py bootstrap
 scripts/verify.sh
 ```
+
+Use `python3 scripts/dev-setup.py doctor` for read-only prerequisite checks and
+actionable installation hints. Python 3.11+ and `jsonschema` are development
+requirements. The [agent workflow map](docs/development/agent-workflows.md) points to
+real CLI/MCP proof tests, exemplars, context sources, and drift maintenance.
 
 The Rust toolchain version is pinned in `rust-toolchain.toml`; `rustup` will install it
 for you on first build.
