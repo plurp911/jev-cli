@@ -1,0 +1,908 @@
+{
+  "schema": "jev.focused-skill-followup-evaluations/v1",
+  "status": "All predeclared attempts complete; actual outcomes and errors preserved",
+  "scope": "Fresh independent case authoring with disclosed public facts, not a model-blind evaluation or native skill-discovery claim",
+  "runtime": {
+    "measurement_model": "gpt-6.1-sol",
+    "judge_model": "gpt-6.1-sol",
+    "effort": "high",
+    "provider": "openai",
+    "server_acknowledged_configuration_audited": true,
+    "backend_weights_or_per_turn_compute_attestation": false,
+    "authentication": "Existing ChatGPT subscription login; API-key auth and provider fallback refused",
+    "dollar_cost_usd": null,
+    "catalog": "Instrumented read-only Skill/Read/Glob/Grep"
+  },
+  "design": {
+    "case_count": 4,
+    "repeats_per_case_per_variant": 5,
+    "max_turns_per_case": 12,
+    "judge_votes_per_llm_criterion": 3,
+    "expected_attempts": 60,
+    "common_baseline_duplicated": false,
+    "combined_concurrency_limit": 8,
+    "new_guide_mode": "--iterate --runs 5; raw development-only flags retained, not standalone paired confirmation",
+    "case_or_guide_tuning_to_these_answers": false,
+    "case_retries_or_budget_increases": false,
+    "historical_or_default_corpus_replayed": false
+  },
+  "phases": [
+    {
+      "variant": "old-pair",
+      "result_directory": "evals/skills/results/focused-old-pair-20261005T161157Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "candidate_sha256": "57cff6585b5b9a1908a09bdd1114f2229908689281589dd6fbb6dbf69392c90a",
+      "evaluation_sha256": "aeaeb11fd0b6db33f89c206d61afc1f3ce0f9c1473eb105eda431d0a20a621c6",
+      "wrapper_sha256": "1e1c97e9c91621b12ea5a1b4bf0974ac9a9424a8a543634d65a08789c63d23a5",
+      "admission_proof_sha256": "5f7c6b6d920c0ed3de0c360812766079cf9b0de6077fa49b20528c2c33ffbc24",
+      "original_record_audit_sha256": "fcb24eb45259110d0bd18e0faead5855a91470990a3132fe847b0d0e227b1f98",
+      "run_counts": {
+        "expected": 40,
+        "attempted": 40,
+        "valid": 40,
+        "errors": 0
+      },
+      "actual_recorded_usage": {
+        "completed_measured_tokens": 1266458,
+        "completed_measured_cached_input_tokens": 718848,
+        "completed_judge_usage_observations": 120,
+        "completed_judge_tokens": 696298
+      },
+      "retry_notifications": 0,
+      "duration_seconds": 364.064,
+      "exit_code": 1,
+      "session_closed": true,
+      "raw_confirmation_passed": false,
+      "raw_development_only": false,
+      "raw_incomplete": false,
+      "arguments_to_unchanged_main": [
+        "--concurrency",
+        "8",
+        "--output-dir",
+        "/home/collin/Documents/crap/jev-cli/evals/skills/results/focused-old-pair-20261005T161157Z",
+        "--runs",
+        "5"
+      ],
+      "config_isolation_and_nonblank_audit_passed": true
+    },
+    {
+      "variant": "new-guide",
+      "result_directory": "evals/skills/results/focused-new-guide-20261005T161157Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "candidate_sha256": "b4652c33bdf7e838cf847f712924102c9692c185f5b54139145610d6d6ab602b",
+      "evaluation_sha256": "aeaeb11fd0b6db33f89c206d61afc1f3ce0f9c1473eb105eda431d0a20a621c6",
+      "wrapper_sha256": "1e1c97e9c91621b12ea5a1b4bf0974ac9a9424a8a543634d65a08789c63d23a5",
+      "admission_proof_sha256": "e03bd40c71894b9df76470ae322542ad018caac022a23e4ffb02ec1fc92f68b9",
+      "original_record_audit_sha256": "08056af44a8c3de06e1ab571664f0497e165f3cfe4b6aa1442a55a4e1f62ecc6",
+      "run_counts": {
+        "expected": 20,
+        "attempted": 20,
+        "valid": 20,
+        "errors": 0
+      },
+      "actual_recorded_usage": {
+        "completed_measured_tokens": 748310,
+        "completed_measured_cached_input_tokens": 462720,
+        "completed_judge_usage_observations": 60,
+        "completed_judge_tokens": 352549
+      },
+      "retry_notifications": 0,
+      "duration_seconds": 174.189,
+      "exit_code": 0,
+      "session_closed": true,
+      "raw_confirmation_passed": false,
+      "raw_development_only": true,
+      "raw_incomplete": false,
+      "arguments_to_unchanged_main": [
+        "--concurrency",
+        "8",
+        "--output-dir",
+        "/home/collin/Documents/crap/jev-cli/evals/skills/results/focused-new-guide-20261005T161157Z",
+        "--runs",
+        "5",
+        "--iterate"
+      ],
+      "config_isolation_and_nonblank_audit_passed": true
+    }
+  ],
+  "variants": {
+    "no-guide": {
+      "attempts": 20,
+      "valid": 20,
+      "body_passes": 5,
+      "all_criteria_passes": 5
+    },
+    "old-guide": {
+      "attempts": 20,
+      "valid": 20,
+      "body_passes": 16,
+      "all_criteria_passes": 16,
+      "tool_contract_records": 20,
+      "tool_contract_passes": 20
+    },
+    "new-guide": {
+      "attempts": 20,
+      "valid": 20,
+      "body_passes": 20,
+      "all_criteria_passes": 20,
+      "tool_contract_records": 20,
+      "tool_contract_passes": 20
+    }
+  },
+  "cases": {
+    "fresh-clef-cloudflare-scope": {
+      "no-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 0,
+        "tool_contract_passes": 0,
+        "all_criteria_passes": 0
+      },
+      "old-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 5,
+        "body_pass_rate": 1.0
+      },
+      "new-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 5,
+        "body_pass_rate": 1.0
+      },
+      "new_minus_old_body_pass_rate": 0.0
+    },
+    "fresh-clef-cpu-runbook": {
+      "no-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 0,
+        "tool_contract_passes": 0,
+        "all_criteria_passes": 0
+      },
+      "old-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 2,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 2,
+        "body_pass_rate": 0.4
+      },
+      "new-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 5,
+        "body_pass_rate": 1.0
+      },
+      "new_minus_old_body_pass_rate": 0.6
+    },
+    "fresh-clef-vision-boundaries": {
+      "no-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 0,
+        "tool_contract_passes": 0,
+        "all_criteria_passes": 0
+      },
+      "old-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 4,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 4,
+        "body_pass_rate": 0.8
+      },
+      "new-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 5,
+        "body_pass_rate": 1.0
+      },
+      "new_minus_old_body_pass_rate": 0.19999999999999996
+    },
+    "fresh-png-dimensions-no-inference": {
+      "no-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 0,
+        "all_criteria_passes": 5
+      },
+      "old-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 5,
+        "body_pass_rate": 1.0
+      },
+      "new-guide": {
+        "attempts": 5,
+        "valid": 5,
+        "execution_errors": 0,
+        "body_passes": 5,
+        "tool_contract_passes": 5,
+        "all_criteria_passes": 5,
+        "body_pass_rate": 1.0
+      },
+      "new_minus_old_body_pass_rate": 0.0
+    }
+  },
+  "usable_pairs_against_common_baseline": {
+    "old-guide": 20,
+    "new-guide": 20
+  },
+  "residuals": [
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cloudflare-scope",
+      "repetition": 1,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported credential sources. It correctly rejects TypeSafe authentication and identifies transmission to hosted Cloudflare, but asks for documentation instead of supplying the required example."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name the required credential sources JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE. It correctly rejects TypeSafe authentication and identifies transmission to hosted Cloudflare, but fails the rubric\u2019s required command and complete credential explanation."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response omits the requested jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE. It correctly rejects TypeSafe login/JEV_API_KEY authentication and explains hosted transmission to Cloudflare, but both the valid command and supported credential-source names are required."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cloudflare-scope",
+      "repetition": 2,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported Cloudflare credential sources. It correctly identifies hosted transmission to Cloudflare and avoids executing commands or requesting secrets, but omits required elements."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no requested jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported Cloudflare credential sources. It correctly distinguishes TypeSafe credentials and hosted Cloudflare transmission, but those explanations alone do not satisfy the rubric."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The evidence provides no jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported credential sources. It correctly distinguishes TypeSafe credentials and hosted Cloudflare transmission, but both required omissions prevent a pass."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cloudflare-scope",
+      "repetition": 3,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name the required credential sources JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE. It correctly states that TypeSafe login and JEV_API_KEY cannot authenticate the call and that the synthetic state is transmitted to hosted Cloudflare inference, but both the command and explicit supported credential sources are required."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name the required credential sources JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE. It correctly states that TypeSafe login and JEV_API_KEY cannot authenticate the Cloudflare call and that the synthetic state is transmitted to hosted Cloudflare inference, but the missing command and credential-source explanation prevent a pass."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported Cloudflare credential sources. It correctly rejects TypeSafe login/JEV_API_KEY authentication and identifies hosted transmission to Cloudflare, but those points alone do not satisfy the rubric."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cloudflare-scope",
+      "repetition": 4,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response omits the required jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported Cloudflare credential sources. It correctly rejects TypeSafe login/JEV_API_KEY authentication and explains that the synthetic state is transmitted to hosted Cloudflare inference."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response omits the required jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported Cloudflare credential sources. It correctly rejects TypeSafe login and JEV_API_KEY and explains that the synthetic state is sent to hosted Cloudflare inference."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response omits the required jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported Cloudflare credential sources. It correctly rejects TypeSafe login/JEV_API_KEY authentication and explains that the synthetic state is sent to hosted Cloudflare inference."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cloudflare-scope",
+      "repetition": 5,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response omits the required jev choice command and fails to name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the only supported credential sources. It correctly rejects TypeSafe login and JEV_API_KEY authentication and explains that the synthetic state is transmitted to hosted Cloudflare inference, but those explanations do not satisfy the missing requirements."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev choice command and does not name JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE as the supported credential sources. It correctly rejects TypeSafe login and JEV_API_KEY and explains transmission to hosted Cloudflare, but the required command and credential-source explanation are missing."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response correctly states that TypeSafe login and JEV_API_KEY cannot authenticate Cloudflare and that the synthetic state is sent to hosted Cloudflare inference. However, it provides no required jev choice command and does not name both supported credential sources, JEV_CUSTOM_API_KEY and JEV_CUSTOM_API_KEY_FILE."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 1,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No command is provided, so the required provider, model, endpoint, choice, state, timeout, and retries flags are absent. Although the response proposes a sensible finite deadline and cautions against immediate resubmission, it does not explicitly identify a per-attempt HTTP/client deadline, state that timeout or disconnection does not cancel active PyTorch computation, or explain that the bridge serializes requests and later requests may wait behind ongoing work."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response asks for CLI syntax instead of providing the required command, so provider, model, endpoint, choice/state, and timeout/retry flags are missing. Although it proposes a sensible 600-second policy and warns against immediate resubmission, it does not explicitly identify a per-attempt HTTP/client deadline, state that disconnecting does not cancel active PyTorch computation, or explain that the bridge serializes requests and later requests may wait behind ongoing work."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided; the response asks for CLI syntax instead. Although it proposes 600 seconds and no retries, it does not explicitly identify an HTTP/client deadline, state that timeout or disconnect does not cancel active PyTorch computation, or explain bridge serialization and queued requests. It also does not explicitly establish operator responsibility for runtime setup, starting, and stopping."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 2,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response provides no jev command, instead requesting usage text, so the required provider, model, endpoint, choice/state, --retries 0, and --timeout flags are absent. Although it recommends 600 seconds and operator-owned setup, it does not explicitly identify an HTTP/client deadline, state that disconnecting does not cancel active PyTorch computation, explain bridge request serialization, or fully state jev\u2019s lifecycle limitations."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response asks for CLI usage instead of providing the required command. Although it proposes a 600-second deadline and operator-owned runtime, it does not explicitly identify an HTTP/client deadline, state that disconnects do not cancel active PyTorch computation, explain bridge serialization, or state that jev does not launch, install/download for, or stop the runtime."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided; the response requests CLI usage instead. Although it specifies a 600-second per-attempt deadline, disabled retries, and operator runtime ownership, it does not explicitly identify an HTTP/client deadline, state that disconnecting does not cancel active PyTorch computation, explain bridge request serialization, or say that jev does not launch, install/download for, or stop the runtime."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 3,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, choice, state, and flags are absent. Although it recommends 600 seconds and zero retries, it does not explicitly identify an HTTP/client deadline or state that timeout/disconnection does not cancel active PyTorch computation. It also omits bridge serialization and says resubmission may overlap work rather than wait behind it. The requested explicit runtime lifecycle explanation is incomplete."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, choice, state, and flags are absent. Although it proposes a reasonable per-attempt deadline and zero retries, it does not explicitly identify an HTTP/client deadline, state that disconnecting does not cancel active PyTorch computation, or explain that the bridge serializes requests and later requests may wait behind ongoing work. Instead, it suggests resubmission may overlap the original work."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided. Although the response recommends a 600-second deadline and zero retries, it does not explicitly identify the deadline as HTTP/client-only, state that timeout or disconnect does not cancel active PyTorch computation, or explain that the bridge serializes requests and later work may queue. Runtime responsibilities are only partially specified."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 4,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided. Although it recommends 600 seconds per attempt and zero retries, it does not explicitly identify an HTTP/client deadline or state that timeout/disconnect does not cancel active PyTorch computation. It also omits bridge serialization and incorrectly suggests resubmission may overlap the original work rather than wait behind it. Runtime responsibilities are mentioned, but jev\u2019s non-launching, non-downloading, and non-stopping behavior is not explicit."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No runnable jev command is provided. Although the response recommends 600 seconds and zero retries and assigns runtime management to the operator, it does not explicitly identify an HTTP/client deadline, state that timeout/disconnect does not cancel active PyTorch computation, explain bridge serialization and queued requests, or fully state jev\u2019s lifecycle limitations. Its overlap warning does not satisfy the required recovery explanation."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No runnable jev command is provided. Although the response recommends 600 seconds per attempt and zero retries, it does not explicitly identify an HTTP/client deadline, state that timeout/disconnect does not cancel active PyTorch computation, or explain that the bridge serializes requests. It also does not explicitly say jev neither launches, installs/downloads for, nor stops the runtime."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 5,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, choice/state, and timeout/retry flags are absent. The explanation also fails to explicitly identify an HTTP/client deadline, state that disconnects do not cancel active PyTorch computation, or explain that the bridge serializes requests and later requests may queue behind ongoing work."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided. Although the response proposes 600 seconds and zero retries, it does not explicitly identify an HTTP/client deadline, state that disconnecting does not cancel active PyTorch computation, or explain that the bridge serializes requests and later requests may queue. Lifecycle ownership is only partially addressed."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, choice/state, timeout, and retries flags are absent. Although the response proposes a 600-second per-attempt deadline and operator lifecycle ownership, it does not explicitly identify an HTTP/client deadline, state that timeout/disconnect does not cancel active PyTorch computation, or explain bridge serialization and queued requests."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-vision-boundaries",
+      "repetition": 1,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is supplied, so required provider, model, endpoint, image, question schema, state, timeout, and retry flags are absent. The explanation correctly rejects loopback as proof of privacy, but does not explicitly establish local inference verification, non-cancellation of active PyTorch work, serialized inference with subsequent requests queuing, or operator ownership of lifecycle and recovery. It also adds speculative audit requirements beyond the rubric."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The response does not provide the requested jev command, including explicit provider, model, endpoint, image, state, timeout, and retry flags. It correctly rejects loopback as proof of privacy, but adds audits beyond the required no-forwarding condition. Its timeout explanation is conditional and does not explicitly state that active PyTorch work is not canceled, that serialized inference lets subsequent requests queue, or that runtime recovery and bridge lifecycle belong to the operator."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so required provider, model, endpoint, image, state, question, timeout, and retry flags are absent. The explanation correctly rejects loopback as proof of privacy, but does not explicitly establish that timeouts leave active PyTorch work running, serialized inference can queue subsequent requests, or the operator controls lifecycle and recovery."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-vision-boundaries",
+      "repetition": 2,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so required provider, model, endpoint, image, question schema, explicit state, timeout, and retry flags are absent. The explanation correctly rejects loopback as proof of privacy, but does not explicitly identify serialized inference, state that HTTP timeout does not cancel active PyTorch work, or assign runtime recovery and bridge lifecycle control to the operator."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is supplied; intended settings do not satisfy the required explicit command, question schema, state, provider, timeout, and retry flags. The explanation correctly rejects loopback as proof of privacy, but does not explicitly establish that timeout does not cancel active PyTorch work, that serialized inference makes subsequent requests queue, or that the operator controls bridge lifecycle and work recovery."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question schema, explicit state, timeout, and retry flags are not supplied. The explanation correctly distinguishes loopback transmission from privacy, but does not explicitly describe non-cancellation of active PyTorch work, serialized inference and subsequent queuing, or operator responsibility for bridge lifecycle and recovery."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-vision-boundaries",
+      "repetition": 3,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided; the response requests CLI help instead, so required provider, model, endpoint, image, question schema, state, timeout, and retry flags are absent. It correctly distinguishes loopback from no-offload guarantees, but does not explicitly explain that client timeout cannot cancel active PyTorch work, that serialized inference can leave subsequent requests queued, or that the operator controls bridge lifecycle and recovery."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question schema, explicit state, timeout, and retries flags are missing. The privacy explanation correctly rejects loopback as proof of no offload, but the timeout explanation does not explicitly identify active PyTorch work, the bridge\u2019s serialized inference, or the operator\u2019s responsibility for runtime recovery and lifecycle control."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question schema, explicit state, timeout, and retry flags are not satisfied. The explanation correctly rejects loopback as proof of privacy, but does not explicitly establish that client timeouts do not cancel active PyTorch work, that serialized inference can queue subsequent requests, or that the operator controls bridge lifecycle and recovery."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-vision-boundaries",
+      "repetition": 4,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question, explicit state, timeout, and --retries 0 are missing. The response leaves image transmission uncertain rather than stating that image content and the question cross to the bridge. Although it correctly rejects loopback as proof of no offload, it adds unnecessary audit requirements and does not explicitly explain that timeout does not cancel active PyTorch work, that serialized inference makes subsequent requests queue, or that the operator controls bridge lifecycle and recovery."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question schema, explicit state, timeout, and retries are absent. The explanation leaves image transmission uncertain rather than stating that image content and the question are sent to the bridge. It also does not explicitly explain that timeout cannot cancel active PyTorch work, that serialized inference can queue subsequent requests, or that lifecycle and recovery belong to the operator. It correctly rejects loopback alone as proof of no offload."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question schema, state, timeout, and retries are absent. The explanation leaves image transmission uncertain rather than stating that image content and the question reach the bridge. It also does not explicitly explain that a timeout cannot cancel active PyTorch work, that serialized inference causes subsequent requests to queue, or that the operator controls the already-running bridge and handles recovery."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "no-guide",
+      "case": "fresh-clef-vision-boundaries",
+      "repetition": 5,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so required flags, explicit state, and question schema are missing. The explanation does not establish that image content and the question are sent to the bridge, explicitly state that timeout does not cancel active PyTorch work and subsequent requests can queue behind serialized inference, or assign runtime recovery and lifecycle control to the operator."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so required flags, explicit state, image attachment, and question schema are missing. The explanation does not establish that image content and the question are sent to the bridge, does not explicitly identify uncancelled active PyTorch work or serialized inference, and omits operator responsibility for bridge lifecycle and recovery. It correctly rejects loopback alone as proof of privacy and warns that later requests may queue, but these points are insufficient."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "No jev command is provided, so the required provider, model, endpoint, image, question schema, state, timeout, and retry flags are not supplied. The explanation does not establish that image content and the question are sent to the bridge, does not explicitly require verifying actual local inference, and gives only conditional timeout behavior rather than stating that active PyTorch work continues and subsequent requests can queue behind serialized inference. Operator responsibility for bridge lifecycle and work recovery is also missing."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "old-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 1,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command, runtime lifecycle, and non-cancellation/serialized-request guidance are correct. However, the explanation calls 600 seconds a per-attempt timeout without explicitly identifying it as an HTTP/client deadline, as required."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command, retry setting, runtime responsibilities, and serialization/cancellation guidance are correct. However, the explanation calls 600 seconds a per-attempt allowance without explicitly identifying it as an HTTP/client deadline, which the rubric requires."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command, lifecycle responsibilities, and serialization/cancellation guidance are correct, but the explanation does not explicitly identify the 600-second timeout as an HTTP/client deadline, as required."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "old-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 4,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The explanation says 600 seconds bounds client waiting, but does not explicitly identify --timeout as a per-attempt HTTP/client deadline, as required. The no-retry, runtime lifecycle, and non-cancellation/serialized-request guidance are otherwise addressed."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and operational guidance otherwise satisfy the requirements, but the explanation does not explicitly identify --timeout as a per-attempt HTTP/client deadline; it only says it bounds client waiting."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and lifecycle/cancellation guidance are otherwise correct, but the explanation only says the timeout bounds client waiting; it does not explicitly identify it as a per-attempt HTTP/client deadline, as required."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "old-guide",
+      "case": "fresh-clef-cpu-runbook",
+      "repetition": 5,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and lifecycle guidance satisfy the other requirements, but the explanation calls 600 seconds a per-attempt deadline without explicitly identifying it as an HTTP/client deadline, as required."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command, endpoint, retry settings, lifecycle ownership, and non-cancellation/serialized-request guidance are correct. However, the explanation calls the timeout a per-attempt deadline without explicitly identifying it as an HTTP/client deadline, as required."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and operational guidance otherwise satisfy the requirements, but the explanation calls 600 seconds a per-attempt deadline without explicitly identifying it as an HTTP/client deadline, as required."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "variant": "old-guide",
+      "case": "fresh-clef-vision-boundaries",
+      "repetition": 4,
+      "original_score": 0.0,
+      "failed_criteria": [
+        {
+          "name": "response",
+          "type": "llm",
+          "reason": "Independent majority vote",
+          "votes": [
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and data-boundary, no-offload, and timeout/queueing explanations satisfy the requirements. However, the response does not explicitly acknowledge the already-running bridge or assign bridge lifecycle and outstanding-work recovery to the operator rather than jev, as required."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and data-boundary, privacy, and timeout explanations satisfy most requirements. However, the response does not explicitly assign lifecycle control of the already-running bridge to the operator or state that the operator must handle runtime/work recovery after a timeout, both required by the rubric."
+            },
+            {
+              "name": "response",
+              "passed": false,
+              "reason": "The command and data-boundary, privacy, and timeout explanations satisfy the corresponding requirements. However, the response does not acknowledge the already-running bridge and explicitly assign its lifecycle control and recovery of outstanding work to the operator rather than the jev invocation."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "execution_errors": [],
+  "combined": {
+    "attempts": 60,
+    "valid": 60,
+    "execution_errors": 0,
+    "actual_recorded_usage": {
+      "completed_measured_tokens": 2014768,
+      "completed_measured_cached_input_tokens": 1181568,
+      "completed_judge_usage_observations": 180,
+      "completed_judge_tokens": 1048847
+    }
+  },
+  "changed_skill_files": [
+    {
+      "path": "jev/SKILL.md",
+      "old_sha256": "15d4a4aa2cdb033205bb9128f35c923bf3e7e6ea2afdd2bd100c8070db575881",
+      "new_sha256": "2cf38cb08f2f742c62fc349c4f392255f39f0413ff1ce1853087a80e9ee84c9e"
+    },
+    {
+      "path": "jev/references/providers.md",
+      "old_sha256": "6daaddb1e58879d8337037bc0dd5d36209422a30ebc5cf8368b4cf4fe9802e77",
+      "new_sha256": "0433c78fea10d63ea2dda537285554df0bf461aae855853f111a21a78cbdb60b"
+    }
+  ],
+  "admission": {
+    "author_note_sha256": "e780d36976eb3f5e09b4b99ff8bfcd69845fdbaf9e97f4a1ef9c1cdb9ea6f4e0",
+    "author_manifest_sha256": "93abfc0171a993131f6208b4c271d1583c26d01ff87cf76afb4af672979023a4",
+    "admitted_manifest_sha256": "115a2aa325a39332a40b34ee391cd9295aee6ca0c4fa7556f1392420f7b535e5",
+    "pre_inference_corrections": {
+      "before_inference": true,
+      "reasons": [
+        "Adapter uses tool_used with min/max for negative checks; original coordinator empty-schema advice was incorrect.",
+        "Explicit state required for a usable HF image command, including blank; correction grounded in current CLI contract before any evaluated answers."
+      ],
+      "changes": [
+        {
+          "path": "jev/behaviour/fresh-clef-cloudflare-scope/graders/skill-use.md",
+          "old_sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+          "new_sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+          "diff": "--- original\n+++ admitted\n@@ -2,7 +2,7 @@\n type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\n-min_count: 1\n+min: 1\n arm: with-only\n ---\n \n"
+        },
+        {
+          "path": "jev/behaviour/fresh-clef-cpu-runbook/graders/skill-use.md",
+          "old_sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+          "new_sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+          "diff": "--- original\n+++ admitted\n@@ -2,7 +2,7 @@\n type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\n-min_count: 1\n+min: 1\n arm: with-only\n ---\n \n"
+        },
+        {
+          "path": "jev/behaviour/fresh-clef-vision-boundaries/graders/response.md",
+          "old_sha256": "855e0439f4f2116a0c5832bd8712bdfe655a1bb1bf98370301303561e31d4677",
+          "new_sha256": "e0cf33a8cf4fc1fd93916f5d0ccf03e9b962dea170bc74e42040bf618f73333b",
+          "diff": "--- original\n+++ admitted\n@@ -6,7 +6,7 @@\n \n Require:\n \n-- A correct jev command explicitly selects --provider huggingface and --model clef-flash and reaches the already-running http://127.0.0.1:8787 publisher bridge (explicit --endpoint or established provider default). It attaches only /tmp/packing-bench.png via --image and asks the stated torn-corner yes/no question, using noul or an equivalent correctly formed question schema. Any explicit text state must be consistent with this image task. No unrelated files, directory sweeps, or screenshot capture.\n+- A correct jev command explicitly selects --provider huggingface and --model clef-flash and reaches the already-running http://127.0.0.1:8787 publisher bridge (explicit --endpoint or established provider default). It attaches only /tmp/packing-bench.png via --image and asks the stated torn-corner yes/no question, using noul or an equivalent correctly formed question schema. The command must explicitly supply state (an empty string is accepted for this bridge); any text state must be consistent with this image task. No unrelated files, directory sweeps, or screenshot capture.\n - The command includes --retries 0 and a valid explicit deadline that allows several minutes. It must not install/download a model, start/stop the server, execute inference, or inspect the image during this command-writing request.\n - It explicitly explains that jev sends the named image content and question to the receiving local bridge. It does not claim that a local image path means the image is never transmitted to the server.\n - It explicitly states that loopback identifies the receiving server, while a no-offload claim also requires verifying actual local inference and that the bridge/runtime is not proxying or forwarding data elsewhere. Do not demand speculative audits beyond that condition; no unconditional \"nothing can ever leave the laptop\" promise.\n"
+        },
+        {
+          "path": "jev/behaviour/fresh-clef-vision-boundaries/graders/skill-use.md",
+          "old_sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+          "new_sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+          "diff": "--- original\n+++ admitted\n@@ -2,7 +2,7 @@\n type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\n-min_count: 1\n+min: 1\n arm: with-only\n ---\n \n"
+        },
+        {
+          "path": "jev/triggers/fresh-png-dimensions-no-inference/graders/skill-use.md",
+          "old_sha256": "4855c729b56a92cb3d71f8ea6839813289c039074089d8b7d4d4d53ffcdf9dd5",
+          "new_sha256": "d6779067fe948fcb0ce3df33b0b8f2fb8fdbb855c24d7a21c8c3e39973fb211c",
+          "diff": "--- original\n+++ admitted\n@@ -1,9 +1,9 @@\n ---\n-type: tool_not_used\n+type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:jev|is-jev-useful-here|jev-opportunity-audit|jev-pilot|jev-workflow-retro)\"'\n-min_count: 0\n-max_count: 0\n+min: 0\n+max: 0\n arm: with-only\n ---\n \n"
+        }
+      ]
+    },
+    "pre_inference_corrections_sha256": "b0b1c4a13a45ba38b81d347b6d8825d19f39dd25ef466dd355056f179f149267",
+    "orchestration_proof_sha256": "34823a7b2e0f597b7f6998e76fd8cc445978ea211a1784e0f962388f542eae20"
+  },
+  "interpretation": {
+    "scores": "Every case has one behavioral LLM criterion. Skill invocation/avoidance criteria are reported separately; full body score does not itself imply all tool criteria pass.",
+    "errors": "Incomplete attempts are not zero-quality evidence. Paired comparisons exclude execution errors, whose observed partial usage is a minimum; unobserved usage and dollars remain unknown.",
+    "source_bindings": "All three variants use identical admitted prompt/grader bytes and the unchanged adapter. The no-guide control has no catalog or Skill tool. All twelve skill files are retained in each candidate.",
+    "limits": "Five repetitions quantify this frozen four-case comparison, not broad reliability. All original votes and failed outcomes remain; do not force or infer improvement beyond these observed results.",
+    "history": "Prior225 outcomes/receipts are preserved separately; these cases do not retrospectively repair or regrade those answers."
+  },
+  "historical225_receipt": {
+    "path": "docs/development/clef-opus-review/skill-evaluations.json",
+    "sha256": "0a34a94d3b64e8542297b00472b097dc2688cccb9c6075824859eda34d625436",
+    "modified_by_this_phase": false
+  }
+}

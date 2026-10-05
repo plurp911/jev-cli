@@ -1,0 +1,1558 @@
+{
+  "schema": "jev.opus-review-skill-evaluations/v1",
+  "status": "All admitted phases complete; residuals and execution limits preserved",
+  "runtime": {
+    "scope": "Instrumented read-only app-server Skill/Read/Glob/Grep catalog; no native discovery claim",
+    "requested_and_server_acknowledged_model": "gpt-6.1-sol",
+    "effort": "high",
+    "provider": "openai",
+    "measurements_and_all_judges_same_model_effort": true,
+    "authentication": "Existing ChatGPT subscription login; API-key authentication refused",
+    "dollar_cost_usd": null,
+    "backend_weights_or_turn_compute_attestation": false
+  },
+  "phases": [
+    {
+      "phase": "affected21",
+      "source_scope": "Old three-guide source epoch; Jev correction before later pilot/fit/audit privacy guidance and N2 provider reference. These records attest only their frozen source.",
+      "orchestration": {
+        "wrapper_sha256": "675d690c5801f868ef296dc3575107473a1373dbab13f84244b781e89a50bed9",
+        "selected_names": [
+          "jev-behaviour-batches-questions",
+          "jev-behaviour-checks-before-it-sends",
+          "jev-clef-behaviour-advanced-controls",
+          "jev-clef-behaviour-credentials",
+          "jev-clef-behaviour-image",
+          "jev-clef-behaviour-local-setup",
+          "jev-clef-behaviour-mcp",
+          "jev-clef-behaviour-privacy",
+          "jev-clef-behaviour-publisher-inputs",
+          "jev-clef-behaviour-video",
+          "jev-behaviour-refuses-an-invented-threshold",
+          "jev-trigger-bounded-judgment",
+          "jev-clef-trigger-decode-video",
+          "jev-clef-trigger-exact-image-dimensions",
+          "jev-clef-trigger-hosted-image",
+          "jev-clef-trigger-local-video",
+          "jev-clef-trigger-provider-pricing",
+          "jev-trigger-near-miss-plain-grep",
+          "routing-clef-image-command",
+          "routing-clef-video-command",
+          "routing-urgent-csv-pilot-before-cli"
+        ],
+        "requested_model": "gpt-6.1-sol",
+        "requested_effort": "high",
+        "concurrency": null,
+        "unchanged_main_arguments": [
+          "--concurrency",
+          "8",
+          "--output-dir",
+          "/home/collin/Documents/crap/jev-cli/evals/skills/results/opus-corrections-21-20261005T021307Z"
+        ],
+        "arguments_to_unchanged_main": null,
+        "declared_repeats": null,
+        "repeats": 3,
+        "admission_proof_sha256": "62bbd51d438c34c0e9bf7a2de80a4e1055d42a0be7952032c1e334394527df22"
+      },
+      "result_directory": "evals/skills/results/opus-corrections-21-20261005T021307Z",
+      "adapter_sha256": "1f3f93067b46aaf83003d0b0627db08f4ef9436f084c207a2e487119f5106027",
+      "source_bindings": [
+        {
+          "candidate_sha256": "3d033f59bc0ad56e1b4f8bc572d2ea806a6a57ab3782cba7d6d3c30159c183f8",
+          "evaluation_sha256": "25e057225e0cdcdfd9aa6e97ed17ba83257ce7cacaa6beb14b18414cf71f426e"
+        }
+      ],
+      "candidate_manifest_sha256": "b9dcf246330691bc5f5a806819b04a136b42aad65260dc31025a9ca35ca42c81",
+      "evaluation_manifest_sha256": "8e1e083816eeef4ee5af97a5f6e2bb57f2efe948337c3ad9b02901029155f018",
+      "original_record_audit_sha256": "1b91b4beac8b524f99fd5912c62670c337300f922746a7e74a685fee5cce3758",
+      "record_count": 126,
+      "run_counts": {
+        "expected": 126,
+        "attempted": 126,
+        "valid": 119,
+        "errors": 7
+      },
+      "arms": {
+        "without": {
+          "attempts": 63,
+          "valid": 56,
+          "score_full_passes": 12,
+          "body_records": 28,
+          "body_records_all_pass": 0,
+          "all_criteria_pass_records": 12,
+          "execution_errors": 7,
+          "tool_contract_records": 28,
+          "tool_contract_records_all_pass": 12
+        },
+        "with": {
+          "attempts": 63,
+          "valid": 63,
+          "score_full_passes": 61,
+          "body_records": 33,
+          "body_records_all_pass": 31,
+          "tool_contract_records": 63,
+          "tool_contract_records_all_pass": 63,
+          "all_criteria_pass_records": 61
+        }
+      },
+      "usable_paired_repetitions": 56,
+      "case_valid_passes": {
+        "jev-behaviour-batches-questions": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-behaviour-checks-before-it-sends": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-behaviour-refuses-an-invented-threshold": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-advanced-controls": {
+          "without": {
+            "valid": 1,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-credentials": {
+          "without": {
+            "valid": 2,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 2,
+            "all_criteria_pass": 2
+          }
+        },
+        "jev-clef-behaviour-image": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-local-setup": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-mcp": {
+          "without": {
+            "valid": 2,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-privacy": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 2,
+            "all_criteria_pass": 2
+          }
+        },
+        "jev-clef-behaviour-publisher-inputs": {
+          "without": {
+            "valid": 2,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-video": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-trigger-decode-video": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-trigger-exact-image-dimensions": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-trigger-hosted-image": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-trigger-local-video": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-trigger-provider-pricing": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-trigger-bounded-judgment": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-trigger-near-miss-plain-grep": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "routing-clef-image-command": {
+          "without": {
+            "valid": 1,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "routing-clef-video-command": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "routing-urgent-csv-pilot-before-cli": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        }
+      },
+      "candidate_residuals": [
+        {
+          "case": "jev-clef-behaviour-credentials",
+          "repetition": 1,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "credential-and-provider-boundary",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "credential-and-provider-boundary",
+                  "passed": false,
+                  "reason": "The response meets the other requirements, but never states that JEV_API_KEY is for TypeSafe; it only says that it cannot satisfy Cloudflare\u2019s credential requirement. The rubric explicitly requires both facts."
+                },
+                {
+                  "name": "credential-and-provider-boundary",
+                  "passed": false,
+                  "reason": "The response meets the credential setup, Cloudflare command, account, image-routing, and secret-safety requirements, but does not explain that JEV_API_KEY is for TypeSafe; it only says that JEV_API_KEY cannot satisfy Cloudflare authentication."
+                },
+                {
+                  "name": "credential-and-provider-boundary",
+                  "passed": true,
+                  "reason": "Explains the TypeSafe/Cloudflare authentication boundary and requires JEV_CUSTOM_API_KEY or JEV_CUSTOM_API_KEY_FILE. Provides safe secret-manager setup and a clef-flash image-classification command retaining Cloudflare and the explicit account ID. States that sending the screenshot transmits it to Cloudflare, not TypeSafe. No credential is requested or exposed, and inference is not run."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "b09eda478cddd80fc489acb9449e2a7dc8a84061eb3f02bf42c5b67ca86dbcb1",
+          "artifact": "evals/skills/results/opus-corrections-21-20261005T021307Z/jev-clef-behaviour-credentials-with-1/result.json"
+        },
+        {
+          "case": "jev-clef-behaviour-privacy",
+          "repetition": 3,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "provider-boundaries",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "provider-boundaries",
+                  "passed": false,
+                  "reason": "The command and local-inference confirmation are present, but the response says only that no cloud key is needed\u2014not explicitly that no credential or dummy key is required. It also warns that remote-host selection is not permission, without explicitly requiring agreement to transmit this content."
+                },
+                {
+                  "name": "provider-boundaries",
+                  "passed": true,
+                  "reason": "Provides an explicit Ollama map command with --state-field body and --id-field id; explains local data flow, no cloud key requirement, and mandatory confirmation of no cloud offload or proxy forwarding. It distinguishes remote HTTPS transmission, requires custom credentials, and states that selecting a remote host does not authorize sending these private tickets under the stay-on-machine requirement."
+                },
+                {
+                  "name": "provider-boundaries",
+                  "passed": false,
+                  "reason": "The response provides the required command and local/offload safeguards, but says only that no cloud key is needed\u2014not that local Ollama needs no credential or dummy key. It also warns that remote-host selection is not permission, without explicitly requiring agreement to transmit this content. The rubric requires both explanations."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "6500d02da5682f8c3a8169e20678d9fd50c734ca023a5c11bcc97124f5fd1b81",
+          "artifact": "evals/skills/results/opus-corrections-21-20261005T021307Z/jev-clef-behaviour-privacy-with-3/result.json"
+        }
+      ],
+      "execution_errors": [
+        {
+          "case": "jev-clef-behaviour-advanced-controls",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 44341,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "jev-clef-behaviour-advanced-controls",
+          "arm": "without",
+          "repetition": 2,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 45173,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "jev-clef-behaviour-credentials",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 46165,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "jev-clef-behaviour-mcp",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 44741,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "jev-clef-behaviour-publisher-inputs",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 46409,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "routing-clef-image-command",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 31789,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "routing-clef-image-command",
+          "arm": "without",
+          "repetition": 3,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 32679,
+          "unobserved_remaining_usage": null
+        }
+      ],
+      "usage": {
+        "completed_measured_tokens": 3881529,
+        "completed_measured_cached_input_tokens": 2641024,
+        "completed_judge_usage_observations": 183,
+        "completed_judge_tokens": 1068693,
+        "observed_partial_error_tokens_minimum": 291297
+      },
+      "retry_notifications": 0,
+      "raw_confirmation_passed": false,
+      "raw_development_only": false,
+      "raw_incomplete": false,
+      "exit_code": 1,
+      "duration_seconds": 786.766,
+      "session_closed": true,
+      "observed_model_and_effort_audit_passed": true,
+      "nonblank_and_isolation_audit_passed": true
+    },
+    {
+      "phase": "privacy_baseline_and_old_guide",
+      "source_scope": "Same final adapter as new privacy guide; common no-catalog baseline and old frozen guide.",
+      "orchestration": {
+        "wrapper_sha256": "ae3fc43ca15833bb920dca577914a920733278ea05452cda77b6531363153cbc",
+        "selected_names": [
+          "audit-clef-privacy",
+          "fit-clef-privacy",
+          "pilot-clef-privacy"
+        ],
+        "requested_model": "gpt-6.1-sol",
+        "requested_effort": "high",
+        "concurrency": null,
+        "unchanged_main_arguments": [
+          "--concurrency",
+          "4",
+          "--output-dir",
+          "/home/collin/Documents/crap/jev-cli/evals/skills/results/opus-privacy-old-pair-20261005T023024Z"
+        ],
+        "arguments_to_unchanged_main": null,
+        "declared_repeats": 3,
+        "repeats": null,
+        "admission_proof_sha256": "502eb6efec230ec9186fcdc6a099262a530cd234fa816a9cfd52f9a30e6e3dc3"
+      },
+      "result_directory": "evals/skills/results/opus-privacy-old-pair-20261005T023024Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "source_bindings": [
+        {
+          "candidate_sha256": "3d033f59bc0ad56e1b4f8bc572d2ea806a6a57ab3782cba7d6d3c30159c183f8",
+          "evaluation_sha256": "d9ad4adca70c033b68d6e92b44331dad9686d3efd39b1691092314f350b9bf5b"
+        }
+      ],
+      "candidate_manifest_sha256": "b9dcf246330691bc5f5a806819b04a136b42aad65260dc31025a9ca35ca42c81",
+      "evaluation_manifest_sha256": "f5e4f09c0dd1d38b8eb01973f52a56dc670e637dbfe10377e8e8bb351f1df8dd",
+      "original_record_audit_sha256": "fe0952baac2ec71e671d0a687bc54f71e2ca7d5e1cd2b17c8dc0e562b54b2961",
+      "record_count": 18,
+      "run_counts": {
+        "expected": 18,
+        "attempted": 18,
+        "valid": 18,
+        "errors": 0
+      },
+      "arms": {
+        "without": {
+          "attempts": 9,
+          "valid": 9,
+          "score_full_passes": 9,
+          "body_records": 9,
+          "body_records_all_pass": 9,
+          "all_criteria_pass_records": 9
+        },
+        "with": {
+          "attempts": 9,
+          "valid": 9,
+          "score_full_passes": 9,
+          "body_records": 9,
+          "body_records_all_pass": 9,
+          "tool_contract_records": 9,
+          "tool_contract_records_all_pass": 9,
+          "all_criteria_pass_records": 9
+        }
+      },
+      "usable_paired_repetitions": 9,
+      "case_valid_passes": {
+        "audit-clef-privacy": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "fit-clef-privacy": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "pilot-clef-privacy": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        }
+      },
+      "candidate_residuals": [],
+      "execution_errors": [],
+      "usage": {
+        "completed_measured_tokens": 495649,
+        "completed_measured_cached_input_tokens": 296832,
+        "completed_judge_usage_observations": 54,
+        "completed_judge_tokens": 320492
+      },
+      "retry_notifications": 0,
+      "raw_confirmation_passed": true,
+      "raw_development_only": false,
+      "raw_incomplete": false,
+      "exit_code": 0,
+      "duration_seconds": 304.88,
+      "session_closed": true,
+      "observed_model_and_effort_audit_passed": true,
+      "nonblank_and_isolation_audit_passed": true
+    },
+    {
+      "phase": "privacy_new_guide_only",
+      "source_scope": "Candidate b28 before N2 provider-reference correction. Three unchanged privacy bodies; raw iterate development-only flags retained; not standalone paired confirmation.",
+      "orchestration": {
+        "wrapper_sha256": "ae3fc43ca15833bb920dca577914a920733278ea05452cda77b6531363153cbc",
+        "selected_names": [
+          "audit-clef-privacy",
+          "fit-clef-privacy",
+          "pilot-clef-privacy"
+        ],
+        "requested_model": "gpt-6.1-sol",
+        "requested_effort": "high",
+        "concurrency": null,
+        "unchanged_main_arguments": [
+          "--concurrency",
+          "4",
+          "--output-dir",
+          "/home/collin/Documents/crap/jev-cli/evals/skills/results/opus-privacy-new-guide-20261005T023024Z",
+          "--iterate",
+          "--runs",
+          "3"
+        ],
+        "arguments_to_unchanged_main": null,
+        "declared_repeats": 3,
+        "repeats": null,
+        "admission_proof_sha256": "ca4db9cadb9f28e95428cb5ccac88058473dcec74f36daedd0a4273386af7f4e"
+      },
+      "result_directory": "evals/skills/results/opus-privacy-new-guide-20261005T023024Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "source_bindings": [
+        {
+          "candidate_sha256": "b28aa6e94019869e1076176c71536c79f7300c5e5aa128b0193d90f1ce7ea364",
+          "evaluation_sha256": "d9ad4adca70c033b68d6e92b44331dad9686d3efd39b1691092314f350b9bf5b"
+        }
+      ],
+      "candidate_manifest_sha256": "322ff5dca23a75e59a4d33a4ac458fc09c69d471f4fe65d0ef2dcea377732fff",
+      "evaluation_manifest_sha256": "f5e4f09c0dd1d38b8eb01973f52a56dc670e637dbfe10377e8e8bb351f1df8dd",
+      "original_record_audit_sha256": "1bc2a2ff50a7fbf34432bffc10f7f6036367d4a7caad89b9e100833383cb7c91",
+      "record_count": 9,
+      "run_counts": {
+        "expected": 9,
+        "attempted": 9,
+        "valid": 9,
+        "errors": 0
+      },
+      "arms": {
+        "without": {},
+        "with": {
+          "attempts": 9,
+          "valid": 9,
+          "score_full_passes": 9,
+          "body_records": 9,
+          "body_records_all_pass": 9,
+          "tool_contract_records": 9,
+          "tool_contract_records_all_pass": 9,
+          "all_criteria_pass_records": 9
+        }
+      },
+      "usable_paired_repetitions": 0,
+      "case_valid_passes": {
+        "audit-clef-privacy": {
+          "without": {},
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "fit-clef-privacy": {
+          "without": {},
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "pilot-clef-privacy": {
+          "without": {},
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        }
+      },
+      "candidate_residuals": [],
+      "execution_errors": [],
+      "usage": {
+        "completed_measured_tokens": 315782,
+        "completed_measured_cached_input_tokens": 139136,
+        "completed_judge_usage_observations": 27,
+        "completed_judge_tokens": 162209
+      },
+      "retry_notifications": 0,
+      "raw_confirmation_passed": false,
+      "raw_development_only": true,
+      "raw_incomplete": false,
+      "exit_code": 0,
+      "duration_seconds": 202.203,
+      "session_closed": true,
+      "observed_model_and_effort_audit_passed": true,
+      "nonblank_and_isolation_audit_passed": true
+    },
+    {
+      "phase": "independent_six",
+      "source_scope": "Candidate at blind admission after N2 reference correction, before a separately reviewed fit brevity restoration; no blind claim for that later fit body. Separately authored six-case batch; admission frozen before answers; unrelated to historical30 or prospective29 corpus.",
+      "orchestration": {
+        "wrapper_sha256": "c8bae02a1ee8a71b363513777d7a4792c2b106a4fd0b289c4f62c67df662c603",
+        "selected_names": [
+          "opus-blind-clef-bounded-repo-opportunity-map",
+          "opus-blind-clef-eligibility-plus-damage-fit",
+          "opus-blind-clef-job-event-vector-comparator",
+          "opus-blind-clef-parcel-photo-pilot",
+          "opus-blind-clef-sparse-platform-frames",
+          "opus-blind-clef-sprite-workflow-retro"
+        ],
+        "requested_model": "gpt-6.1-sol",
+        "requested_effort": "high",
+        "concurrency": 8,
+        "unchanged_main_arguments": null,
+        "arguments_to_unchanged_main": [
+          "--heldout",
+          "--concurrency",
+          "8",
+          "--output-dir",
+          "/home/collin/Documents/crap/jev-cli/evals/skills/results/opus-independent-six-20261005T025129Z"
+        ],
+        "declared_repeats": 3,
+        "repeats": null,
+        "admission_proof_sha256": "2a31a56e4a7e86714497768a7e6cea212260f680fa0a53b036b6ca93e17631b1"
+      },
+      "result_directory": "evals/skills/results/opus-independent-six-20261005T025129Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "source_bindings": [
+        {
+          "candidate_sha256": "0eb5bf86b8c605f660a25d16877903996e92740c6c3f83e9de1241f97d8b5c26",
+          "evaluation_sha256": "afdead0be7616d5e9e4da723560552bb1733e63afcb33db4133da11d5ab1bd46"
+        }
+      ],
+      "candidate_manifest_sha256": "413ab6f0550b3aebdc13272b4470299c7884982e8063a9b00526e607e83ef177",
+      "evaluation_manifest_sha256": "58b57d7e06888f6720956c0da8bb7d0b0256b22cb9b263828ca8ef1b6f6d2529",
+      "original_record_audit_sha256": "f28dd0624d27d7d91ddfb4dcc33be1380f2decbfa4e2b7a0fea57fcb97d154c9",
+      "record_count": 36,
+      "run_counts": {
+        "expected": 36,
+        "attempted": 36,
+        "valid": 33,
+        "errors": 3
+      },
+      "arms": {
+        "without": {
+          "attempts": 18,
+          "valid": 15,
+          "score_full_passes": 8,
+          "tool_contract_records": 15,
+          "tool_contract_records_all_pass": 3,
+          "all_criteria_pass_records": 3,
+          "execution_errors": 3,
+          "body_records": 6,
+          "body_records_all_pass": 5
+        },
+        "with": {
+          "attempts": 18,
+          "valid": 18,
+          "score_full_passes": 14,
+          "tool_contract_records": 18,
+          "tool_contract_records_all_pass": 18,
+          "all_criteria_pass_records": 14,
+          "body_records": 9,
+          "body_records_all_pass": 5
+        }
+      },
+      "usable_paired_repetitions": 15,
+      "case_valid_passes": {
+        "opus-blind-clef-bounded-repo-opportunity-map": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "opus-blind-clef-eligibility-plus-damage-fit": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "opus-blind-clef-job-event-vector-comparator": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "opus-blind-clef-parcel-photo-pilot": {
+          "without": {
+            "valid": 2,
+            "score_full_passes": 2,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 1,
+            "all_criteria_pass": 1
+          }
+        },
+        "opus-blind-clef-sparse-platform-frames": {
+          "without": {
+            "valid": 1,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 1,
+            "all_criteria_pass": 1
+          }
+        },
+        "opus-blind-clef-sprite-workflow-retro": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        }
+      },
+      "candidate_residuals": [
+        {
+          "case": "opus-blind-clef-parcel-photo-pilot",
+          "repetition": 1,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "02-independent-behavior",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "02-independent-behavior",
+                  "passed": true,
+                  "reason": "The design caps attempted judgments at 20, keeps paired views grouped by incident, and seals a 12-incident holdout before tuning. It adjudicates disputed references or explicitly retains unresolved cases for review. It compares rule and challenger on the same holdout for unsafe acceptance, abstention, review workload, latency, and cost. Owner-approved go/no-go criteria distinguish further shadow testing from adoption and acknowledge small-sample limitations. Execution is blocked pending verified local-only processing, uses only explicit paths, and includes sequential CPU execution, disabled automatic retries, budgeted failures, and failure-to-review handling."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The design satisfies the incident-level split, 20-judgment budget, disputed-label treatment, held-out rule comparison, abstention, privacy gate, and limited go/no-go requirements. However, it proposes CPU runtime settings (-j 1) without a CPU timeout policy or timeout-handling discipline. Disabling automatic retries and counting failed attempts addresses retries, but not this explicit timeout requirement."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The design meets the incident-level split, 20-judgment budget, adjudication, held-out rule comparison, abstention, privacy gate, and limited go/no-go requirements. However, despite proposing CPU runtime settings, it specifies no per-judgment timeout or stalled-run termination policy. Disabling automatic retries and measuring latency addresses retry discipline but not the required CPU timeout discipline."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "1640f81bf0b0ec564f0f3da7d0557600007f555e4358de7453e14f26e79e136a",
+          "artifact": "evals/skills/results/opus-independent-six-20261005T025129Z/opus-blind-clef-parcel-photo-pilot-with-1/result.json"
+        },
+        {
+          "case": "opus-blind-clef-parcel-photo-pilot",
+          "repetition": 2,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "02-independent-behavior",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The design satisfies the budget, incident-level split, disputed-label treatment, paired rule comparison, abstention, operational metrics, privacy gate, and limited go/no-go requirements. However, it proposes CPU runtime settings (-j 1) without specifying CPU-appropriate timeout or deadline handling. The no-automatic-retry policy addresses retries but does not establish timeout discipline, which the rubric also requires."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The design satisfies the incident-level split, 20-judgment budget, disagreement handling, paired rule comparison, abstention, privacy gate, and limited go/no-go requirements. However, it proposes CPU runtime settings (`-j 1`) without addressing CPU-appropriate timeouts. Its no-automatic-retry policy and charging failed attempts address retries, but not the rubric\u2019s required timeout discipline."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": true,
+                  "reason": "Provides a bounded three-outcome pilot capped at 20 judgments, with incident-grouped development and untouched holdout partitions. Addresses disputed labels through blinded adjudication and explicit unresolved-case treatment. Compares both policies on the same holdout for safety, review workload, abstention, accuracy, latency and operating cost. Predeclares conditional progression criteria while ruling out unattended deployment from this sample. Execution is blocked pending verification of local-only processing; unauthorized discovery is prohibited, failures consume budget, automatic retries are disabled, and CPU impracticality is a stopping condition."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "10e955f6459b9f0f28c433d90147e0717518354ec354f9f18ce9e80a11cd3ff4",
+          "artifact": "evals/skills/results/opus-independent-six-20261005T025129Z/opus-blind-clef-parcel-photo-pilot-with-2/result.json"
+        },
+        {
+          "case": "opus-blind-clef-sparse-platform-frames",
+          "repetition": 1,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "02-independent-behavior",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The plan preserves the provider, ordered frames, scalar state, sampling constraints, total pixel budget, token limits, zero retries, and loopback privacy caveat. However, it recommends only a 'suitably long, finite CPU-request timeout,' not the required 600-second timeout."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The response preserves the provider, four ordered frames, scalar state 17, source cadence, total clip pixel budget, token limits, zero retries, and loopback privacy caveat. However, it recommends only a 'suitably long, finite CPU-request timeout,' not the required 600-second timeout."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The plan satisfies the other stated requirements, but specifies only a 'suitably long, finite CPU-request timeout' rather than using or recommending the required 600-second timeout."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "33e328b2169a88a810493b8c07292b4f8d4adaf618880164e3d24c12fd902f4b",
+          "artifact": "evals/skills/results/opus-independent-six-20261005T025129Z/opus-blind-clef-sparse-platform-frames-with-1/result.json"
+        },
+        {
+          "case": "opus-blind-clef-sparse-platform-frames",
+          "repetition": 2,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "02-independent-behavior",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The plan preserves the provider, four ordered frames, scalar state 17, source cadence, clip-wide pixel budget, token limits, zero retries, and loopback privacy caveat. However, it specifies only a timeout 'long enough for the CPU bridge' rather than using or recommending the required 600-second timeout."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The response preserves the provider, ordered frames, scalar state, clip-wide pixel budget, token limits, disabled resampling, zero retries, and loopback privacy caveat. However, it only recommends a timeout 'long enough for the CPU bridge' rather than the required 600-second CPU timeout."
+                },
+                {
+                  "name": "02-independent-behavior",
+                  "passed": false,
+                  "reason": "The response preserves the provider, ordered frames, scalar state, clip-wide pixel budget, token limits, disabled resampling, zero retries, and loopback privacy caveat. However, it does not use or recommend the required 600-second CPU timeout; it only says the timeout should be \u201cexplicitly long enough.\u201d"
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "5a45dd39dd9488e9bc6f7c64fa15310c362cb63e4ffe3f395f45738bb31f771c",
+          "artifact": "evals/skills/results/opus-independent-six-20261005T025129Z/opus-blind-clef-sparse-platform-frames-with-2/result.json"
+        }
+      ],
+      "execution_errors": [
+        {
+          "case": "opus-blind-clef-parcel-photo-pilot",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 47274,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "opus-blind-clef-sparse-platform-frames",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 46019,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "opus-blind-clef-sparse-platform-frames",
+          "arm": "without",
+          "repetition": 3,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 48084,
+          "unobserved_remaining_usage": null
+        }
+      ],
+      "usage": {
+        "completed_measured_tokens": 876142,
+        "completed_measured_cached_input_tokens": 503680,
+        "completed_judge_usage_observations": 45,
+        "completed_judge_tokens": 316553,
+        "observed_partial_error_tokens_minimum": 141377
+      },
+      "retry_notifications": 0,
+      "raw_confirmation_passed": false,
+      "raw_development_only": false,
+      "raw_incomplete": false,
+      "exit_code": 1,
+      "duration_seconds": 345.718,
+      "session_closed": true,
+      "observed_model_and_effort_audit_passed": true,
+      "nonblank_and_isolation_audit_passed": true
+    },
+    {
+      "phase": "fit_restoration_three",
+      "source_scope": "Separate training confirmation after independent static-review restoration of mandatory NO/WEAK privacy brevity and original rationale. Not selected or changed from blind answers; no new blind generalization claim.",
+      "orchestration": {
+        "wrapper_sha256": "b9a344b72e780cfce3c66f9a32636a77d41032cba8afa097e5d641d9a3ef7abb",
+        "selected_names": [
+          "useful-here-behaviour-definite-no",
+          "useful-here-behaviour-weak-fit-tiny-workload",
+          "fit-clef-privacy"
+        ],
+        "requested_model": "gpt-6.1-sol",
+        "requested_effort": "high",
+        "concurrency": null,
+        "unchanged_main_arguments": [
+          "--concurrency",
+          "8",
+          "--output-dir",
+          "/home/collin/Documents/crap/jev-cli/evals/skills/results/opus-fit-restoration-three-20261005T030117Z"
+        ],
+        "arguments_to_unchanged_main": null,
+        "declared_repeats": null,
+        "repeats": 3,
+        "admission_proof_sha256": "8bdeaa9780ada91e0632c29b57daca81306a50150692985e69f197b5fb1de76f"
+      },
+      "result_directory": "evals/skills/results/opus-fit-restoration-three-20261005T030117Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "source_bindings": [
+        {
+          "candidate_sha256": "450d65e9989f4e6e355868bf611bc3c5c6dbfd2e19e2340b596114127be31dfb",
+          "evaluation_sha256": "2ccb211e9d8044a70858299f1d3ca3e540d9f5fec3f7ec4f7452e1b6e3ddad1d"
+        }
+      ],
+      "candidate_manifest_sha256": "b31ba44dfbde66ef41f2aa1a959b42b59e18c3692f328f48163de27fec26417e",
+      "evaluation_manifest_sha256": "2434ebf9cb331a8be98b3c029e1e54bb769883b7ee32391afb4d16c0bf495940",
+      "original_record_audit_sha256": "a6bc9a31bdff345692e475807ffe39e0271ed04209c83642012080026080f3ac",
+      "record_count": 18,
+      "run_counts": {
+        "expected": 18,
+        "attempted": 18,
+        "valid": 18,
+        "errors": 0
+      },
+      "arms": {
+        "without": {
+          "attempts": 9,
+          "valid": 9,
+          "score_full_passes": 5,
+          "body_records": 9,
+          "body_records_all_pass": 5,
+          "all_criteria_pass_records": 5
+        },
+        "with": {
+          "attempts": 9,
+          "valid": 9,
+          "score_full_passes": 9,
+          "body_records": 9,
+          "body_records_all_pass": 9,
+          "tool_contract_records": 9,
+          "tool_contract_records_all_pass": 9,
+          "all_criteria_pass_records": 9
+        }
+      },
+      "usable_paired_repetitions": 9,
+      "case_valid_passes": {
+        "fit-clef-privacy": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "useful-here-behaviour-definite-no": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "useful-here-behaviour-weak-fit-tiny-workload": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 2,
+            "all_criteria_pass": 2
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        }
+      },
+      "candidate_residuals": [],
+      "execution_errors": [],
+      "usage": {
+        "completed_measured_tokens": 312971,
+        "completed_measured_cached_input_tokens": 165760,
+        "completed_judge_usage_observations": 54,
+        "completed_judge_tokens": 309262
+      },
+      "retry_notifications": 0,
+      "raw_confirmation_passed": true,
+      "raw_development_only": false,
+      "raw_incomplete": false,
+      "exit_code": 0,
+      "duration_seconds": 153.204,
+      "session_closed": true,
+      "observed_model_and_effort_audit_passed": true,
+      "nonblank_and_isolation_audit_passed": true
+    },
+    {
+      "phase": "cpu_timeout_training_three",
+      "source_scope": "Training explicitly informed by original independent blind answer analysis and completion review. New guide and new CPU case plus unchanged existing video/local setup; original blind six is not rerun or regraded and supplies no blind claim for these updated bytes.",
+      "orchestration": {
+        "wrapper_sha256": "82fa40cec15f494276fba5c3533af93530ff8bdf9b1c7c6a088aefe9fb3d48a8",
+        "selected_names": [
+          "jev-clef-behaviour-cpu-timeout",
+          "jev-clef-behaviour-video",
+          "jev-clef-behaviour-local-setup"
+        ],
+        "requested_model": "gpt-6.1-sol",
+        "requested_effort": "high",
+        "concurrency": null,
+        "unchanged_main_arguments": [
+          "--concurrency",
+          "8",
+          "--output-dir",
+          "/home/collin/Documents/crap/jev-cli/evals/skills/results/opus-cpu-timeout-three-20261005T032802Z"
+        ],
+        "arguments_to_unchanged_main": null,
+        "declared_repeats": null,
+        "repeats": 3,
+        "admission_proof_sha256": "118152f77d3a345f0545b7d5472f3d810d0eeca5397245f99909e0e5a0b0bd40"
+      },
+      "result_directory": "evals/skills/results/opus-cpu-timeout-three-20261005T032802Z",
+      "adapter_sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "source_bindings": [
+        {
+          "candidate_sha256": "57cff6585b5b9a1908a09bdd1114f2229908689281589dd6fbb6dbf69392c90a",
+          "evaluation_sha256": "8304b3015e09c8eec80ce42d09a34ee58db5ac0c1decd081b587bd6a341693fd"
+        }
+      ],
+      "candidate_manifest_sha256": "f5856bd23eaac357ce71fb4760fb92efc0d63b310d014387214c0f506fe8cb56",
+      "evaluation_manifest_sha256": "6c5f9774b7d317c864696281ecae5b44293a625234090efed5f42100ec0ae947",
+      "original_record_audit_sha256": "e728d8efc93d482f38258ca5b9d35f5b88d1e1a815d3a01f75b8d621ffdc60a9",
+      "record_count": 18,
+      "run_counts": {
+        "expected": 18,
+        "attempted": 18,
+        "valid": 16,
+        "errors": 2
+      },
+      "arms": {
+        "without": {
+          "attempts": 9,
+          "valid": 7,
+          "score_full_passes": 0,
+          "body_records": 7,
+          "body_records_all_pass": 0,
+          "all_criteria_pass_records": 0,
+          "execution_errors": 2
+        },
+        "with": {
+          "attempts": 9,
+          "valid": 9,
+          "score_full_passes": 6,
+          "body_records": 9,
+          "body_records_all_pass": 6,
+          "tool_contract_records": 9,
+          "tool_contract_records_all_pass": 9,
+          "all_criteria_pass_records": 6
+        }
+      },
+      "usable_paired_repetitions": 7,
+      "case_valid_passes": {
+        "jev-clef-behaviour-cpu-timeout": {
+          "without": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          }
+        },
+        "jev-clef-behaviour-local-setup": {
+          "without": {
+            "valid": 2,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        },
+        "jev-clef-behaviour-video": {
+          "without": {
+            "valid": 2,
+            "score_full_passes": 0,
+            "all_criteria_pass": 0
+          },
+          "with": {
+            "valid": 3,
+            "score_full_passes": 3,
+            "all_criteria_pass": 3
+          }
+        }
+      },
+      "candidate_residuals": [
+        {
+          "case": "jev-clef-behaviour-cpu-timeout",
+          "repetition": 1,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "cpu-deadline-and-lifecycle",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The evidence provides the requested command, documented flags, deadline limits, and correct timeout/lifecycle and credential explanations. However, it does not explicitly state that the CLI does not launch the separate bridge or that content stays on this machine only if the local server performs no cloud offload or proxy forwarding."
+                },
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The command, deadline/retry explanation, inference lifecycle, and no-key guidance satisfy the rubric. However, the response does not state that the CLI does not launch the separate bridge, or qualify on-machine privacy as dependent on the local server having no cloud offload or proxy forwarding."
+                },
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The command, deadline/retry explanation, inference lifecycle guidance, and no-key requirement satisfy most criteria. However, the response does not state that the CLI does not launch the separate bridge or qualify machine-local privacy on the server having no cloud offload or proxy forwarding."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "cf3701b496a169a73159e412838f3c173c52a67636f26ea5fd3353dacc01352b",
+          "artifact": "evals/skills/results/opus-cpu-timeout-three-20261005T032802Z/jev-clef-behaviour-cpu-timeout-with-1/result.json"
+        },
+        {
+          "case": "jev-clef-behaviour-cpu-timeout",
+          "repetition": 2,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "cpu-deadline-and-lifecycle",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The evidence supplies the requested command and correctly explains deadlines, retries, inference lifecycle, cleanup, and credentials. However, it omits the required qualification that content stays on this machine only if the local bridge performs no cloud offload or proxy forwarding; stating there is no cloud fallback does not establish that condition."
+                },
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The evidence supplies the requested command and correctly explains deadlines, retries, inference persistence, cleanup, and credentials. However, it omits the required qualification that content stays on this machine only if the local server performs no cloud offload or proxy forwarding."
+                },
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The evidence provides the requested command, deadline limits, zero retries, inference lifecycle explanation, and no-key guidance. However, it does not state that content stays on this machine only if the local server performs no cloud offload or proxy forwarding, nor explicitly clarify that the CLI does not launch the separate bridge."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "7d9c829ae03d41eb47ac3876a6dd58a146885f6d80c67aaaadf5e9f63ad1ba56",
+          "artifact": "evals/skills/results/opus-cpu-timeout-three-20261005T032802Z/jev-clef-behaviour-cpu-timeout-with-2/result.json"
+        },
+        {
+          "case": "jev-clef-behaviour-cpu-timeout",
+          "repetition": 3,
+          "original_score": 0.0,
+          "failed_criteria": [
+            {
+              "name": "cpu-deadline-and-lifecycle",
+              "type": "llm",
+              "votes": [
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The command, per-attempt deadline, zero retries, inference lifecycle, and no-key guidance are correct. However, the response omits the CLI maximum of 3600 seconds and does not explain that content stays on this machine only if the local server uses no cloud offload or proxy forwarding."
+                },
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The command and timeout/retry lifecycle explanation are correct, but the response omits the CLI maximum of 3600 seconds, does not explicitly state that the CLI does not launch the separate bridge, and omits that content remains on-machine only if the local server performs no cloud offload or proxy forwarding."
+                },
+                {
+                  "name": "cpu-deadline-and-lifecycle",
+                  "passed": false,
+                  "reason": "The command, per-attempt deadline, zero retries, and inference lifecycle explanation satisfy those requirements. However, the response omits the CLI maximum of 3600 seconds, does not explicitly state that the CLI does not launch the separate bridge, and omits the condition that content stays on-machine only if the local server performs no cloud offload or proxy forwarding."
+                }
+              ],
+              "reason": "Independent majority vote"
+            }
+          ],
+          "record_sha256": "b1191bc59be88b57db8b2a374ecacfd246556a4057ac9a7caa18d0adf8d716f5",
+          "artifact": "evals/skills/results/opus-cpu-timeout-three-20261005T032802Z/jev-clef-behaviour-cpu-timeout-with-3/result.json"
+        }
+      ],
+      "execution_errors": [
+        {
+          "case": "jev-clef-behaviour-local-setup",
+          "arm": "without",
+          "repetition": 2,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 44960,
+          "unobserved_remaining_usage": null
+        },
+        {
+          "case": "jev-clef-behaviour-video",
+          "arm": "without",
+          "repetition": 1,
+          "category": "RuntimeError",
+          "phase": "measured",
+          "error": "Case max_turns exceeded",
+          "partial_usage_scope": "measured",
+          "observed_partial_tokens_minimum": 44469,
+          "unobserved_remaining_usage": null
+        }
+      ],
+      "usage": {
+        "completed_measured_tokens": 780978,
+        "completed_measured_cached_input_tokens": 574720,
+        "completed_judge_usage_observations": 48,
+        "completed_judge_tokens": 281346,
+        "observed_partial_error_tokens_minimum": 89429
+      },
+      "retry_notifications": 0,
+      "raw_confirmation_passed": false,
+      "raw_development_only": false,
+      "raw_incomplete": false,
+      "exit_code": 1,
+      "duration_seconds": 194.038,
+      "session_closed": true,
+      "observed_model_and_effort_audit_passed": true,
+      "nonblank_and_isolation_audit_passed": true
+    }
+  ],
+  "combined": {
+    "expected_attempts": 225,
+    "attempted": 225,
+    "valid": 213,
+    "execution_errors": 12,
+    "actual_recorded_usage": {
+      "completed_measured_tokens": 6663051,
+      "completed_measured_cached_input_tokens": 4321152,
+      "completed_judge_usage_observations": 411,
+      "completed_judge_tokens": 2458555,
+      "observed_partial_error_tokens_minimum": 522103
+    },
+    "candidate_records": {
+      "attempted": 117,
+      "valid": 117,
+      "strict_all_criteria_passes": 108,
+      "body_records": 78,
+      "body_all_pass_records": 69,
+      "tool_contract_records": 117,
+      "tool_contract_all_pass_records": 117
+    }
+  },
+  "interpretation": {
+    "scores_and_tools": "Body scores exclude auxiliary tool graders when LLM criteria exist; report body scores and tool contracts separately. Full score alone is not all criteria passing.",
+    "privacy_comparison": "All nine baseline, nine old-guide and nine new-guide records pass. No observed model deficit or measured gain; factual source correction is not an invented baseline failure.",
+    "source_epochs": "No one global hash attests all phases. Earlier frozen sources remain unchanged.",
+    "usage": "Completed measured and judge tokens are recorded separately. Observed partial error usage is a minimum; any unobserved remainder and dollar cost are unknown.",
+    "retries": "No case-level retries, budget increases or model fallback. Original blind cases and grades remain unchanged; subsequent CPU guidance is explicitly blind-result-informed training, not a fresh blind result. Server-attributed SDK retry notifications, if any, are preserved separately.",
+    "quality_failures": "Original failed votes and records remain unchanged; explanation omissions do not establish credential disclosure or unauthorized live transmission.",
+    "independent_body_quality": "No demonstrated body quality gain: no-skill baseline5/6 valid behavior records pass versus candidate5/9. Missing baseline measured answers prevent three paired body comparisons; trigger success is reported separately.",
+    "old_sparse_timeout_requirement": "The frozen reviewer rubric specifically required600 seconds, but neither its original prompt nor loaded old guide prescribed that value. The two strict omissions are preserved; they are not evidence that the model ignored a600-second guide instruction. The parcel rubric separately required CPU timeout discipline when proposing runtime settings.",
+    "cpu_training_informed_by_blind_results": "The final CPU guidance and new training case were informed by analysis of original blind failures and completion review. This transparently changes the guide after those answers; no new blind claim, blind replay, regrading or alteration of original prompts/graders/results follows.",
+    "new_cpu_residuals": "All three new CPU candidate answers provide the requested600/0 command and correct uncancelled serialized inference lifecycle. The unchanged strict grader still fails all three for omitted no-offload/proxy qualification; some votes also require explicit CLI-does-not-launch wording, and repetition3 omits the3600 maximum. These omissions remain failures, not an unsafe execution claim or a perfect correction.",
+    "combined_counts": "Counts combine different source epochs; they do not attest a single final candidate or make earlier answers blind evidence for later changed bytes."
+  },
+  "independent_admission_status_note": "The retained provenance execution_status of Not started is admission-time metadata preserved before the first answer; current completed status is recorded in the independent_six phase.",
+  "independent_admission": {
+    "schema": "jev.independent-clef-authorship/v1",
+    "case_count": 6,
+    "original_authoring_admission_sha256": "8c4aeb90312891e9637d0b42488cbf2f098c8f29f5b27b06e06179288577cd4f",
+    "original_author_note_sha256": "2bd5e59744a39e1a0dfabc6a67e0bcb37ccb475b3dfe23c62470c9399e6df30a",
+    "admitted_manifest_sha256": "8e60507aa4e290d828dfccc1ae076323dfd2be9a5c0440baf72f4dddd9641def",
+    "pre_inference_format_delta_sha256": "61853750f6b05107c6b816b2bb818a872296c2e7d5b74a2879047aaece8f9897",
+    "original_case_files": 19,
+    "admitted_case_files": 19,
+    "model_answers_seen_when_admitted": 0,
+    "original_authorship_preserved": true,
+    "format_corrections_before_inference": {
+      "expected_field_to_supported_exact_input_match": 10,
+      "explicit_min_zero_for_intended_max_zero_negatives": 5,
+      "sparse_generation_length_term_corrected_to_input_tokenization_limit": 768
+    },
+    "independence_scope": "Author reports no shipped skills, existing evaluation prompts/graders, repository documentation, historical transcripts or measured responses were read; runner format normalization does not constitute independent authorship.",
+    "case_prompts_and_graders_not_tuned_to_model_answers": true,
+    "separate_from_historical30_and_prospective29": true,
+    "model_policy": {
+      "measured": "gpt-6.1-sol",
+      "judge": "gpt-6.1-sol",
+      "effort": "high"
+    },
+    "execution_status": "Not started; frozen source retained before model answers"
+  },
+  "historical_preservation": {
+    "prior_blind_case_count": 30,
+    "prior_original_blind_candidate_passes": 85,
+    "prior_valid_blind_candidate_records": 88,
+    "prior_separate_posthoc_candidate_passes": 88,
+    "old_blind_30_replayed": false,
+    "old_result_records_modified": false,
+    "prospective_heldout_case_count": 29,
+    "prospective_admission_manifest_sha256": "16651d2de14774cd7594c56c70692700c91d0211d8581b377dbc0c6e004fe848",
+    "contaminated_case_moved_to_training": "routing-urgent-csv-pilot-before-cli",
+    "future_manifest_not_retroactive_blind_authorship_proof": true
+  },
+  "source_epoch_changes": [
+    {
+      "from_phase": "affected21",
+      "to_phase": "privacy_new_guide_only",
+      "from_candidate_sha256": "3d033f59bc0ad56e1b4f8bc572d2ea806a6a57ab3782cba7d6d3c30159c183f8",
+      "to_candidate_sha256": "b28aa6e94019869e1076176c71536c79f7300c5e5aa128b0193d90f1ce7ea364",
+      "changed_files": [
+        {
+          "path": "is-jev-useful-here/SKILL.md",
+          "before_sha256": "60a0dcdbb200d2b945fc319fdb7018831f1e8a5c7a274247f3c185e2912bedbf",
+          "after_sha256": "5afedb21a1f185620fa081609eec390921f36588de4c245ce55c5a2fa6610ab6"
+        },
+        {
+          "path": "jev-opportunity-audit/SKILL.md",
+          "before_sha256": "6d880ce1e2463e13973b396c0f3f54ef884e0afd4660bb4ef54b8c601d89e4c8",
+          "after_sha256": "2acad0c8f9233654c9194a9bf0e7028111222575bcffabe93d7e842b4c64a8a6"
+        },
+        {
+          "path": "jev-pilot/SKILL.md",
+          "before_sha256": "890dcb9e6b3c10b6bb85959cab2ad40250e546f8cb52c7a850f2561e93cb097b",
+          "after_sha256": "e23ca4e997329e98ded322a68046b3c4549e1ec16c11921f7211eb0482ce9c27"
+        }
+      ]
+    },
+    {
+      "from_phase": "privacy_new_guide_only",
+      "to_phase": "independent_six",
+      "from_candidate_sha256": "b28aa6e94019869e1076176c71536c79f7300c5e5aa128b0193d90f1ce7ea364",
+      "to_candidate_sha256": "0eb5bf86b8c605f660a25d16877903996e92740c6c3f83e9de1241f97d8b5c26",
+      "changed_files": [
+        {
+          "path": "jev/references/providers.md",
+          "before_sha256": "256cd4bb8a9486619ee330a652658813b6de5b64560ca855389bc87ca0706b42",
+          "after_sha256": "be16807c64a33ce3b2fb61275a4ec3a50b0eb7a4335258e75ec3fdf300fd48f8"
+        }
+      ]
+    },
+    {
+      "from_phase": "independent_six",
+      "to_phase": "fit_restoration_three",
+      "from_candidate_sha256": "0eb5bf86b8c605f660a25d16877903996e92740c6c3f83e9de1241f97d8b5c26",
+      "to_candidate_sha256": "450d65e9989f4e6e355868bf611bc3c5c6dbfd2e19e2340b596114127be31dfb",
+      "changed_files": [
+        {
+          "path": "is-jev-useful-here/SKILL.md",
+          "before_sha256": "5afedb21a1f185620fa081609eec390921f36588de4c245ce55c5a2fa6610ab6",
+          "after_sha256": "4fbf5d196afd6edd763cfd408341dd6ebe09d6483448524d36f6895b26f4c875"
+        }
+      ]
+    },
+    {
+      "from_phase": "fit_restoration_three",
+      "to_phase": "cpu_timeout_training_three",
+      "from_candidate_sha256": "450d65e9989f4e6e355868bf611bc3c5c6dbfd2e19e2340b596114127be31dfb",
+      "to_candidate_sha256": "57cff6585b5b9a1908a09bdd1114f2229908689281589dd6fbb6dbf69392c90a",
+      "changed_files": [
+        {
+          "path": "jev/references/providers.md",
+          "before_sha256": "be16807c64a33ce3b2fb61275a4ec3a50b0eb7a4335258e75ec3fdf300fd48f8",
+          "after_sha256": "6daaddb1e58879d8337037bc0dd5d36209422a30ebc5cf8368b4cf4fe9802e77"
+        }
+      ]
+    }
+  ],
+  "retained_original207_receipt": {
+    "artifact": "target/clef-local/opus-corrections-skill-evals/completed207/skill-evaluations.json",
+    "sha256": "5dba27a7e0b688df9e3f14d8e262ea9eabacc96d80146229dc77c222e261987c",
+    "raw_record_scores_and_original_source_bindings_unchanged": true
+  }
+}

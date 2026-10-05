@@ -14,8 +14,8 @@
 //!
 //! * [`Probability`] and [`Confidence`] cannot hold NaN, an infinity, or a value
 //!   outside `[0, 1]` — so no downstream code checks for one.
-//! * [`Content`] can only be the `string | object | array` the API accepts, so a bare
-//!   number cannot reach the wire encoder.
+//! * [`Content`] enforces `string | object | array` by default and admits broader
+//!   publisher JSON only through an explicit constructor and provider check.
 //! * [`Question`] enforces the documented cardinality of Choice options and Score
 //!   levels at construction, so a request that the API would reject is rejected here
 //!   first, for free.
@@ -34,6 +34,7 @@ mod answer;
 mod confidence;
 mod content;
 pub mod limits;
+mod media;
 mod model;
 mod probability;
 mod question;
@@ -42,9 +43,16 @@ mod response;
 
 pub use answer::{Answer, Scalar, Usage, Weighted};
 pub use confidence::Confidence;
-pub use content::{Content, ContentError, check_json_depth};
+pub use content::{Content, ContentError, LocalJson, check_json_depth};
+pub use media::{
+    EmbeddedImage, EmbeddedVideo, MAX_IMAGE_BYTES, MAX_IMAGE_PIXELS, MAX_IMAGES,
+    MAX_TOTAL_IMAGE_BYTES, MAX_TOTAL_MEDIA_PIXELS, MAX_VIDEO_FRAMES, MAX_VIDEOS, MediaError,
+};
 pub use model::{DEFAULT_MODEL, ModelId, ModelIdError};
 pub use probability::{Probability, ProbabilityError};
 pub use question::{ChoiceOption, NoulCriteria, Question, QuestionError, QuestionKind};
-pub use request::{EvaluationRequest, QuestionId, QuestionIdError, RequestError, State};
+pub use request::{
+    EvaluationRequest, KeepAliveError, LocalOptionsError, QuestionId, QuestionIdError,
+    RequestError, State,
+};
 pub use response::{EvaluationResponse, ModelCard};

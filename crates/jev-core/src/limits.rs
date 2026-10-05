@@ -34,7 +34,21 @@ pub const SCORE_MIN_LEVELS: usize = 2;
 /// *API.* Most levels a Score question may define.
 pub const SCORE_MAX_LEVELS: usize = 10;
 
-/// *API.* Most options a Choice question may define.
+/// *Client.* Absolute supported Score level bound across providers.
+///
+/// The publisher head dynamically enumerates options; 255 bounds local head and
+/// response work, matching the existing Choice bound. This is not a model limit.
+/// <https://huggingface.co/Cloudflare/clef/blob/main/joint_schema_model.py>.
+pub const SCORE_ABSOLUTE_MAX_LEVELS: usize = 255;
+
+/// *API.* Ollama's independent documented Score limit.
+/// <https://docs.ollama.com/capabilities/decision>.
+pub const OLLAMA_SCORE_MAX_LEVELS: usize = 26;
+
+/// *API / client.* Most options a Choice question may define.
+///
+/// TypeSafe documents 255; the publisher head dynamically enumerates options and
+/// uses this as a deliberate client resource bound. Ollama separately permits 26.
 pub const CHOICE_MAX_OPTIONS: usize = 255;
 
 /// *Client.* Fewest options a Choice question may define.

@@ -143,12 +143,11 @@ impl Session<'_> {
     /// anything?" without reading what you configured. `jev doctor` answers the
     /// stronger question.
     pub(crate) fn credential_availability(&self) -> serde_json::Value {
-        let credentials = jev_config::Credentials::new(
-            self.environment,
-            self.store,
-            self.context.endpoint_is_official(),
-            self.context.endpoint.value.to_string(),
-        );
+        let credentials = credentials(&self.context, self.environment, self.store);
+        if local_anonymous(&self.context) {
+            return serde_json::json!({"available": true, "source": "anonymous",
+                "checked": "local inference; no credential is used"});
+        }
         // `sources_shape` consults the environment only. The OS store is not listed for
         // a custom endpoint and is not queried here for the official one.
         let configured = credentials
@@ -166,6 +165,9 @@ impl Session<'_> {
 
     /// Emits the standing warning when a non-official endpoint is in force.
     pub(crate) fn warn_about_endpoint(&mut self) {
+        if self.context.ignored_config_endpoint {
+            self.warn("note: ignoring the saved endpoint because the selected provider differs; use --endpoint to override this provider");
+        }
         if let Some(warning) = self.context.endpoint_warning() {
             // Not suppressed by `--quiet`: where the user's credential and data are
             // being sent is not a routine progress note.
@@ -192,13 +194,11 @@ pub(crate) fn resolve_credential(
     environment: &dyn Environment,
     store: &(dyn SecretStore + Send + Sync),
 ) -> Result<(Credential, jev_config::CredentialSource)> {
-    let credentials = jev_config::Credentials::new(
-        environment,
-        store,
-        context.endpoint_is_official(),
-        context.endpoint.value.to_string(),
-    );
+    let credentials = credentials(context, environment, store);
     let resolved = credentials.resolve()?;
+    if resolved.source == jev_config::CredentialSource::Anonymous {
+        return Ok((Credential::anonymous(), resolved.source));
+    }
     // The plaintext crosses from `jev-config`'s `Secret` to `jev-client`'s `Credential`
     // here and nowhere else. Both redact on `Debug` and zeroize on drop, so the window
     // is this one expression.
@@ -206,6 +206,29 @@ pub(crate) fn resolve_credential(
         Credential::new(resolved.secret.expose().to_owned()),
         resolved.source,
     ))
+}
+
+/// Whether an explicitly selected local protocol may run without authentication.
+fn local_anonymous(context: &Context) -> bool {
+    context.endpoint.value.is_local_provider() && context.endpoint.value.is_loopback()
+}
+
+/// The shared credential namespace decision for inference and diagnostics.
+pub(crate) fn credentials<'a>(
+    context: &Context,
+    environment: &'a dyn Environment,
+    store: &'a (dyn SecretStore + Send + Sync),
+) -> jev_config::Credentials<'a> {
+    if local_anonymous(context) {
+        jev_config::Credentials::anonymous(environment, store, context.endpoint.value.to_string())
+    } else {
+        jev_config::Credentials::new(
+            environment,
+            store,
+            context.endpoint_is_official(),
+            context.endpoint.value.to_string(),
+        )
+    }
 }
 
 /// A transport that refuses every request, installed for the duration of a dry run.
@@ -312,9 +335,54 @@ where
         }
     };
 
-    let overrides = cli.global.overrides();
+    let mut overrides = cli.global.overrides();
+    if !matches!(
+        &cli.command,
+        Command::Noul(_)
+            | Command::Choice(_)
+            | Command::Score(_)
+            | Command::Ask(_)
+            | Command::Map(_)
+            | Command::Eval(_)
+            | Command::Mcp(_)
+    ) && (!overrides.image_paths.is_empty()
+        || !overrides.video_frames.is_empty()
+        || overrides.video_fps.is_some()
+        || overrides.max_length.is_some()
+        || overrides.max_state_tokens.is_some()
+        || overrides.media_kwargs.is_some()
+        || overrides.reject_if_busy
+        || overrides.keep_alive.is_some())
+    {
+        let _ = writeln!(
+            err,
+            "error: media and inference options require an inference command"
+        );
+        return ExitCode::from(exit::USAGE);
+    }
+
+    // Configuration editing must remain usable while the user is setting up a
+    // provider whose inference configuration is not complete yet.
+    if matches!(&cli.command, Command::Config(_)) && overrides.provider.is_none() {
+        overrides.provider = Some(crate::cli::ProviderArg::Typesafe);
+    }
     let context = match Context::resolve(&overrides, environment, streams.stdout_is_terminal) {
         Ok(context) => context,
+        Err(CliError::IncompleteCloudflareConfiguration)
+            if overrides.provider.is_none()
+                && matches!(
+                    &cli.command,
+                    Command::Doctor(_) | Command::Auth(crate::cli::AuthCommand::Status)
+                ) =>
+        {
+            let doctor = matches!(&cli.command, Command::Doctor(_));
+            let result = report_incomplete_cloudflare(&overrides, environment, doctor, out);
+            if let Err(error) = result {
+                let _ = writeln!(err, "error: {error}");
+                return ExitCode::from(error.code());
+            }
+            return ExitCode::from(if doctor { exit::SUCCESS } else { exit::AUTH });
+        }
         Err(error) => {
             let _ = writeln!(err, "error: {error}");
             return ExitCode::from(error.code());
@@ -351,6 +419,33 @@ where
             let _ = writeln!(session.err, "error: {error}");
             ExitCode::from(error.code())
         }
+    }
+}
+
+fn report_incomplete_cloudflare(
+    overrides: &crate::context::Overrides,
+    environment: &dyn Environment,
+    doctor: bool,
+    out: &mut impl Write,
+) -> Result<()> {
+    let message = CliError::IncompleteCloudflareConfiguration.to_string();
+    let configured_json = !overrides.no_config
+        && jev_config::config_path(environment)
+            .ok()
+            .and_then(|path| jev_config::Settings::load(&path).ok())
+            .is_some_and(|settings| settings.output.as_deref() == Some("json"));
+    let json = overrides
+        .output
+        .map_or(configured_json, |format| format == OutputFormat::Json);
+    if json {
+        let document = if doctor {
+            serde_json::json!({"schema":crate::render::DOCTOR_SCHEMA,"configuration_error":message,"live":{"checked":false}})
+        } else {
+            serde_json::json!({"schema":crate::render::AUTH_SCHEMA,"action":"status","configuration_error":message,"error":message,"effective_source":null,"sources":[]})
+        };
+        crate::render::json::write_document(out, &document)
+    } else {
+        crate::render::json::write_all(out, format!("configuration error: {message}\n").as_bytes())
     }
 }
 

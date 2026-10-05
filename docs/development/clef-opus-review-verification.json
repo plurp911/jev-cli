@@ -1,0 +1,515 @@
+{
+  "schema": "jev.clef.opus-code-review/v1",
+  "status": "review_corrections_verified_with_disclosed_evaluation_failures_and_platform_limits",
+  "review_runtime": "Claude Code",
+  "review_model": "claude-opus-5-5",
+  "requested_effort": "medium",
+  "runtime_version": "2.1.289",
+  "no_cursor_review_this_phase": true,
+  "scope": {
+    "changed_paths_at_initial_admission": 227,
+    "insertions": 28366,
+    "deletions": 826,
+    "available_user_facing_messages_reviewed": 265,
+    "history_scope": "Exact active thread, user/commentary/final messages only; secret-pattern/account/path redactions; private reasoning and unrelated threads excluded. Review starts from all available retained history; omitted prior turns cannot be reconstructed.",
+    "frozen_source": {
+      "path": "target/clef-local/opus55-code-review/source.tar.gz",
+      "local_only": true
+    },
+    "preexisting_gitignore_changes": "Preserved, not attributed to this session."
+  },
+  "reviews": [
+    {
+      "name": "rust-cli-providers",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 127,
+      "elapsed_seconds": 747.8493849670049,
+      "findings": "clef-opus-review/rust-cli-providers.findings.md",
+      "findings_sha256": "34d58c4bda86cf98cd74d20ae015ee515013737a9f3bcb3a2e6fca42f5dd84c8",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/rust-cli-providers.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "local-bridge-media",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 79,
+      "elapsed_seconds": 638.686099368002,
+      "findings": "clef-opus-review/local-bridge-media.findings.md",
+      "findings_sha256": "b6453ea9871feb52faa45b1dbb903a2aaddc57971e0e46943fc1bb47c03fc446",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/local-bridge-media.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "skills-evidence-tooling",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 136,
+      "elapsed_seconds": 747.234554679002,
+      "findings": "clef-opus-review/skills-evidence-tooling.findings.md",
+      "findings_sha256": "6fa893d5c9d820fb6c02fe444026dafacc95eb5dc0bef67e6d3cca22b31a2cd2",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/skills-evidence-tooling.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "coverage-gaps-authorized",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 197,
+      "elapsed_seconds": 698.5467726839997,
+      "findings": "clef-opus-review/coverage-gaps.findings.md",
+      "findings_sha256": "82ddd6920253268426c8270e1fb46d304beefdce88b6dbd9da7f36a4c9f1ddfa",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/coverage-gaps-authorized.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "corrections-followup",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 83,
+      "elapsed_seconds": 615.9834744410036,
+      "findings": "clef-opus-review/corrections-followup.findings.md",
+      "findings_sha256": "dee19ce9e2c1fe1c3798738e31825876cd8683f92db0a7ad1a6ffaff6d71e67c",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/corrections-followup.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "final-corrections",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 120,
+      "elapsed_seconds": 484.0160290960048,
+      "findings": "clef-opus-review/final-corrections.findings.md",
+      "findings_sha256": "88bdc2bb7a532f06fe0b9b28ac053ccf5349b52e1b5ecf051b8199eedcb5145e",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/final-corrections.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "remaining-session-evidence",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 104,
+      "elapsed_seconds": 442.6262787200103,
+      "findings": "clef-opus-review/remaining-session-evidence.findings.md",
+      "findings_sha256": "27d25416effba218297f158be0cc50bb8a9f582bbc3c08d1ff49eac1177cdf74",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/remaining-session-evidence.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "completion-review",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 60,
+      "elapsed_seconds": 222.13392509199912,
+      "findings": "clef-opus-review/completion-review.findings.md",
+      "findings_sha256": "ec3b40b8ff53cafc4b3e6a5fd7cc3d65527995eae0391be1bff1825e3d367302",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/completion-review.jsonl",
+        "local_only": true
+      }
+    },
+    {
+      "name": "cpu-final-review",
+      "runtime": "Claude Code",
+      "requested_model": "claude-opus-5-5",
+      "requested_effort": "medium",
+      "observed_models": [
+        "claude-opus-5-5"
+      ],
+      "fallback_requested": false,
+      "exit": 0,
+      "tool_calls": 34,
+      "elapsed_seconds": 107.68528351200803,
+      "findings": "clef-opus-review/cpu-final-review.findings.md",
+      "findings_sha256": "a77540bd00994f3267264a6eeec981fa83fcafb5e4fb6239e0622c573f338bc3",
+      "raw_stream": {
+        "path": "target/clef-local/opus55-code-review/outputs/cpu-final-review.jsonl",
+        "local_only": true
+      }
+    }
+  ],
+  "historical_receipts": {
+    "unchanged": [
+      "clef-skill-verification.json",
+      "clef-residuals-verification.json"
+    ],
+    "source_binding": "Their runs bind the earlier frozen sources, not the newly corrected guide, bridge or harness.",
+    "evidence_path_policy": {
+      "local_only_patterns": [
+        "/tmp/*",
+        "target/*",
+        "../../target/*",
+        "evals/skills/results/*"
+      ],
+      "meaning": "Full raw review, eval and artifact records at these paths are locally retained and not included in the source archive. Committed JSON reports and this supplement summarize them; a source archive alone cannot reproduce or audit every historical raw response.",
+      "historical_admission_wrapper": {
+        "local_only": true,
+        "path": "target/clef-local/opus55-code-review/session-context/historical-heldout-admission-wrapper.py",
+        "sha256": "afa5926044bea7cd6bdea085d83cd16f5cd64adf25581e0412e08298b2cc4ec8",
+        "purpose": "Original historical 30-case admission only; exact earlier adapter/candidate/evaluation bindings required. Not an executable recipe for the corrected current source."
+      }
+    },
+    "original_blind_heldout": {
+      "cases": 30,
+      "candidate_valid": 88,
+      "strict_passes": 85,
+      "candidate_incomplete": 2,
+      "separate_posthoc_valid_passes": 88,
+      "posthoc_is_blind": false
+    },
+    "prospective_heldout": "Retire the case whose grader was corrected after viewing results; current admission freezes 29 active cases. Historical counts remain unchanged.",
+    "explicit_helper_binding_limit": "Explicit executed CLI/helper source hashes exist in Hugging Face phase receipts and native Flash proof. The ten Cloudflare/Ollama/native Clef residual smoke/quality reports omit CLI/helper hashes; no retrospective execution attestation is claimed. native-clef-cpu-proof DOES include the native model and runtime executable hashes, contrary to the broad no-sha256 wording in remaining-session-evidence finding3.",
+    "cloudflare_capacity_cause": "Observed HTTP422/code5012; precise provider cause unestablished. Historical wording does not establish a cause. Current mocked field diagnostic is explicitly synthetic redaction test content.",
+    "unchanged_sha256": {
+      "clef-skill-verification.json": "5cf0fecf25f63eab9d023550e6b3a8d15621a3d39431f521840f185b4e5c02cf",
+      "clef-residuals-verification.json": "4b7a893a682e047740a7558db2c76c13e855fe1bae936b851f60cea5ff573f65"
+    }
+  },
+  "verification": {
+    "full_gate": {
+      "exit": 0,
+      "command": "JEV_CLEF_PYTHON=target/clef-local/repro-venv/bin/python JEV_MCP_INSPECTOR=1 scripts/verify.sh --push",
+      "default_tests": 899,
+      "no_keychain_tests": 898,
+      "distinct_ignored_typesafe_live": 11,
+      "self_owned_valid_skills": 16,
+      "pinned_third_party_format_skips": [
+        "dispatching-parallel-agents",
+        "skill-creator",
+        "test-driven-development",
+        "verification-before-completion",
+        "writing-skills"
+      ],
+      "required_check_skips": 0,
+      "real_processor_suite": 42,
+      "decoder_suite": 35,
+      "bridge_stdlib_suite": 32,
+      "fuzz_targets": 6,
+      "fuzz_seconds_per_target": 10,
+      "mcp_inspector": "pass",
+      "host_artifact_rehearsal": "pass",
+      "phase": "final production/guide/test source; evidence receipt finalization followed",
+      "log": {
+        "path": "target/clef-local/opus55-code-review/cpu-final-gate-artifacts/verify.log",
+        "local_only": true,
+        "sha256": "e29b7e98d4b84e30ece81318b5ecd53451f243339c9d7406f471afce3cb2977f"
+      },
+      "retention_proof": {
+        "path": "target/clef-local/opus55-code-review/cpu-final-gate-artifacts/retention.json",
+        "local_only": true
+      }
+    },
+    "fresh_corrective_skill_evals": {
+      "status": "complete with preserved quality failures",
+      "receipt": "clef-opus-review/skill-evaluations.json",
+      "sha256": "0a34a94d3b64e8542297b00472b097dc2688cccb9c6075824859eda34d625436",
+      "measured_attempts": 225,
+      "valid": 213,
+      "baseline_execution_errors": 12,
+      "candidate_execution_errors": 0,
+      "candidate_strict_passes": 108,
+      "candidate_valid": 117,
+      "candidate_tool_contract_passes": 117,
+      "candidate_body_passes": 69,
+      "candidate_body_records": 78,
+      "combined_across_source_epochs": true,
+      "claim_of_one_unchanged_final_candidate": false,
+      "all_measured_and_judges": "GPT6.1Solhigh acknowledged via Codex appserver; no Claude evals",
+      "independent_six": "14/18 strict;18/18tool;5/9body. Four retained CPU timeout advice omissions. Source0eb before independently reviewed fitbrevity restoration.",
+      "final_fit_restoration_training": "9/9candidate passes;5/9baseline; noerrors. Source450d; no blindclaim.",
+      "quality_gain_privacy": "No observed measured deficit/gain:all9baseline/old/newpass; sourcefalse-recipientclaim correction separately reproduced.",
+      "forced_case_retry": false,
+      "grader_edit_after_new_blind_answers": false,
+      "final_CPU_training": "18attempts;9validcandidate/6strict/9tool;7validbaseline/0strict/2max-turnerrors. All3CPUanswers give correct600/0 and active inference lifecycle but omit some offload/no-launch/max3600 qualifications. Feedback-informed source57cff; no blindclaim.",
+      "model_observation_limit": "All completed measurements and judges retain matching model/effort acknowledgements; incomplete error records retain requested configuration and partial protocol, not the completed-run acknowledgement fields. No backend per-turn/weight attestation.",
+      "independent_root_audit": {
+        "path": "target/clef-local/opus55-code-review/session-context/all225-fresh-independent-audit.json",
+        "local_only": true,
+        "sha256": "4bbf363b191c27f56dd659d8e7db346c168d627b10de9f37b3e85c4fb940557a",
+        "original_207_record_hashes_unchanged": true
+      }
+    },
+    "followup_review": "Nine successful Claude Code Opus5.5medium reviews. CPU source correction accepted; final review conditions subsequently satisfied by green same-source full gate and root audit of225 fresh attempts. Reviewer did not read the late18 results or gate; root independently reconciled them and retains the explicit coverage limit.",
+    "cross_platform_security_helpers": "clef-opus-review/cross-platform-security-typecheck.json",
+    "fresh_skill_evaluation_receipt": "clef-opus-review/skill-evaluations.json",
+    "reviewed_guard_extension": {
+      "change": "Numeric exclusiveMinimum in curated MCP JSON Schema subset; new checks reject boolean bounds and unknown keywords. Existing all-schema guard and independent zero/positive validation retained.",
+      "primary_sources": [
+        "https://modelcontextprotocol.io/specification/2025-11-25/server/tools",
+        "https://json-schema.org/draft/2020-12/json-schema-validation#section-6.2.3"
+      ],
+      "reason": "Stale keyword guard blocked exact positive cadence schemas; failed full default/no-keychain runs retained. Independently accepted in completion-review as feature-compatible extension with stronger regression assertions."
+    },
+    "retained_native_runtime_inventory": "clef-opus-review/native-runtime-inventory.json",
+    "earlier_review_phase_gates": [
+      {
+        "phase": "first",
+        "exit": 0,
+        "local_only": true,
+        "path": "target/clef-local/opus55-code-review/first-gate-artifacts/retention.json"
+      },
+      {
+        "phase": "failed-final",
+        "exit": 1,
+        "causes": [
+          "default/no-keychain stale schema keyword guard",
+          "exact immutable reviewhash spellingfalsepositive"
+        ],
+        "local_only": true,
+        "path": "target/clef-local/opus55-code-review/failed-final-gate-artifacts/retention.json"
+      },
+      {
+        "phase": "second-green",
+        "exit": 0,
+        "local_only": true,
+        "path": "target/clef-local/opus55-code-review/second-green-gate-artifacts/retention.json"
+      },
+      {
+        "exit": 0,
+        "command": "JEV_CLEF_PYTHON=target/clef-local/repro-venv/bin/python JEV_MCP_INSPECTOR=1 scripts/verify.sh --push",
+        "default_tests": 899,
+        "no_keychain_tests": 898,
+        "distinct_ignored_typesafe_live": 11,
+        "self_owned_valid_skills": 16,
+        "pinned_third_party_format_skips": [
+          "dispatching-parallel-agents",
+          "skill-creator",
+          "test-driven-development",
+          "verification-before-completion",
+          "writing-skills"
+        ],
+        "required_check_skips": 0,
+        "real_processor_suite": 42,
+        "decoder_suite": 35,
+        "bridge_stdlib_suite": 32,
+        "fuzz_targets": 6,
+        "fuzz_seconds_per_target": 10,
+        "mcp_inspector": "pass",
+        "host_artifact_rehearsal": "pass",
+        "log": {
+          "path": "target/clef-local/opus55-code-review/final-complete-gate-artifacts/verify.log",
+          "local_only": true,
+          "sha256": "29b26059c60849bd36166c169d8c3b668ae7fdcca72867dd061d39012f8ff992"
+        },
+        "retention_proof": {
+          "path": "target/clef-local/opus55-code-review/final-complete-gate-artifacts/retention.json",
+          "local_only": true
+        },
+        "phase": "before CPU guidance correction"
+      }
+    ],
+    "cloudflare_capacity_primary_recheck": {
+      "url": "https://developers.cloudflare.com/workers-ai/features/reject-if-busy/",
+      "read_in_this_final_review_phase": true,
+      "native_REST_shape_matches_implementation": "Top-level options object containing rejectIfBusy true",
+      "documented_capacity_rejection": "HTTP429/internal3040",
+      "observed_old_models_rejected_option": "HTTP422/internal5012, precisecauseunestablished",
+      "new_live_requests": 0
+    },
+    "cpu_one_off_source_check": {
+      "qualification": "One-off Python source assertions, not a committed regression or runtime cancellation test. Exact reconstructed source assertions retained separately; root reproduced them successfully without model calls. New LLM training case is the full-guidance regression; existing Rust tests cover CLI bounds. Original proof unchanged.",
+      "addendum": {
+        "path": "target/clef-local/opus55-code-review/session-context/jev-cpu-guidance-source-check-addendum.json",
+        "local_only": true,
+        "sha256": "f3efdd272b263553dd398647bc2611ed2d210315729ab0c9222f94ed987c058f"
+      }
+    },
+    "final_artifact_only_rehearsal": {
+      "purpose": "Capture finalized evidence metadata after the green full gate; no production/test/guide changes. Local source archive and host artifact proof retained separately to avoid self-referential archive hashes.",
+      "external_proof": {
+        "path": "target/clef-local/opus55-code-review/final-artifact-proof.json",
+        "local_only": true
+      }
+    }
+  },
+  "remaining_limits": [
+    "Cloudflare rejectIfBusy currently rejected upstream with HTTP422/code5012; no further live request made in this review phase.",
+    "Full unquantized HF27B, full GPU/HF CUDA, and Windows/macOS execution remain unverified.",
+    "Client cancellation cannot stop an already running bridge inference; explicit longer timeout and zero retries are documented.",
+    "Synthetic model and skill evidence does not establish production accuracy or calibration.",
+    "Static independent reviews cannot replace execution; their coverage limitations are preserved in the original reports.",
+    "Nine candidate explanation omissions remain across source epochs:2credentials/privacy,4oldguide CPU-advice requirements,3newCPU privacy/no-launch/max3600 qualifications. New CPU core600/0 and active-inference lifecycle advice correct in allthree; fullstrict rubric6/9candidate. No guarantee of perfect skill compliance.",
+    "Twelve incomplete baseline max-turn attempts remain; partial usage is a minimum and completed-run configuration acknowledgement fields are absent from these incomplete records. Unobserved remainder and actual subscription dollar billing unknown.",
+    "Some historical residual model runs omit executed CLI/helper hashes; native runtime inventory added now cannot retrospectively attest dynamically loaded historical library variants."
+  ],
+  "finding_dispositions": {
+    "rust_cli_providers": {
+      "1": "Fixed: saved endpoint scoped to its saved provider; absent saved provider means TypeSafe; switching reports a static URL-free stderr note.",
+      "2": "Fixed: MCP aggregate budget includes decoded compressed media and template media once; comments distinguish CLI serialized JSONL units.",
+      "3": "Fixed: exact wire sizing uses base64 placeholders and arithmetic, preserving body bytes and caps. Measured 100-row debug preflight went from 11,416 ms to below 1 ms resolution.",
+      "4": "Fixed: changelog explicitly records duplicate-key rejection on all affected inputs.",
+      "5": "Fixed: inference-only flags fail before configuration on administrative commands.",
+      "6": "Fixed: Hugging Face help, record video/image fields and canonical llama.cpp label; config accepts llama-cpp alias.",
+      "7": "Fixed MIME mismatch diagnostic. Oversized valid data-URL allegation rejected: earlier code already checked size first; regression control preserved.",
+      "8": "Fixed: saved Cloudflare configuration without account remains diagnosable without credentials or sockets; other validation remains intact."
+    },
+    "local_bridge_media": {
+      "F1": "Fixed: whole-clip target units, per-media allocation, actual spatial/temporal patch rounding and sampling bounded independently before decode. Real Qwen processor comparisons and grids exercised.",
+      "F2": "Documented practical CPU timeout600/retries0. No EOF cancellation: a write-half-closed client remains valid; running PyTorch inference cannot be cancelled by the client.",
+      "F3": "Fixed: ordinary decoder, header-reset and response-writing errors remain opaque and traceback-free; KeyboardInterrupt/SystemExit propagate.",
+      "F4": "Fixed: missing account/endpoint exits usage2 without traceback, authentication or model call.",
+      "F5": "Fixed argmax/weighted-mean consistency with derived rounding tolerance. Confidence=max assertion applies only to publisher Hugging Face; Ollama and TypeSafe differ. Existing32answers/21captures replayed offline, not new inference.",
+      "F6": "Fixed: animated WebP refused before Hugging Face transport.",
+      "F7": "Intentional no-follow security boundary preserved; relative-path workaround documented."
+    },
+    "skills_evidence_tooling": {
+      "1": "Retired post-result-edited case to training/routing, retained strict original85/88 and separately labelled posthoc88/88; prospective29 integrity manifest guards future runs.",
+      "2": "Fixed illustrative account IDs to valid32hex and validated fixture command shape offline.",
+      "3": "Documented required media prerequisites; doctor/gate construct processor without weights to detect lazy missing backends.",
+      "4": "Fixed loopback guidance: local server may proxy/offload; require actual local execution before sending data required to stay local.",
+      "5": "Corrected training video grader to accept explicitly blank Hugging Face state, preserving earlier grades.",
+      "6": "Generated current routing table including ordered dependencies and test that table agrees with graders.",
+      "7": "Qualified historical external evidence paths as local_only; retained historical source-bound admission wrapper separately, not as a current runnable recipe.",
+      "8": "Qualified initial research date; later live/download evidence is separate.",
+      "9": "Fixed recoverable willRetry notifications according to installed primary app-server schema; no case-level retries introduced.",
+      "10": "Replaced credential prefix denylist with explicit process environment allowlist and regression canaries. Linux keyring IPC auth compatibility not exercised; failure is closed.",
+      "11": "Malformed judge stays execution error, distinct from semantic failure; completed judge usage retained and confirmation fails with explicit attempted/valid/error counts.",
+      "12": "Read-only snapshot Git calls set GIT_OPTIONAL_LOCKS=0; original index content and metadata preserved."
+    },
+    "coverage_gaps": {
+      "1": "Fixed unconditional TypeSafe recipient in three planning skills, unchanged descriptions; source-level false claims reproduced. All old/baseline/new privacy model runs passed, so no measured deficit/gain claimed.",
+      "2": "Fixed record-level MCP video metadata advertisement and real process transport regression.",
+      "3": "Fixed exclusiveMinimum0 for cadence/duration/sampling cadence in all five MCP schemas; independent JSON Schema checks reject zeros.",
+      "4": "Fixed empty legacy case/tag/partition selection to exit2 before inference.",
+      "5": "Qualified Cloudflare422/code5012 observation; precise upstream cause is unestablished in retained evidence.",
+      "6": "Practical exact production file-opening helpers type-checked for macOS/Windows with real APIs and matching dependency closure. Entire CLI cross-target build/native execution remain unverified.",
+      "earlier_report_corrections": "Confidence formula is provider-specific. HF32-image quality used another bridge/helper source phase; same-helper assertions bind only their historical invocation."
+    },
+    "first_corrections_followup": {
+      "N1": "Reproduced actual lazy dummy class import succeeding with hidden torch/torchvision; constructor now required. Regression RED/GREEN; no weights needed.",
+      "N2": "Fixed skill reference and all five MCP pixel option descriptions before independent blind inference; separate candidate source binding.",
+      "N3": "Fixed static stderr provider-switch notice; same provider/explicit override/quiet controls tested.",
+      "N4": "Reproduced header-stage TCP reset traceback; quiet HTTPServer handler fixed, real decoder/processor42test suite passes.",
+      "N5": "Configuration alias accepted and canonicalized. Unreleased older llama-cpp development map artifacts may refuse resume because fingerprint label changed.",
+      "N6": "Corrected MCP versus CLI budget-unit comment and Python probe style; no invented cross-interface byte equivalence."
+    },
+    "final_corrections": {
+      "1": "Fixed current MCP/state-media budget docs; ADR0012 original text explicitly historical plus dated addendum.",
+      "2": "Fixed actual configured recipient in MCP/threat-model docs, added videos to server instructions and lifecycle contract assertion.",
+      "3": "Restored original required NO/WEAK one-sentence brevity and rationale, independent of blind outcomes. Separate fresh existing-training cases required for this final guide phase.",
+      "info": "Schema checker docstring now covers MCP. Publisher guide links are supplementary public links; core recipient/consent facts are stated directly in each skill, without depending on network access."
+    },
+    "remaining_session_evidence": {
+      "1": "Fresh evaluation raw records/receipts locally existed but were outside reviewer admission. Copying them into allowed review context, binding source phases, recording errors/omissions unchanged; final full gate after all corrections required.",
+      "2": "Replaced stale publisher revision with links to exact verified Clef and Flash manifests.",
+      "3": "Qualified ten residual reports lacking executed CLI/helper hashes; native27B model/runtime hashes remain recorded. Old receipt unchanged.",
+      "4": "Retained release metadata is local_only. Confirmed17,864-byte launcher needs libllama-server-impl.so. Fresh39-entry inventory has29regularfiles/10symlinks and43,118,224 unique bytes;71,257,904 entrybytes repeats symlink targets. No retrospective historical dynamically loaded variant/systemlibrary attestation.",
+      "5": "Mock diagnostic labelled synthetic, observed cause explicitly unestablished. Historical receipts frozen, qualified by this supplement.",
+      "6": "Original tiny-label criterion failed allthreevotes despite refusal; no impliedpass, originalgrade retained."
+    },
+    "completion_review": {
+      "guard_extension": "Independently accepted: documented feature-compatible numeric exclusiveMinimum with new boolean/unknown-keyword rejection; preserves existing schema guard and Inspector checks.",
+      "A": "Accepted guide gap: oldguide/prompt omitted600s CPUtimeout criterion demanded by frozen rubric. Original fourfailures stay failures, not evidence of ignoring supplied guidance; adding CPUdeadline/retries/cancellation advice is explicitly blind-result-informed and receives separate training evaluation, no fresh blindclaim.",
+      "B": "Independent body baseline5/6valid versuscandidate5/9valid; no body quality gain claimed. Baseline strictpositive-trigger zeros structural absentSkillcatalog.",
+      "C": "Corrected39entries/29regularfiles/10symlinks/43,118,224 unique bytes; old fieldentrytotal71,257,904 includes repeated targets.",
+      "optional_nits": "Original fitpolicy/rationale kept as separately reviewed restoration. Preexisting minimum/maximum guard asymmetry remains outside correction scope; independent JSONSchema validation still validates schemas."
+    },
+    "cpu_final_review": {
+      "1": "Fixed current providers/case/counttest source binding; previous fullgate explicitly pre-CPU, latest same-source gate retained and passed.",
+      "2": "Clarified one-off source assertion proof in separate reproducible addendum, originals unchanged; no unsupported committed regression claim.",
+      "optional_nits": "3600maximum strict criterion preserved as independently accepted; flags also apply MCP per existing docs. No source tuning after new18answers."
+    }
+  },
+  "review_billing": "Existing first-party Claude Code subscription authentication. CLI reports theoretical costs; actual subscription billing is not established by those fields.",
+  "review_coverage": "Combined initial disjoint change review, available user-facing history, prior Grok reports, historical gate/model/skill evidence, corrections review and remaining-evidence review. Each immutable report discloses full/partial/unread scope; no literal every-line or backend-weight attestation claim.",
+  "failed_review_connection_attempt": {
+    "name": "coverage-gaps",
+    "exit": 1,
+    "tool_calls": 0,
+    "reason": "Sandboxed connection failed; original partial retained. Distinct authorized retry accepted."
+  },
+  "source_phase_binding": {
+    "current_production_and_guidance_files": {
+      "crates/jev-client/src/client.rs": "510244bd74cd2d07b4c5f9ea1ebb90bb14de3ef21e23159254e4add0cdb5ca17",
+      "crates/jev-cli/src/context.rs": "92f03dc33d91ba4eaaec26a8c97e7afcbbc93f8b56b17c0aba172301cacb207c",
+      "crates/jev-cli/src/commands/mod.rs": "1289d2d9c33d1543dfce998953fa112a2c49735f67b02d2ca0428ccb3da7a943",
+      "crates/jev-cli/src/media.rs": "608dcbecc99f8ca481006129ea34747264cfd34cc0ce05d8fba1d8306369fcd9",
+      "crates/jev-cli/src/mcp/server.rs": "46d5be719f16d3c56a3ee82883d272ddd3e57cf80bbfa9f1f04d8c1c0f43f396",
+      "crates/jev-cli/src/mcp/tools.rs": "ca38b41d16bfef75b374ec07e60f98e7819dd8e176c4c8b883c9afae126866d7",
+      "crates/jev-config/src/settings.rs": "37b8138028775db914b88488bd5f2f94a525617297994f629759cf62757c811f",
+      "scripts/clef-server.py": "e199e1c57557ff6af46bb03a31ef7cf8197b4dd0d84adf5fc4a90b09ea3a00cb",
+      "scripts/clef-live.py": "4f54e1a09f02eba07916a33a2b6c9769daf9bdd0812707ee7345dbe38428c679",
+      "scripts/clef-quality.py": "a055c4dd9103589e605f0e851fa121bf045b9151ecc4f40fc9cedb19cc77f337",
+      "scripts/skill-eval-codex.py": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51",
+      "scripts/source-snapshot.py": "326701bce422816aeafbab46caa9b762ff67271d1841e2e23a1436b5670940ca",
+      "scripts/verify.sh": "3235a77f99f1d121af0c960bb21427c8f475033061791d3a6ce5952f0ac0f3dc",
+      "scripts/dev-setup.py": "5e861e6b15bae790e9032ddb1b965fe0cd9cb26af4870c6714ee500a63c2e4ca",
+      "skills/jev/references/providers.md": "6daaddb1e58879d8337037bc0dd5d36209422a30ebc5cf8368b4cf4fe9802e77",
+      "skills/is-jev-useful-here/SKILL.md": "4fbf5d196afd6edd763cfd408341dd6ebe09d6483448524d36f6895b26f4c875",
+      "skills/jev-pilot/SKILL.md": "e23ca4e997329e98ded322a68046b3c4549e1ec16c11921f7211eb0482ce9c27",
+      "skills/jev-opportunity-audit/SKILL.md": "2acad0c8f9233654c9194a9bf0e7028111222575bcffabe93d7e842b4c64a8a6",
+      "scripts/test-skill-eval-codex.py": "6a3ecf340f56f20b1e4b1122f596d5af66974f82a1c66c9e2b63713467387780",
+      "evals/skills/jev/behaviour/clef-cpu-timeout/prompt.md": "7621122785902f6ffb1ecaaadc5f466f1d1c2975d6356c46d7941202a54a4185",
+      "evals/skills/jev/behaviour/clef-cpu-timeout/graders/cpu-deadline-and-lifecycle.md": "c9dd8332117cdc12e7965d39e84b7e182230e1746e66ff8a2952641498d7f18c",
+      "evals/skills/jev/behaviour/clef-cpu-timeout/graders/skill-loaded.md": "b0e8dbd015c805464b60f6c18c767731dd71d8e908aa1b64ce97b8e3f779f4b9"
+    },
+    "frozen_review_source": "target/clef-local/opus55-code-review/source-cpu-final.tar.gz",
+    "frozen_review_source_sha256": "97852da88a950938940922454c034da92677fdc50c1fd5296d73463cba860c96",
+    "prior_review_source": "target/clef-local/opus55-code-review/source-complete.tar.gz",
+    "local_only": true,
+    "note": "All current production/guidance/test/case hashes match source-cpu-final and the final full gate. Later receipt/report finalization changes evidence metadata only; final artifact-only rehearsal captures finalized tracked working bytes."
+  }
+}

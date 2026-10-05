@@ -36,7 +36,7 @@ use std::fmt::Write as _;
 use std::path::Path;
 
 use jev_client::{ClientError, Credential, Transport};
-use jev_core::{Answer, EvaluationRequest, ModelId, Question, QuestionId};
+use jev_core::{Answer, ModelId, Question, QuestionId};
 use serde_json::{Value, json};
 
 use crate::batch;
@@ -75,8 +75,22 @@ pub(crate) fn run(
     let objective = resolve_objective(args)?;
     check_report_path(args)?;
 
-    let (questions, model) = load_questions(session, args)?;
-    let plan = load_rows(session, args, &questions, objective)?;
+    let request::Template {
+        questions,
+        model,
+        features: template,
+    } = load_questions(session, args)?;
+    let mut plan = load_rows(session, args, &questions, objective, &template)?;
+    for row in &mut plan.rows {
+        row.features = template.merge(row.features.clone())?;
+        let request = row.features.apply(request::build(
+            row.state.clone(),
+            model.clone(),
+            questions.clone(),
+        )?)?;
+        crate::media::preflight(&session.context.endpoint.value, &request)?;
+    }
+    plan.template_features = template;
 
     if plan.evaluated().is_empty() {
         return Err(CliError::usage(
@@ -272,15 +286,18 @@ fn resolve_objective(args: &EvalArgs) -> Result<Option<(Objective, f64)>> {
 ///
 /// The same `--model`-beats-request-file precedence `jev ask` and `jev map` apply, so
 /// one committed request file behaves identically under all three.
-fn load_questions(
-    session: &mut Session<'_>,
-    args: &EvalArgs,
-) -> Result<(Vec<(QuestionId, Question)>, ModelId)> {
+fn load_questions(session: &mut Session<'_>, args: &EvalArgs) -> Result<request::Template> {
+    let cli_features =
+        crate::media::Features::for_cli(&session.context, crate::media::Features::default())?;
     let (bytes, origin) = session.reader().read(&args.request, session.stdin)?;
     let text = String::from_utf8(bytes)
         .map_err(|_| CliError::usage(format!("{origin} is not valid UTF-8")))?;
-    let document = request::parse_document(&text, &origin.to_string())?;
-    if document.state.is_some() {
+    let document = request::parse_template_document_for_endpoint(
+        &text,
+        &origin.to_string(),
+        &session.context.endpoint.value,
+    )?;
+    if document.supplied_state {
         session.warn(
             "note: the request document's `state` is ignored by `jev eval`; each \
              labelled row supplies the state",
@@ -293,11 +310,17 @@ fn load_questions(
             .model
             .unwrap_or_else(|| session.context.model.value.clone())
     };
-    Ok((document.questions, model))
+    let features = cli_features.merge_cli(&session.context, document.features)?;
+    Ok(request::Template {
+        questions: document.questions,
+        model,
+        features,
+    })
 }
 
 /// How the rows were divided, and which of them each side holds.
 struct Plan {
+    template_features: crate::media::Features,
     /// Every row that will be sent, in file order: calibration first is not assumed.
     rows: Vec<LabeledRow>,
     /// Indexes into `rows` that a threshold is chosen on.
@@ -353,6 +376,7 @@ fn join(
     }
     let fingerprint = dataset::fingerprint_of(&rows);
     Ok(Plan {
+        template_features: crate::media::Features::default(),
         calibration: (0..boundary).collect(),
         reported: (boundary..rows.len()).collect(),
         rows,
@@ -374,17 +398,20 @@ fn load_rows(
     args: &EvalArgs,
     questions: &[(QuestionId, Question)],
     objective: Option<(Objective, f64)>,
+    template: &crate::media::Features,
 ) -> Result<Plan> {
     let read = |session: &mut Session<'_>, path: &Path| -> Result<Dataset> {
         let (bytes, origin) = session.reader().read(path, session.stdin)?;
         let text = String::from_utf8(bytes)
             .map_err(|_| CliError::usage(format!("{origin} is not valid UTF-8")))?;
         let origin = origin.to_string();
-        let parsed = dataset::parse(
+        let parsed = dataset::parse_for_provider(
             &text,
             &origin,
             questions,
             &args.request.display().to_string(),
+            session.context.endpoint.value.provider(),
+            &template.images,
         )?;
         Ok(parsed)
     };
@@ -426,6 +453,7 @@ fn load_rows(
     // leak that cannot happen.
     if objective.is_none() {
         return Ok(Plan {
+            template_features: crate::media::Features::default(),
             calibration: Vec::new(),
             reported: indexes,
             rows,
@@ -440,6 +468,7 @@ fn load_rows(
 
     if args.no_split {
         return Ok(Plan {
+            template_features: crate::media::Features::default(),
             calibration: indexes.clone(),
             reported: indexes,
             rows,
@@ -502,6 +531,7 @@ fn split(
     });
 
     Ok(Plan {
+        template_features: crate::media::Features::default(),
         calibration,
         reported,
         rows,
@@ -587,7 +617,8 @@ fn evaluate_one(
     // Built from the row's `state` alone. `row.labels` is not in scope for this
     // expression, which is what makes "the ground truth was sent to the API" a thing
     // the types prevent rather than a thing a reviewer has to notice.
-    let request = match EvaluationRequest::new(row.state.clone(), model.clone(), questions.to_vec())
+    let request = match request::build(row.state.clone(), model.clone(), questions.to_vec())
+        .and_then(|request| row.features.apply(request))
     {
         Ok(request) => request,
         Err(error) => return failure("invalid-request", error.to_string()),
@@ -1088,7 +1119,7 @@ fn report(
         },
         "request": {
             "source": args.request.display().to_string(),
-            "fingerprint": crate::commands::map::request_fingerprint(questions, requested_model),
+            "fingerprint": crate::commands::map::provider_fingerprint(questions, requested_model, &plan.template_features, &session.context.endpoint.value),
         },
         "split": {
             "mode": plan.mode,
@@ -2053,8 +2084,11 @@ fn dry_run(
     let mut url = None;
     let mut headers: Vec<String> = Vec::new();
     for row in plan.rows.iter().take(SAMPLE_LIMIT) {
-        let request = EvaluationRequest::new(row.state.clone(), model.clone(), questions.to_vec())
-            .map_err(|error| CliError::usage(error.to_string()))?;
+        let request = row.features.apply(request::build(
+            row.state.clone(),
+            model.clone(),
+            questions.to_vec(),
+        )?)?;
         // The same builder a real row uses, so a preview cannot describe a request the
         // run would not send.
         let built = jev_client::build_evaluation_request(&session.context.endpoint.value, &request)
@@ -2064,7 +2098,9 @@ fn dry_run(
         if url.is_none() {
             url = Some(built.url.clone());
             headers = built.headers.keys().cloned().collect();
-            headers.push("authorization".to_owned());
+            if crate::media::needs_authorization(&session.context.endpoint.value) {
+                headers.push("authorization".to_owned());
+            }
             headers.sort_unstable();
         }
         bodies.push(json!({

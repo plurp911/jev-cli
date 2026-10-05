@@ -1,0 +1,25 @@
+{
+  "schema": "jev.clef.synthetic-quality/v1",
+  "fixture_version": 1,
+  "provider": "huggingface",
+  "model": "clef-flash",
+  "synthetic": true,
+  "input_kind": "image",
+  "evaluation_task": "synthetic_shape_vision",
+  "comparable_across_input_kinds": false,
+  "benchmark_limitation": "Vision over this synthetic shape family only; metrics cannot be compared with the text-only sanity check or generalized to production.",
+  "max_requests": 32,
+  "reserved_requests": 32,
+  "retries": 0,
+  "passed": true,
+  "quality": {
+    "rows": 32,
+    "positives": 8,
+    "negatives": 24,
+    "agreement_at_0_5": 1.0,
+    "brier_score": 0.00013185187499999991,
+    "log_loss_clipped_at_1e_15": 0.00847308626229318,
+    "generalizable": false,
+    "limitation": "Only this original synthetic shape family; no production calibration claim"
+  }
+}

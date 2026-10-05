@@ -54,3 +54,21 @@ in `docs/api-compatibility.md`.
 2. Copy the example verbatim, including field order where the source shows one.
 3. Update `_source` and the table above.
 4. Note the change in `CHANGELOG.md` if it alters what `jev` sends or accepts.
+
+## Clef provider provenance
+
+`response-ollama-clef.json` is transcribed from the official Ollama Clef library
+page, <https://ollama.com/library/clef>, on 2026-10-03. Its probability and confidence
+values are preserved independently; clients must not recompute provider confidence.
+
+Cloudflare request and envelope tests use hand-authored protocol cases based on
+<https://developers.cloudflare.com/workers-ai/models/clef/schema-input.json>,
+<https://developers.cloudflare.com/workers-ai/models/clef/schema-output.json>, and
+<https://developers.cloudflare.com/workers-ai/get-started/rest-api/>. These cases
+are schema tests, not recordings of live inference. No external inference was run.
+
+Ollama request limits and image serialization follow
+<https://docs.ollama.com/api/systemone> and
+<https://github.com/ollama/ollama/blob/main/decision/clef.go>. llama.cpp uses
+<https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md#post-v1systemone-typesafe-compatible-system-one-api>;
+its Clef implementation currently supports text, and images are rejected locally.

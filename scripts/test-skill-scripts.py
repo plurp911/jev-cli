@@ -1349,6 +1349,29 @@ def import_violations(source: str) -> list[str]:
     return found
 
 
+class ProviderPrivacyGuides(unittest.TestCase):
+    def test_fit_pilot_and_audit_name_actual_recipient_before_authorization(self):
+        boundaries={
+            'jev-pilot':('3. **May this data leave?**','\n\n'),
+            'is-jev-useful-here':('**Privacy is never omitted.**','\n\n'),
+            'jev-opportunity-audit':('- **What would leave**','\n- **Migration complexity**'),
+        }
+        for skill,(start,end) in boundaries.items():
+            with self.subTest(skill=skill):
+                source=(ROOT/'skills'/skill/'SKILL.md').read_text()
+                paragraph=source[source.index(start):].split(end,1)[0]
+                prose=' '.join(paragraph.split())
+                self.assertNotRegex(prose,r'(?:state.*is transmitted to TypeSafe|name TypeSafe as the recipient|adopting it sends that content to TypeSafe)')
+                self.assertRegex(prose,r'(?:TypeSafe.{0,40}default|default.{0,40}TypeSafe)')
+                self.assertIn('Cloudflare',prose)
+                self.assertIn('loopback',prose.lower())
+                self.assertRegex(prose,r'(?:offload|proxy)')
+                self.assertRegex(prose,r'(?:actual|selected) (?:recipient|endpoint|server)')
+                self.assertRegex(prose,r'(?:agree|agreement|authori[sz]ation)')
+                self.assertRegex(prose,r'before.{0,80}transmi')
+                self.assertIn('skills/jev/references/providers.md',prose)
+
+
 class NoNetworkNoProcess(unittest.TestCase):
     def test_the_allowlist_excludes_every_network_and_process_module(self):
         self.assertEqual(set(), ALLOWED_IMPORTS & NETWORK_OR_PROCESS)

@@ -17,17 +17,31 @@ allowed-tools: Bash Read Grep Glob
 > authorization for that specific act — `AGENTS.md` §12 and `GOVERNANCE.md`. If asked
 > to release, complete this review before any separately authorized release steps.
 
-## 0. Confirm the pipeline is still disarmed
+## 0. Confirm the approved manual release gate
 
-Unless a human has explicitly armed it for this release, all of these must hold:
+Read ADR-0014 and `.github/workflows/release.yml`. The accepted workflow can publish
+a GitHub release through a guarded manual dispatch. Its presence is not a finding
+or authorization for this release. All of these must hold:
 
 ```sh
 rg -n 'publish' Cargo.toml crates/*/Cargo.toml   # expect publish = false / publish.workspace = true
 rg -n 'push:|tags:' .github/workflows/release.yml # expect NO tag trigger
-rg -n 'dry_run' .github/workflows/release.yml     # expect default true and a failing guard
+rg -n 'dry_run|confirm_tag|attest|publishing|needs:' .github/workflows/release.yml
+python3 scripts/check-workflows.py
 ```
 
-If any has changed, that is the finding. Report it before anything else.
+- Dispatch only; no push or tag trigger, and `dry_run` defaults to true.
+- A publishing dispatch requires `dry_run: false`, the exact version tag in
+  `confirm_tag`, and `attest: true`.
+- The guard proves the existing tag names the commit being built. Publication
+  depends on that guard, successful builds, artifact checks, and attestation.
+- Every crate remains `publish = false`; crates.io publication is a separate
+  decision, outside the approved GitHub release workflow.
+- Record whether the human authorized this specific tag and this specific release
+  under `AGENTS.md` §12. An accepted workflow or a previous release is not that
+  authorization.
+
+Report any deviation from ADR-0014 before continuing the release assessment.
 
 ## 1. Version and changelog
 
@@ -113,7 +127,8 @@ rg -ni 'sk-[a-z0-9]{8,}' CHANGELOG.md README.md docs/
 
 ## 6. Publishing prerequisites
 
-Only relevant once a human has decided to arm the pipeline.
+Review the selected publication channel without publishing. ADR-0014 authorizes
+the workflow design; each release still requires separate specific authorization.
 
 - **crates.io**: `publish = false` removed only for the crate being published; all
   required manifest metadata present (`description`, `license`, `repository`,
@@ -121,8 +136,10 @@ Only relevant once a human has decided to arm the pipeline.
   publishing a binary crate whose path dependencies are `publish = false` will fail —
   resolve that deliberately, not by flipping every crate.
 - **Homebrew / Scoop / WinGet**: manifests point at the right URLs and checksums.
-- **Secrets**: scoped to the release environment only, and the environment has a human
-  approval gate.
+- **GitHub release credentials**: the workflow token has only the job permissions
+  needed. Verify the guard and publish dependencies implement ADR-0014; do not
+  assume a repository environment approval gate exists. Any additional registry
+  secrets or approval environment require a separately reviewed publication design.
 - **Documentation**: installation instructions lead with package managers, not with a
   shell installer. ADR-0005 requires this.
 

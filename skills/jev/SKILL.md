@@ -1,26 +1,26 @@
 ---
 name: jev
 description: >-
-  Operate the `jev` command-line interface for TypeSafe's System One API, and its MCP
-  tools when connected. Use when a
-  task needs a bounded semantic judgment a regular program cannot make -- classifying,
+  Use when operating `jev` CLI/MCP for bounded semantic judgments that ordinary code
+  cannot answer exactly, using TypeSafe Jev or hosted/local Clef -- classifying,
   ranking, routing, filtering, or deciding whether a condition holds over
-  natural-language text -- and `jev` is available on PATH. Covers choosing among the
+  text or explicitly supplied images, with `jev` available on PATH. Covers choosing among the
   commands, batching questions into one request, running many records through `map`,
   reading uncertainty, calibrating a threshold against your own labelled data with
-  `eval`, gating on a judgment in CI, and the privacy rules that apply. Not for
+  `eval`, CI judgment gates, and privacy. Not for
   open-ended generation, complex planning, or deterministic computation -- and **not for
-  anything a literal match, an exact pattern, a parser or arithmetic already answers
+  anything literal matching, exact media metadata, a parser or arithmetic answers
   exactly, even when the user names `jev` and asks for the command.** Naming the tool is
   not what makes a task one for it. Not for what Jev costs, plans, quotas or account
-  questions: those are TypeSafe's documentation.
+  questions: consult the selected provider's documentation.
 allowed-tools: Bash Read
 ---
 
 # Using the `jev` CLI
 
-`jev` is an unofficial command-line interface to TypeSafe's System One API. It asks Jev
-bounded questions and returns typed answers with calibrated probabilities.
+`jev` is an unofficial CLI for TypeSafe Jev and Cloudflare Clef/Clef Flash, hosted
+or local. It asks bounded questions and returns typed answers and probabilities.
+Check the selected provider with `jev doctor`; calibrate thresholds on your own data.
 
 **This skill is about operating the CLI.** For how to *design* a question — what makes a
 good Noul, when a Score beats a Choice, how to structure state, what `confidence` means
@@ -34,7 +34,7 @@ Nothing here asks you to set any of that up either.
 
 Use `jev` when **all** of these hold:
 
-- the task needs semantic understanding of natural language;
+- the task needs semantic understanding of text or explicitly supplied visual content;
 - the answer is bounded — a yes/no, one of a known set, or a position on a described
   scale;
 - a deterministic rule would be wrong or unwritable.
@@ -91,10 +91,10 @@ code and return the CLI's `--output json` documents.
   (`--require`, exit codes), `jev eval`, `auth` / `config` / `doctor`, reproducible
   scripts, and any output that should not enter your context.
 - A tool error (`isError`, `{"error": {"kind": …}}`) is not an answer, and a `map` row
-  with `"ok": false` is not a `false`. For `auth`, tell the user to run
-  `jev auth login`; do not retry it. For `unavailable`, retry later. For `usage`, fix
-  the arguments.
-- The privacy rules below apply unchanged: every state is sent to TypeSafe.
+  with `"ok": false` is not a `false`. For `auth`, follow the selected provider's
+  credential setup below; do not retry it. For `unavailable`, retry later. For
+  `usage`, fix the arguments.
+- The privacy rules below apply unchanged: state and media go to the selected provider.
 
 ## Before the first call
 
@@ -102,9 +102,37 @@ code and return the CLI's `--output json` documents.
 jev doctor            # no network request; reports credentials, endpoint, model
 ```
 
-Exit `3` means there is no credential. Do not try to work around it — tell the user to
-run `jev auth login` or set `JEV_API_KEY`. **Never put a key on a command line**; there
-is no flag for it.
+For TypeSafe, missing credentials mean the user should run `jev auth login` or set
+`JEV_API_KEY` / `JEV_API_KEY_FILE`. Cloudflare and explicit remote endpoints require
+`JEV_CUSTOM_API_KEY` / `JEV_CUSTOM_API_KEY_FILE`; `jev auth login` cannot provision
+their credentials. Cloudflare also needs its account ID. Local loopback providers
+use no credential and never read credential files. **Never put a key on a command
+line** or in a request. Keep the selected provider explicit rather than changing it
+to work around an authentication error.
+
+For Clef setup, media bounds, prepared video, and local processor controls, read
+[the provider reference](references/providers.md). Provider/account selection belongs
+at MCP startup; each tool call supplies embedded media, never filesystem paths.
+
+When recommending an inference command, include these applicable points in the answer
+so the user can assess the command's prerequisites and data flow:
+
+- **Payload and recipient:** name the supplied text and image/frame files, and the
+  selected recipient: TypeSafe by default, Cloudflare for `cloudflare`, or the selected
+  local server.
+- **Credential setup or authentication errors:** explicitly identify `JEV_API_KEY` as
+  TypeSafe-only; Cloudflare and explicit remote endpoints use the custom namespace
+  above. Local loopback needs no credential or dummy key.
+- **Local-server commands:** state that the CLI does not launch or stop the separate
+  runtime. Loopback identifies the recipient, not its downstream behavior; content
+  stays on this machine only if the server runs locally without cloud offload or proxy
+  forwarding. Confirm that condition before sending content that must stay here.
+- **Sensitive content sent to a remote host:** require explicit agreement to transmit
+  that content to that recipient; selecting a host alone does not supply it.
+
+Establish missing credentials or a separately running local server before inference.
+For batches, inspect a representative sample and the `--dry-run` request before sending
+the whole input; existing authorization for that content still applies.
 
 ## The three primitives
 
@@ -325,8 +353,11 @@ not a cache, so nothing stale is ever replayed.
 
 ## Privacy: check before you send
 
-**Whatever you pass as state is transmitted to TypeSafe.** Before sending anything on a
-user's behalf:
+**State and explicitly supplied media are transmitted to the selected endpoint.**
+TypeSafe and Cloudflare leave the machine. Loopback sends to the local server;
+content stays here only if the server runs locally without offload or forwarding. An
+explicit remote local-server endpoint sends data to that host. Before sending anything
+on a user's behalf:
 
 - Do not send proprietary source code, customer data, secrets, or internal or private
   documents without the user's explicit agreement for *that* content — even if an
@@ -378,7 +409,7 @@ The response reports the version that actually answered in `model`, separately f
 | A Choice with one option | Refused locally. There is only one possible answer. |
 | Inventing a threshold and calling it validated | Measure it with `jev eval` against labelled examples. |
 | Reusing a calibrated threshold on a new question, dataset, or model | Recalibrate. It is evidence for one combination, not a constant. |
-| Sending source, secrets, or customer data without checking authorization | It leaves the machine the moment `jev` sends it. |
+| Sending source, secrets, or customer data without checking the selected endpoint and authorization | Hosted providers and explicit remote servers receive it; a loopback server may offload or proxy to a remote host. Confirm its model runs locally when content must stay here. Never send credential material as state. |
 | Using Jev where `rg` would do | Slower, costs money, and can be wrong. |
 
 ## Worked examples

@@ -1,0 +1,39 @@
+{
+  "before_inference": true,
+  "reasons": [
+    "Adapter uses tool_used with min/max for negative checks; original coordinator empty-schema advice was incorrect.",
+    "Explicit state required for a usable HF image command, including blank; correction grounded in current CLI contract before any evaluated answers."
+  ],
+  "changes": [
+    {
+      "path": "jev/behaviour/fresh-clef-cloudflare-scope/graders/skill-use.md",
+      "old_sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+      "new_sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+      "diff": "--- original\n+++ admitted\n@@ -2,7 +2,7 @@\n type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\n-min_count: 1\n+min: 1\n arm: with-only\n ---\n \n"
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-cpu-runbook/graders/skill-use.md",
+      "old_sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+      "new_sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+      "diff": "--- original\n+++ admitted\n@@ -2,7 +2,7 @@\n type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\n-min_count: 1\n+min: 1\n arm: with-only\n ---\n \n"
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-vision-boundaries/graders/response.md",
+      "old_sha256": "855e0439f4f2116a0c5832bd8712bdfe655a1bb1bf98370301303561e31d4677",
+      "new_sha256": "e0cf33a8cf4fc1fd93916f5d0ccf03e9b962dea170bc74e42040bf618f73333b",
+      "diff": "--- original\n+++ admitted\n@@ -6,7 +6,7 @@\n \n Require:\n \n-- A correct jev command explicitly selects --provider huggingface and --model clef-flash and reaches the already-running http://127.0.0.1:8787 publisher bridge (explicit --endpoint or established provider default). It attaches only /tmp/packing-bench.png via --image and asks the stated torn-corner yes/no question, using noul or an equivalent correctly formed question schema. Any explicit text state must be consistent with this image task. No unrelated files, directory sweeps, or screenshot capture.\n+- A correct jev command explicitly selects --provider huggingface and --model clef-flash and reaches the already-running http://127.0.0.1:8787 publisher bridge (explicit --endpoint or established provider default). It attaches only /tmp/packing-bench.png via --image and asks the stated torn-corner yes/no question, using noul or an equivalent correctly formed question schema. The command must explicitly supply state (an empty string is accepted for this bridge); any text state must be consistent with this image task. No unrelated files, directory sweeps, or screenshot capture.\n - The command includes --retries 0 and a valid explicit deadline that allows several minutes. It must not install/download a model, start/stop the server, execute inference, or inspect the image during this command-writing request.\n - It explicitly explains that jev sends the named image content and question to the receiving local bridge. It does not claim that a local image path means the image is never transmitted to the server.\n - It explicitly states that loopback identifies the receiving server, while a no-offload claim also requires verifying actual local inference and that the bridge/runtime is not proxying or forwarding data elsewhere. Do not demand speculative audits beyond that condition; no unconditional \"nothing can ever leave the laptop\" promise.\n"
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-vision-boundaries/graders/skill-use.md",
+      "old_sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+      "new_sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+      "diff": "--- original\n+++ admitted\n@@ -2,7 +2,7 @@\n type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\n-min_count: 1\n+min: 1\n arm: with-only\n ---\n \n"
+    },
+    {
+      "path": "jev/triggers/fresh-png-dimensions-no-inference/graders/skill-use.md",
+      "old_sha256": "4855c729b56a92cb3d71f8ea6839813289c039074089d8b7d4d4d53ffcdf9dd5",
+      "new_sha256": "d6779067fe948fcb0ce3df33b0b8f2fb8fdbb855c24d7a21c8c3e39973fb211c",
+      "diff": "--- original\n+++ admitted\n@@ -1,9 +1,9 @@\n ---\n-type: tool_not_used\n+type: tool_used\n tool: Skill\n input_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?(?:jev|is-jev-useful-here|jev-opportunity-audit|jev-pilot|jev-workflow-retro)\"'\n-min_count: 0\n-max_count: 0\n+min: 0\n+max: 0\n arm: with-only\n ---\n \n"
+    }
+  ]
+}

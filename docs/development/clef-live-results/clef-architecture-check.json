@@ -1,0 +1,26 @@
+{
+  "schema": "jev.clef.architecture-check/v1",
+  "repository": "Cloudflare/clef",
+  "revision": "2f3de3dd85f379784083b0814d997ab627200f0c",
+  "validation": "offline-config-and-meta-backbone-only",
+  "weights_loaded": false,
+  "inference_run": false,
+  "publisher_code_executed": false,
+  "torch": "2.11.0+cpu",
+  "transformers": "5.10.2",
+  "config_class": "Qwen3_5Config",
+  "backbone_class": "Qwen3_5ForConditionalGeneration",
+  "all_backbone_parameters_meta": true,
+  "backbone_parameter_count": 27356728560,
+  "text_layers": 64,
+  "text_hidden_size": 5120,
+  "vision_output_hidden_size": 5120,
+  "output_embedding_shape": [
+    248320,
+    5120
+  ],
+  "joint_head_config_dimensions_compatible": true,
+  "joint_head_width": 1024,
+  "joint_head_attention_heads": 16,
+  "publisher_source_identical_to_loaded_flash_source": true
+}

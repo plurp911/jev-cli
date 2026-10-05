@@ -1,0 +1,57 @@
+{
+  "schema": "opus-blind-clef-author-note/v1",
+  "method": "Independently designed practical user scenarios from the parent-provided current factual contract and five skill purposes, then wrote semantic criteria without reading implementations or measured answers.",
+  "blindness": {
+    "read_existing_skills": false,
+    "read_existing_evals": false,
+    "read_docs_or_prior_reviews_history_notes": false,
+    "read_model_answers": false,
+    "ran_evals_or_model_calls": false
+  },
+  "allowed_reads": [
+    "Task instructions and supplied AGENTS.md conduct instructions in conversation",
+    "Current factual contract supplied by parent",
+    "Shell pwd output only; no repository file contents read"
+  ],
+  "primary_source_reads": [],
+  "scope": "Only files beneath target/clef-local/opus-blind-clef-evals/authored were created. No shared source, auth files, commits, or evaluation execution.",
+  "design_balance": {
+    "behavior_cases": 3,
+    "directional_trigger_cases": 3,
+    "positive_directional_trigger_cases": 2,
+    "negative_directional_trigger_cases": 1
+  },
+  "design_limits": [
+    "Runtime grader-format compatibility has not been checked against existing harness files, to preserve blindness; parent may validate format without changing criteria intent.",
+    "Behavior criteria rely on the parent-supplied current contract rather than independently fetched provider documentation; no provider protocol was invented.",
+    "No observed baseline failures or skill efficacy results are asserted; these are prospectively frozen generalization cases.",
+    "This author identity is a task name; no model identity or cross-provider independence is claimed.",
+    "Tool-use graders presume the harness records Skill tool names in the specified format; criteria avoid exact output phrases and allow substantively valid alternatives."
+  ],
+  "case_files_sha256": {
+    "bounded-repo-opportunity-map/graders/01-skill-trigger.md": "9d82979291840aa18762d8576cbdb5c212e31016cce79c39fe983379997282ab",
+    "bounded-repo-opportunity-map/prompt.md": "de9fa64eab4cab2e08df7e72b117f3c493b659653dca44b1edee8937c149bc9e",
+    "eligibility-plus-damage-fit/graders/01-skill-trigger.md": "49689d8775674f5b0ee5a7aaad7f509783394c93a286d4ab96da8c6380e37449",
+    "eligibility-plus-damage-fit/prompt.md": "e003a5b18336068e48ca99a21270ae0a954a0307aa7c72a6a192eb2b253f5b8c",
+    "job-event-vector-comparator/graders/01-no-jev.md": "1a8dfee3250c8fd5e061c0aa22bae080f39479e8076c33b71b402d6de1863cbd",
+    "job-event-vector-comparator/graders/02-no-is-jev-useful-here.md": "c4e18fa6b05fd4ed6ff7447e9ddb0071c61cd851c04ee25c77fc3cd3a3191e32",
+    "job-event-vector-comparator/graders/03-no-jev-opportunity-audit.md": "2e30074a99b03b23812ac006f92cae820567a908e7fb20e8ecd69cd5178022ba",
+    "job-event-vector-comparator/graders/04-no-jev-pilot.md": "8c33688f59e737666f4c6cacb7728b479f54d81db10a7fadebbeec50486c148d",
+    "job-event-vector-comparator/graders/05-no-jev-workflow-retro.md": "a07767cf8bce11a4c01ecc3ea708abbd81e683e063414a940829e9ec455ea179",
+    "job-event-vector-comparator/prompt.md": "517c30cc470308fca433662a4769fe006f528636254535b186c4b96f4d951590",
+    "parcel-photo-pilot/graders/01-skill-trigger.md": "02b80b64dcb1ba50f1fe9007fb7ecde17d570d78e8530dac93b5577c822f7a85",
+    "parcel-photo-pilot/graders/02-independent-behavior.md": "1a459abb02415379855dbaa428d72f2da0d2895f50a84995db27e94ae980e928",
+    "parcel-photo-pilot/prompt.md": "1967ee85181afc1646480e469ad4b1b864ac9b6613f9471d92ab0dc73542957b",
+    "sparse-platform-frames/graders/01-skill-trigger.md": "26da0c702790843674fbed8c4d8bf3ea7f9a1e13174a686b1e75abe5bc4d5335",
+    "sparse-platform-frames/graders/02-independent-behavior.md": "849152e0bae4eb85702f880d68da9fa2d8fc0246df9588970e356527c7e51693",
+    "sparse-platform-frames/prompt.md": "0fd1a9a2fa6146d0a9cdef98c725b9f883f45de90e630667cd4d3a6b437e1e20",
+    "sprite-workflow-retro/graders/01-skill-trigger.md": "3f51da96194a52a3ba9d6e5be36f62774c34988fe2059db44a71feef9bbcf712",
+    "sprite-workflow-retro/graders/02-independent-behavior.md": "f56b8fd4b7a8f58fc4e7754ca8d0d052cd3a4aea87fbe347d196c5fe4c1754a4",
+    "sprite-workflow-retro/prompt.md": "47847045e612f4fc0c5307dde6fea730fa0139981889d1e453e57990510c4340"
+  },
+  "admission_manifest": {
+    "path": "admission-manifest.json",
+    "sha256": "8c4aeb90312891e9637d0b42488cbf2f098c8f29f5b27b06e06179288577cd4f",
+    "frozen_before_measured_answers": true
+  }
+}

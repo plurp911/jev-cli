@@ -1,0 +1,462 @@
+{
+  "models": [
+    {
+      "historical_verification": {
+        "bytes_reported_verified": 19083377402,
+        "files_reported_verified": 17,
+        "fresh_reverification_performed": false,
+        "source": "session history, confirmed by supervising agent"
+      },
+      "inference": {
+        "evidence_file": "huggingface-flash-final.json",
+        "passed": true,
+        "passed_cases": [
+          "noul",
+          "choice",
+          "score",
+          "ask-text",
+          "ask-object",
+          "ask-array",
+          "image-positive.png",
+          "image-negative.png",
+          "image-positive.jpg",
+          "image-positive.webp",
+          "two-images",
+          "map-images",
+          "eval-images",
+          "resume-first",
+          "resume-skip",
+          "ordered-video",
+          "sampled-video",
+          "state-token-budget",
+          "video-source-metadata",
+          "mcp-noul",
+          "mcp-choice",
+          "mcp-score",
+          "mcp-ask",
+          "mcp-map"
+        ],
+        "planned_requests": 29,
+        "quality_generalizable": false,
+        "reserved_requests": 29,
+        "retries": 0,
+        "skipped": [],
+        "synthetic": true
+      },
+      "manifest_evidence_file": "../../../scripts/clef-local/clef-flash-manifest.json",
+      "model": "clef-flash",
+      "provider": "huggingface",
+      "publisher_files": [
+        {
+          "git_blob": "f938136e3adacfd92be087f6e113b5d6d97f678f",
+          "path": "LICENSE",
+          "sha256": null,
+          "size": 11544
+        },
+        {
+          "git_blob": "a585dec894e63da457d9440ec6aa7caa16d20860",
+          "path": "chat_template.jinja",
+          "sha256": null,
+          "size": 7756
+        },
+        {
+          "git_blob": "aff766f2ab6e0e48b6aa297265689b981bdd2042",
+          "path": "config.json",
+          "sha256": null,
+          "size": 2832
+        },
+        {
+          "git_blob": "54056568766c020050fab57761fea673becbc131",
+          "path": "generation_config.json",
+          "sha256": null,
+          "size": 116
+        },
+        {
+          "git_blob": "a11b927957fe0a7df9ef4bbe2245af6801fbc218",
+          "path": "joint_head.safetensors",
+          "sha256": "19cdcec8c81dc9212be320fff47462ab342fbc1278be4368fb3da71241cf5ba0",
+          "size": 243538016
+        },
+        {
+          "git_blob": "52467b6c7f7d1a7e628b518eb7a6cd7e9bdb9a57",
+          "path": "joint_head_config.json",
+          "sha256": null,
+          "size": 119
+        },
+        {
+          "git_blob": "6a3ac5fc030a3f33f7fa860a1271886b64a6606d",
+          "path": "joint_schema_model.py",
+          "sha256": null,
+          "size": 23263
+        },
+        {
+          "git_blob": "862827417a61f7889ab13d73de80f3732bf1f11f",
+          "path": "model-00001-of-00004.safetensors",
+          "sha256": "8b45a8e968141cdcc58fb71c9adfc258e2c77b5f062bc636c1fd5bc5d916b565",
+          "size": 4942706120
+        },
+        {
+          "git_blob": "9c67d4d4b5f4309402173b4bba233e45e71bec30",
+          "path": "model-00002-of-00004.safetensors",
+          "sha256": "7590856c713eed844a2dcf48e6c43c4de165b788bc3f80e328311183cdbc7db8",
+          "size": 4987757928
+        },
+        {
+          "git_blob": "91ecfbf7797bf7725d72b199117a8512ef22d16d",
+          "path": "model-00003-of-00004.safetensors",
+          "sha256": "e6eac2467952c33361ed7dcb3c7959d1086bbe57201cd3749c3d769fdc17fe63",
+          "size": 4954810240
+        },
+        {
+          "git_blob": "b90abef54fad36db150086d5b5721104babd1db7",
+          "path": "model-00004-of-00004.safetensors",
+          "sha256": "9fcecc6556b39171238373a465f409794b7f821fb4cd1e6459e3a9c0fe317af7",
+          "size": 3934446832
+        },
+        {
+          "git_blob": "778b7bbb7ebec3f1e100b1059b1c6d54bd00e3c1",
+          "path": "model.safetensors.index.json",
+          "sha256": null,
+          "size": 69253
+        },
+        {
+          "git_blob": "33818c7f9e991ad735fd240209f4fa73e6c28c50",
+          "path": "processor_config.json",
+          "sha256": null,
+          "size": 1191
+        },
+        {
+          "git_blob": "5520bfd2dd834ce386c1312c410fa71af56db5ad",
+          "path": "tokenizer.json",
+          "sha256": "06b9509352d2af50381ab2247e083b80d32d5c0aba91c272ca9ff729b6a0e523",
+          "size": 19989325
+        },
+        {
+          "git_blob": "0f19934ef65115549ff9629ff2c83d15e40e32d8",
+          "path": "tokenizer_config.json",
+          "sha256": null,
+          "size": 1075
+        }
+      ],
+      "repository": "Cloudflare/clef-flash",
+      "revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+      "weight_files_available_for_fresh_hash": false
+    },
+    {
+      "inference": {
+        "evidence_file": "ollama-flash-final.json",
+        "passed": true,
+        "passed_cases": [
+          "noul",
+          "choice",
+          "score",
+          "ask-text",
+          "ask-object",
+          "ask-array",
+          "image-positive.png",
+          "image-negative.png",
+          "image-positive.jpg",
+          "image-positive.webp",
+          "two-images",
+          "map-images",
+          "eval-images",
+          "resume-first",
+          "resume-skip",
+          "mcp-noul",
+          "mcp-choice",
+          "mcp-score",
+          "mcp-ask",
+          "mcp-map"
+        ],
+        "planned_requests": 25,
+        "quality_generalizable": false,
+        "reserved_requests": 25,
+        "retries": 0,
+        "skipped": [
+          {
+            "case": "ordered-video",
+            "reason": "requires Python bridge"
+          }
+        ],
+        "synthetic": true
+      },
+      "layers": [
+        {
+          "manifest_digest": "sha256:852370b45cde12170b24ca8de600860be94b2faa4b6550911a58066a075ff0bf",
+          "manifest_size_bytes": 172,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.docker.container.image.v1+json",
+          "sha256": "852370b45cde12170b24ca8de600860be94b2faa4b6550911a58066a075ff0bf",
+          "size_bytes": 172,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:c9ac3afdf0b5928b00a5762aed44a338a0096af952194ccdedecdfd46bb92c33",
+          "manifest_size_bytes": 10014561856,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.model",
+          "sha256": "c9ac3afdf0b5928b00a5762aed44a338a0096af952194ccdedecdfd46bb92c33",
+          "size_bytes": 10014561856,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:c8a6e9e00e1baf6433c4874dbc73bed2a56e887bcbb582fffcb00b533bc638dd",
+          "manifest_size_bytes": 918165984,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.projector",
+          "sha256": "c8a6e9e00e1baf6433c4874dbc73bed2a56e887bcbb582fffcb00b533bc638dd",
+          "size_bytes": 918165984,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:50cbab8a892c5f2993b8c7351a99182507472def3b1374558308605d99b86b32",
+          "manifest_size_bytes": 11343,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.license",
+          "sha256": "50cbab8a892c5f2993b8c7351a99182507472def3b1374558308605d99b86b32",
+          "size_bytes": 11343,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:58e1b82a691f46c155e57be607f1031930ea0cccc22daf4447f91d360f74b2d2",
+          "manifest_size_bytes": 18,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.params",
+          "sha256": "58e1b82a691f46c155e57be607f1031930ea0cccc22daf4447f91d360f74b2d2",
+          "size_bytes": 18,
+          "verification": "fresh-streaming-sha256"
+        }
+      ],
+      "manifest": {
+        "registry": "registry.ollama.ai",
+        "repository": "library/clef-flash",
+        "sha256": "2aa4d39fd93b09c84236c5721a4a482c9c376ec32028f7a800b192d33adaad45",
+        "size_bytes": 927,
+        "tag": "9b-q8_0",
+        "verification": "fresh-streaming-sha256"
+      },
+      "manifest_schema_version": 2,
+      "model": "clef-flash:9b-q8_0",
+      "provider": "ollama"
+    },
+    {
+      "inference": {
+        "evidence_file": "ollama-clef-final.json",
+        "passed": true,
+        "passed_cases": [
+          "noul",
+          "choice",
+          "score",
+          "ask-text",
+          "ask-object",
+          "ask-array",
+          "image-positive.png",
+          "image-negative.png",
+          "image-positive.jpg",
+          "image-positive.webp",
+          "two-images",
+          "map-images",
+          "eval-images",
+          "resume-first",
+          "resume-skip",
+          "mcp-noul",
+          "mcp-choice",
+          "mcp-score",
+          "mcp-ask",
+          "mcp-map"
+        ],
+        "planned_requests": 25,
+        "quality_generalizable": false,
+        "reserved_requests": 25,
+        "retries": 0,
+        "skipped": [
+          {
+            "case": "ordered-video",
+            "reason": "requires Python bridge"
+          }
+        ],
+        "synthetic": true
+      },
+      "layers": [
+        {
+          "manifest_digest": "sha256:7b967ed607c3e1a56d0883e2af077e7cff88f4e8b08ea9f796abcf450d4f8ab2",
+          "manifest_size_bytes": 175,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.docker.container.image.v1+json",
+          "sha256": "7b967ed607c3e1a56d0883e2af077e7cff88f4e8b08ea9f796abcf450d4f8ab2",
+          "size_bytes": 175,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:6c02216a0055c1e1e92994d240e37c440f1c09b30281f538f4a38ebab0743da9",
+          "manifest_size_bytes": 17059634656,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.model",
+          "sha256": "6c02216a0055c1e1e92994d240e37c440f1c09b30281f538f4a38ebab0743da9",
+          "size_bytes": 17059634656,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:f0e2930e301586f0932262c7d232c74e385d7b4281170111c36a686e16e59ba8",
+          "manifest_size_bytes": 927607360,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.projector",
+          "sha256": "f0e2930e301586f0932262c7d232c74e385d7b4281170111c36a686e16e59ba8",
+          "size_bytes": 927607360,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:50cbab8a892c5f2993b8c7351a99182507472def3b1374558308605d99b86b32",
+          "manifest_size_bytes": 11343,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.license",
+          "sha256": "50cbab8a892c5f2993b8c7351a99182507472def3b1374558308605d99b86b32",
+          "size_bytes": 11343,
+          "verification": "fresh-streaming-sha256"
+        },
+        {
+          "manifest_digest": "sha256:58e1b82a691f46c155e57be607f1031930ea0cccc22daf4447f91d360f74b2d2",
+          "manifest_size_bytes": 18,
+          "matches_manifest_digest": true,
+          "matches_manifest_size": true,
+          "media_type": "application/vnd.ollama.image.params",
+          "sha256": "58e1b82a691f46c155e57be607f1031930ea0cccc22daf4447f91d360f74b2d2",
+          "size_bytes": 18,
+          "verification": "fresh-streaming-sha256"
+        }
+      ],
+      "manifest": {
+        "registry": "registry.ollama.ai",
+        "repository": "library/clef",
+        "sha256": "2bb11a61d1fb5d7a51f136ad9f569f970727377cf7b96037a06285d81fa25b73",
+        "size_bytes": 917,
+        "tag": "27b-q4_k_m",
+        "verification": "fresh-streaming-sha256"
+      },
+      "manifest_schema_version": 2,
+      "model": "clef:27b-q4_k_m",
+      "provider": "ollama"
+    },
+    {
+      "cleanup": "Task-created native Flash test weight removed after successful inference and fresh hash verification to restore disk space; publisher revision and expected digest retained.",
+      "inference": {
+        "evidence_file": "llama-flash-final.json",
+        "passed": true,
+        "passed_cases": [
+          "noul",
+          "choice",
+          "score",
+          "ask-text",
+          "ask-object",
+          "ask-array",
+          "map-text",
+          "eval-text",
+          "resume-first",
+          "resume-skip",
+          "mcp-noul",
+          "mcp-choice",
+          "mcp-score",
+          "mcp-ask",
+          "mcp-map"
+        ],
+        "planned_requests": 20,
+        "quality_generalizable": false,
+        "reserved_requests": 20,
+        "retries": 0,
+        "skipped": [
+          {
+            "case": "jpeg",
+            "reason": "optional Pillow encoder not requested or unavailable"
+          },
+          {
+            "case": "webp",
+            "reason": "optional Pillow encoder not requested or unavailable"
+          },
+          {
+            "case": "ordered-video",
+            "reason": "requires Python bridge"
+          },
+          {
+            "case": "images-and-image-eval",
+            "reason": "llama.cpp Clef images unsupported"
+          }
+        ],
+        "synthetic": true
+      },
+      "matches_publisher_digest": true,
+      "matches_publisher_size": true,
+      "model": "clef-flash",
+      "model_file": "Clef-Flash-Q4_K_M.gguf",
+      "provider": "llamacpp",
+      "publisher_evidence_file": "https://huggingface.co/ggml-org/Clef-Flash-GGUF/tree/4a7a08c09bc63baf043b62b5ba89dd67a0357d95",
+      "publisher_expected_sha256": "3243a51d7a7bb205fb4fcf402a7df763f7d31e6645a9c10e5754c4395ab85b66",
+      "publisher_expected_size_bytes": 6486448192,
+      "quantization": "Q4_K_M",
+      "repository": "ggml-org/Clef-Flash-GGUF",
+      "revision": "4a7a08c09bc63baf043b62b5ba89dd67a0357d95",
+      "sha256": "3243a51d7a7bb205fb4fcf402a7df763f7d31e6645a9c10e5754c4395ab85b66",
+      "size_bytes": 6486448192,
+      "verification": "fresh-streaming-sha256",
+      "weight_file_available_after_cleanup": false
+    },
+    {
+      "evidence_file": "clef-architecture-check.json",
+      "inference_run": false,
+      "model": "clef",
+      "provider": "huggingface",
+      "publisher_code_executed": false,
+      "repository": "Cloudflare/clef",
+      "revision": "2f3de3dd85f379784083b0814d997ab627200f0c",
+      "validation": "offline-config-and-meta-backbone-only",
+      "weights_loaded": false
+    }
+  ],
+  "platform": {
+    "architecture": "x86_64",
+    "inference_device": "CPU",
+    "os": "Linux"
+  },
+  "python_environment": {
+    "implementation": "CPython",
+    "installed_inventory_matches_version_lock": true,
+    "package_count": 37,
+    "pillow": "12.3.0",
+    "torch": "2.11.0+cpu",
+    "transformers": "5.10.2",
+    "version": "3.12.3",
+    "version_lock_file": "../../../scripts/clef-local/requirements-linux-cpu.lock"
+  },
+  "runtimes": {
+    "llamacpp": {
+      "build": 11392,
+      "commit": "46847e615",
+      "executable": "llama-server",
+      "release_evidence_file": "runtime-releases.json",
+      "release_tag": "b11392",
+      "sha256": "d7cedb07f594757c107c2496d33a5d15854da571bcbf3245e1817b60fcf84601",
+      "size_bytes": 17864,
+      "verification": "fresh-streaming-sha256",
+      "version": "0.5.0-dev"
+    },
+    "ollama": {
+      "executable": "ollama",
+      "release_evidence_file": "runtime-releases.json",
+      "release_tag": "v0.35.1",
+      "sha256": "8fd655c8fde7b524dc3a64ae1006f9e8d0344dec93b1796fc9f87b7c5179fbb9",
+      "size_bytes": 28627920,
+      "verification": "fresh-streaming-sha256",
+      "version": "0.35.1"
+    }
+  },
+  "schema": "jev.clef.model-runtime-proof/v1",
+  "scope": "Sanitized local runtime and model provenance; synthetic smoke checks are not a general quality benchmark."
+}

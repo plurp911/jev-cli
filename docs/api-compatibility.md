@@ -3,6 +3,12 @@
 What `jev` assumes about the TypeSafe System One API, where each assumption comes from,
 and how it is checked.
 
+This document's existing tables describe TypeSafe. Hosted Cloudflare and local
+Ollama/llama.cpp adapters follow their respective official contracts, researched on
+2026-10-03. The Python bridge has a separately documented project-owned contract. See [provider compatibility and limitations](clef.md) and
+[source evidence](development/clef-research.md). A System One-compatible question
+shape does not imply compatible routing, authentication, image encoding, or limits.
+
 ## The rule
 
 **Official TypeSafe sources are authoritative, and nothing else is.** In order:

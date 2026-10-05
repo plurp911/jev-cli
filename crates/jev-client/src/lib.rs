@@ -1,4 +1,4 @@
-//! Transport-agnostic client layer for the TypeSafe System One API.
+//! Transport-agnostic client layer for TypeSafe, Cloudflare, and local decision APIs.
 //!
 //! # Why a transport trait
 //!
@@ -40,7 +40,8 @@ mod wire;
 pub mod testing;
 
 pub use client::{
-    CallStats, Client, Clock, REQUEST_ID_HEADER, SystemClock, build_evaluation_request, user_agent,
+    CallStats, Client, Clock, REQUEST_ID_HEADER, SystemClock, build_evaluation_request,
+    preflight_evaluation_request, user_agent,
 };
 pub use credential::Credential;
 pub use endpoint::{DEFAULT_BASE_URL, Endpoint, EndpointError, MODELS_PATH, SYSTEM_ONE_PATH};

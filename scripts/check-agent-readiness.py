@@ -11,6 +11,38 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 MAP = "docs/development/agent-workflows.md"
+CANONICAL_SKILLS = ["verify", "security-review", "api-compat", "release-review", "typesafe-ai"]
+PROOF_DEPENDENCIES = [
+    "scripts/source-snapshot.py", "scripts/test-source-snapshot.py",
+    "scripts/clef-live.py", "scripts/test-clef-live.py",
+    "scripts/clef-quality.py", "scripts/test-clef-quality.py",
+    "scripts/clef-python-profile.py", "scripts/test-clef-python-profile.py",
+    "scripts/clef-model-manifest.py", "scripts/test-clef-model-manifest.py",
+    "scripts/clef-server.py", "scripts/test-clef-server.py",
+    "scripts/clef-local/clef-manifest.json", "scripts/clef-local/clef-flash-manifest.json",
+    "scripts/clef-local/requirements.txt", "scripts/clef-local/requirements-linux-cpu.lock",
+    "scripts/clef-local/requirements-linux-cpu.hashes.lock",
+    "scripts/clef-local/requirements-linux-cpu.download.lock",
+    "scripts/skill-eval-codex.py", "scripts/test-skill-eval-codex.py",
+    "scripts/test-skill-eval-tools.py",
+]
+
+
+def check_adapters(root: Path) -> list[str]:
+    """Diagnose ignored runtime copies without writing environment-owned files."""
+    errors = []
+    for directory in [".agents/skills", ".codex/skills", ".Codex/skills"]:
+        for name in CANONICAL_SKILLS:
+            relative = f"{directory}/{name}/SKILL.md"
+            generated = root / relative
+            canonical = root / f".claude/skills/{name}/SKILL.md"
+            if not generated.exists():
+                continue
+            if (not generated.is_file() or not generated.resolve().is_relative_to(root.resolve())
+                    or not canonical.is_file() or generated.read_bytes() != canonical.read_bytes()):
+                errors.append(f"{relative} diverges from canonical .claude/skills/{name}/SKILL.md; "
+                              "read the canonical skill directly and ask the environment owner to repair discovery")
+    return errors
 
 
 def check(root: Path) -> list[str]:
@@ -55,36 +87,73 @@ def check(root: Path) -> list[str]:
             errors.append(f"capability map differs from CLI commands: missing {sorted(commands-set(rows))}, obsolete {sorted(set(rows)-commands)}")
         if len(rows) != len(set(rows)):
             errors.append("duplicate command rows in capability map")
-    for path in re.findall(r"<!-- readiness: ([^>]+) -->", text):
+    for path in sorted(set(re.findall(r"<!-- readiness: ([^>]+) -->", text)) | set(PROOF_DEPENDENCIES)):
         target = root / path
         if not target.is_file() or not target.resolve().is_relative_to(root.resolve()):
             errors.append(f"missing or external readiness dependency {path}")
-    for name in ["verify", "security-review", "api-compat", "release-review", "typesafe-ai"]:
-        if not (root / ".claude/skills" / name / "SKILL.md").is_file():
-            errors.append(f"missing canonical development skill {name}")
+    for name in CANONICAL_SKILLS:
+        target = root / ".claude/skills" / name / "SKILL.md"
+        if not target.is_file() or not target.resolve().is_relative_to(root.resolve()):
+            errors.append(f"missing or external canonical development skill {name}")
     gate = (root / "scripts/verify.sh").read_text(encoding="utf-8")
     invocations = set()
+    unconditional_invocations = set()
+    media_invocations = set()
     for line in gate.replace("\\\n", " ").splitlines():
         if not re.match(r"^\s*(?:run|optional|optional_module)\s", line):
             continue
         tokens = shlex.split(line, comments=True)
-        for executable, argument in zip(tokens, tokens[1:]):
+        # The helpers execute argv after their metadata fields. A mentioned
+        # command (for example, echo python3 ...) is not an executed proof.
+        command = tokens[3 if tokens[0] == "run" else 4:]
+        if len(command) >= 2:
+            executable, argument = command[:2]
             if executable == "python3":
                 invocations.add(argument)
+                if tokens[0] == "run":
+                    unconditional_invocations.add(argument)
+            if argument == "scripts/test-clef-server.py":
+                media_invocations.add((executable, tuple(command[2:])))
     for path in ["check-agent-readiness.py", "check-architecture.py", "test-check-architecture.py",
-                 "test-dev-tools.py", "test-benchmark.py", "check-request-schema.py"]:
-        if "scripts/" + path not in invocations:
+                 "test-dev-tools.py", "test-benchmark.py", "check-request-schema.py",
+                 "test-source-snapshot.py", "test-clef-live.py", "test-clef-quality.py",
+                 "test-clef-python-profile.py", "test-clef-model-manifest.py",
+                 "test-clef-server.py", "test-skill-eval-codex.py", "test-skill-eval-tools.py"]:
+        # The schema validator is intentionally conditional on jsonschema. The
+        # offline proof suites must run even when real media modules are absent.
+        available = invocations if path == "check-request-schema.py" else unconditional_invocations
+        if "scripts/" + path not in available:
             errors.append(f"scripts/verify.sh no longer runs {path}")
+    # Offline stand-ins do not prove the real decoder/processor behavior. Preserve
+    # both default and explicitly selected Python environments and their flags.
+    for interpreter, flags in [("python3", ("--real-pillow",)),
+                               ("python3", ("--real-processor", "--real-pillow")),
+                               ("$JEV_CLEF_PYTHON", ("--real-processor", "--real-pillow"))]:
+        # The decoder-only suite remains runnable without Transformers; a
+        # processor invocation containing --real-pillow cannot stand in for it.
+        if not any(command == interpreter and set(flags) == set(arguments)
+                   for command, arguments in media_invocations):
+            errors.append(f"scripts/verify.sh no longer runs real media gate {interpreter} "
+                          f"scripts/test-clef-server.py {' '.join(flags)}")
     return errors
 
 
 def main() -> int:
-    argparse.ArgumentParser(description=__doc__).parse_args()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--check-adapters", action="store_true",
+                        help="also fail on divergent ignored runtime skill copies; never repairs them")
+    args = parser.parse_args()
     try:
         errors = check(ROOT)
+        adapters = check_adapters(ROOT)
     except (OSError, UnicodeError, ValueError):
         print("cannot read readiness sources; restore mapped files or repair the capability map", file=sys.stderr)
         return 1
+    if args.check_adapters:
+        errors.extend(adapters)
+    else:
+        for error in adapters:
+            print("warning: environment-owned skill copy: " + error, file=sys.stderr)
     for error in errors:
         print(error, file=sys.stderr)
     if errors:

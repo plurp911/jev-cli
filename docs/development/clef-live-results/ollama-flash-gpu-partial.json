@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-10-04T18:21:27.472709+00:00",
+  "scope": "One original synthetic PNG with mixed Noul, Choice, Score questions through the CLI; proves bounded partial GPU integration, not a quality benchmark or full GPU execution.",
+  "official_sources": [
+    "https://github.com/ollama/ollama/releases/tag/v0.35.1",
+    "https://api.github.com/repos/ollama/ollama/releases/tags/v0.35.1",
+    "https://docs.ollama.com/gpu",
+    "https://docs.ollama.com/api/systemone",
+    "https://raw.githubusercontent.com/ollama/ollama/v0.35.1/llm/llama_server.go",
+    "https://raw.githubusercontent.com/ollama/ollama/v0.35.1/envconfig/config.go"
+  ],
+  "asset": {
+    "name": "ollama-linux-amd64.tar.zst",
+    "compressed_bytes": 1439658961,
+    "sha256": "9fcd79ac4575b2bd31b992eee18b1000c8ad126b451627c8f8cd091714cfbb10",
+    "sha256_verified_on_index_and_extraction": true,
+    "extracted_payload_bytes": 1355188554,
+    "additional_directory_file_bytes": 1355332682,
+    "extracted_backend": "cuda_v12",
+    "retained_archive": false,
+    "upstream_licenses_retained": true,
+    "system_or_driver_install": false
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4070 Laptop GPU",
+    "total_mib": 8188,
+    "driver": "595.91.07",
+    "compute_capability": "8.9"
+  },
+  "runtime": {
+    "version": "0.35.1",
+    "binary_sha256": "8fd655c8fde7b524dc3a64ae1006f9e8d0344dec93b1796fc9f87b7c5179fbb9",
+    "original_cpu_binary_matches": true,
+    "model": "clef-flash:9b-q8_0",
+    "model_digest": "2aa4d39fd93b09c84236c5721a4a482c9c376ec32028f7a800b192d33adaad45",
+    "quantization": "Q8_0",
+    "context_length": 16384,
+    "loaded_model_limit": 1,
+    "parallel_request_limit": 1,
+    "cloud_disabled": true,
+    "history_disabled": true,
+    "pruning_disabled": true,
+    "cli_retries": 0,
+    "original_model_or_manifest_modified": false,
+    "gpu_overhead_bytes": 4294967296,
+    "llama_fit_target_mib": 4096,
+    "vision_projector_backend": "CPU after runtime automatic startup fallback"
+  },
+  "initial_limitations": [
+    {
+      "configuration": "Default fit target",
+      "outcome": "CUDA out of memory during compute-buffer allocation; CLI exit 4",
+      "attempted_gpu_layers": 19,
+      "compute_allocation_mib": 3891
+    },
+    {
+      "configuration": "4096 MiB fit target with projector on GPU",
+      "outcome": "CUDA out of memory during projector allocation; runtime automatically restarted with projector on CPU",
+      "attempted_gpu_layers": 10,
+      "projector_allocation_mib": 875.61
+    }
+  ],
+  "confirmed_final_offload": {
+    "layers_on_gpu": 5,
+    "total_layers": 33,
+    "cuda_model_buffer_mib": 1907.44,
+    "cuda_kv_buffer_mib": 64,
+    "cuda_recurrent_buffer_mib": 6.28,
+    "cuda_compute_buffer_mib": 3891,
+    "server_reported_vram_bytes": 6153798942,
+    "process_memory_sample_mib": 6020
+  },
+  "inference": {
+    "cli_exit_code": 0,
+    "elapsed_seconds": 26.369,
+    "schema": "jev.evaluation/v1",
+    "question_count": 3,
+    "image_count": 1,
+    "format": "PNG",
+    "answer_types": {
+      "color": "choice",
+      "presence": "score",
+      "visible": "noul"
+    },
+    "schema_and_distribution_validation": "passed",
+    "synthetic_answers": {
+      "color": {
+        "choice": "red",
+        "confidence": 0.9208800856912254,
+        "probabilities": {
+          "blue": 0.009748306361370782,
+          "red": 0.9902516936386292
+        },
+        "type": "choice"
+      },
+      "presence": {
+        "confidence": 0.6603351442484167,
+        "legend": {
+          "0": "No red square",
+          "1": "A red square is present"
+        },
+        "probabilities": {
+          "0": 0.06310901153734354,
+          "1": 0.9368909884626564
+        },
+        "score": 0.9368909884626564,
+        "type": "score"
+      },
+      "visible": {
+        "noul": 0.9751969211640276,
+        "type": "noul"
+      }
+    },
+    "usage": {
+      "input_tokens": 360,
+      "output_tokens": 0
+    }
+  },
+  "cleanup": {
+    "explicit_keep_alive": 0,
+    "unload_done_reason": "unload",
+    "loaded_models_after_unload": 0,
+    "owned_gpu_server_sigterm": true,
+    "existing_cpu_server_version": "0.35.1"
+  },
+  "limitations": [
+    "Successful execution uses partial GPU text-layer offload and a CPU vision projector.",
+    "Original 16384 context and Q8_0 model retained; automatic initial configurations exceeded VRAM.",
+    "No GPU quality matrix, latency comparison, other GPU model, or unquantized publisher model tested."
+  ]
+}

@@ -59,6 +59,44 @@ pub struct Cli {
     reason = "these doc comments are rendered verbatim as --help text by clap"
 )]
 pub struct GlobalArgs {
+    /// Inference provider; local providers use an already running server [default: typesafe]
+    #[arg(long, value_enum, global = true, help_heading = GLOBAL_HEADING)]
+    pub(crate) provider: Option<ProviderArg>,
+
+    /// Cloudflare account ID; otherwise CLOUDFLARE_ACCOUNT_ID or the configuration setting
+    #[arg(long, global = true, value_name = "ID", help_heading = GLOBAL_HEADING)]
+    pub(crate) cloudflare_account_id: Option<String>,
+
+    /// Embed this PNG, JPEG, or WebP file; repeat in image order (Cloudflare, Ollama, or Hugging Face)
+    #[arg(long = "image", global = true, value_name = "PATH", help_heading = GLOBAL_HEADING)]
+    pub(crate) images: Vec<PathBuf>,
+
+    /// Add a prepared PNG/JPEG/WebP frame to one local video; repeat in playback order
+    #[arg(long = "video-frame", global = true, value_name = "PATH", help_heading = GLOBAL_HEADING)]
+    pub(crate) video_frames: Vec<PathBuf>,
+    /// Source cadence for the explicitly supplied prepared video frames.
+    #[arg(long, global = true, value_name = "FPS", help_heading = GLOBAL_HEADING)]
+    pub(crate) video_fps: Option<f64>,
+
+    /// Maximum encoded context length for the local Hugging Face bridge
+    #[arg(long, global = true, value_name = "TOKENS", help_heading = GLOBAL_HEADING)]
+    pub(crate) max_length: Option<u32>,
+    /// Independent local state token budget.
+    #[arg(long, global = true, value_name = "TOKENS", help_heading = GLOBAL_HEADING)]
+    pub(crate) max_state_tokens: Option<u32>,
+
+    /// Explicit processor media controls as JSON, for the local Hugging Face bridge
+    #[arg(long, global = true, value_name = "JSON", help_heading = GLOBAL_HEADING)]
+    pub(crate) media_kwargs: Option<String>,
+
+    /// Reject unavailable Cloudflare capacity instead of waiting in its queue
+    #[arg(long, global = true, help_heading = GLOBAL_HEADING)]
+    pub(crate) reject_if_busy: bool,
+
+    /// Keep an Ollama model loaded for this duration (e.g. 5m, 0, or -1)
+    #[arg(long, global = true, allow_hyphen_values = true, value_name = "DURATION", help_heading = GLOBAL_HEADING)]
+    pub(crate) keep_alive: Option<String>,
+
     /// Output format. `json` is the stable, versioned machine contract [default: text]
     #[arg(long, short = 'o', value_enum, global = true, help_heading = GLOBAL_HEADING)]
     pub(crate) output: Option<OutputFormat>,
@@ -151,6 +189,16 @@ impl GlobalArgs {
     #[must_use]
     pub fn overrides(&self) -> Overrides {
         Overrides {
+            provider: self.provider,
+            cloudflare_account_id: self.cloudflare_account_id.clone(),
+            image_paths: self.images.clone(),
+            video_frames: self.video_frames.clone(),
+            video_fps: self.video_fps,
+            max_length: self.max_length,
+            max_state_tokens: self.max_state_tokens,
+            media_kwargs: self.media_kwargs.clone(),
+            reject_if_busy: self.reject_if_busy,
+            keep_alive: self.keep_alive.clone(),
             endpoint: self.endpoint.clone(),
             model: self.model.clone(),
             output: self.output,
@@ -164,6 +212,37 @@ impl GlobalArgs {
                 verbose: self.verbose,
             },
             dry_run: self.dry_run,
+        }
+    }
+}
+
+/// The protocol to use for inference. Defaults preserve the TypeSafe CLI contract.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, ValueEnum)]
+pub enum ProviderArg {
+    /// TypeSafe System One, or an explicitly configured compatible endpoint.
+    #[default]
+    Typesafe,
+    /// Cloudflare Workers AI Clef and Clef Flash.
+    Cloudflare,
+    /// An Ollama System One server, with local Clef vision support.
+    Ollama,
+    /// The explicitly started local Python/Hugging Face bridge, including video frames.
+    Huggingface,
+    /// A llama.cpp System One server; Clef currently supports text only.
+    #[value(name = "llamacpp", alias = "llama-cpp")]
+    LlamaCpp,
+}
+
+impl ProviderArg {
+    /// Stable identifier used in configuration and diagnostics.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Typesafe => "typesafe",
+            Self::Cloudflare => "cloudflare",
+            Self::Ollama => "ollama",
+            Self::Huggingface => "huggingface",
+            Self::LlamaCpp => "llamacpp",
         }
     }
 }
@@ -242,7 +321,7 @@ pub struct StateArgs {
     #[arg(long, value_name = "PATH", help_heading = STATE_HEADING, conflicts_with_all = ["state", "state_json", "state_json_file"])]
     pub(crate) state_file: Option<PathBuf>,
 
-    /// Literal JSON state: an object, an array, or a string.
+    /// Literal JSON state: string, object, or array; publisher Python bridge accepts any JSON.
     #[arg(long, value_name = "JSON", help_heading = STATE_HEADING, conflicts_with_all = ["state", "state_file", "state_json_file"])]
     pub(crate) state_json: Option<String>,
 
@@ -431,6 +510,14 @@ pub struct MapArgs {
     /// Use this field of each JSON record as the state, instead of the whole record.
     #[arg(long, value_name = "FIELD", conflicts_with = "lines")]
     pub(crate) state_field: Option<String>,
+
+    /// Read embedded images from this top-level JSON record field; never opens paths
+    #[arg(long, value_name = "FIELD", conflicts_with = "lines")]
+    pub(crate) images_field: Option<String>,
+
+    /// Read prepared embedded videos from this top-level JSON record field
+    #[arg(long, value_name = "FIELD", conflicts_with = "lines")]
+    pub(crate) videos_field: Option<String>,
 
     /// Use this field of each JSON record as the row id. Defaults to the input index.
     #[arg(long, value_name = "FIELD", conflicts_with = "lines")]
@@ -702,8 +789,12 @@ mod tests {
                     ]
                     .iter()
                     .any(|needle| lowered.contains(needle));
+                    // This numeric token budget cannot carry credential text. Verify
+                    // the parser type so changing it to String reactivates the guard.
+                    let numeric_state_budget = id == "max_state_tokens"
+                        && argument.get_value_parser().type_id() == std::any::TypeId::of::<u32>();
                     assert!(
-                        !looks_like_a_secret,
+                        !looks_like_a_secret || numeric_state_budget,
                         "{path} accepts a credential as an argument: `{name}`"
                     );
                 }

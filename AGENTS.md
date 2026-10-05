@@ -23,7 +23,8 @@ the relevant `SKILL.md` directly. Do not maintain separate copies for other runt
 ## 1. Mission
 
 `jev` is an independent, community-maintained command-line interface for TypeSafe AI's
-System One API and its Jev model.
+System One API and its Jev model, with explicitly selected Cloudflare Clef and
+Clef Flash providers, including separately managed local inference.
 
 The goal is for `jev` to be the command a developer reaches for from a terminal, a
 shell script, a CI job, an AI coding agent, or a data pipeline. That goal is reached by
@@ -40,7 +41,7 @@ being **trustworthy**, not by being large:
 | Pleasant for humans | Good errors, good help, no ceremony. |
 | Minimal | Every feature is load-bearing. "Nice to have" is a reason to decline. |
 
-**`jev` is not an official TypeSafe product.** Nothing in this repository may claim,
+**`jev` is not an official TypeSafe or Cloudflare product.** Nothing in this repository may claim,
 imply, or hint at endorsement by TypeSafe AI. This is not modesty; it is accuracy, and
 misrepresenting it would be the fastest way to destroy the project's credibility.
 
@@ -225,6 +226,21 @@ limitations.
 **Before changing anything that touches the wire protocol**, read the relevant official
 page in the same session and cite it in the pull request. If the docs are unreachable,
 say so and stop rather than guessing. Use the `api-compat` skill.
+
+### Additional provider authority
+
+For Clef adapters, use the selected provider's primary sources: Cloudflare's
+[Clef and Clef Flash schemas](https://developers.cloudflare.com/workers-ai/models/clef/),
+[Ollama's System One contract](https://docs.ollama.com/api/systemone), or
+[llama.cpp's server contract](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md).
+The explicit local Python bridge has a project-owned HTTP contract in
+[docs/clef.md](docs/clef.md); its loader, media, and processor semantics follow the
+[publisher implementation](https://huggingface.co/Cloudflare/clef/blob/main/joint_schema_model.py)
+and the selected processor's official source. Hosted and local capabilities differ;
+never infer one provider's wire behavior from another. Read the relevant official
+source in the same session before changing a provider adapter. ADR-0015 records the
+maintainer's explicit authorization for the separately launched Python bridge and
+prepared video-frame support; ordinary CLI invocations never execute model code.
 
 ---
 

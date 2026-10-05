@@ -71,6 +71,18 @@ pub enum EndpointError {
     /// The port was not a number in `1..=65535`.
     #[error("an endpoint URL contains an invalid port")]
     InvalidPort,
+    /// A Cloudflare account must be one canonical path component.
+    #[error("a Cloudflare account id must contain exactly 32 hexadecimal characters")]
+    InvalidCloudflareAccount,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Protocol {
+    SystemOne,
+    Cloudflare { account_id: String },
+    Ollama,
+    LlamaCpp,
+    HuggingFace,
 }
 
 /// A validated API base URL.
@@ -95,6 +107,7 @@ pub struct Endpoint {
     base: String,
     host: String,
     secure: bool,
+    protocol: Protocol,
 }
 
 impl Endpoint {
@@ -107,6 +120,7 @@ impl Endpoint {
             base: DEFAULT_BASE_URL.to_owned(),
             host: "api.typesafe.ai".to_owned(),
             secure: true,
+            protocol: Protocol::SystemOne,
         })
     }
 
@@ -201,6 +215,7 @@ impl Endpoint {
             base: format!("{scheme}://{normalized_authority}{normalized_path}"),
             host,
             secure,
+            protocol: Protocol::SystemOne,
         })
     }
 
@@ -210,7 +225,119 @@ impl Endpoint {
     /// namespace applies.
     #[must_use]
     pub fn is_official(&self) -> bool {
-        self.base == DEFAULT_BASE_URL
+        self.base == DEFAULT_BASE_URL && self.protocol == Protocol::SystemOne
+    }
+
+    /// Builds a Workers AI endpoint with an explicit account.
+    ///
+    /// # Errors
+    /// Returns [`EndpointError::InvalidCloudflareAccount`] for a malformed account id.
+    pub fn cloudflare(account_id: &str) -> Result<Self, EndpointError> {
+        Self::parse("https://api.cloudflare.com")?.with_cloudflare_account(account_id)
+    }
+
+    /// Uses Workers AI routing against this explicitly selected base URL.
+    ///
+    /// # Errors
+    /// Returns [`EndpointError::InvalidCloudflareAccount`] for a malformed account id.
+    pub fn with_cloudflare_account(mut self, account_id: &str) -> Result<Self, EndpointError> {
+        if account_id.len() != 32 || !account_id.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+            return Err(EndpointError::InvalidCloudflareAccount);
+        }
+        self.protocol = Protocol::Cloudflare {
+            account_id: account_id.to_ascii_lowercase(),
+        };
+        Ok(self)
+    }
+
+    /// Whether requests use the Workers AI protocol.
+    #[must_use]
+    pub const fn is_cloudflare(&self) -> bool {
+        matches!(self.protocol, Protocol::Cloudflare { .. })
+    }
+
+    /// The account used for Workers AI routing.
+    #[must_use]
+    pub fn cloudflare_account_id(&self) -> Option<&str> {
+        match &self.protocol {
+            Protocol::Cloudflare { account_id } => Some(account_id),
+            _ => None,
+        }
+    }
+
+    /// The selected protocol provider.
+    #[must_use]
+    pub const fn provider(&self) -> &'static str {
+        match self.protocol {
+            Protocol::SystemOne => "typesafe",
+            Protocol::Cloudflare { .. } => "cloudflare",
+            Protocol::Ollama => "ollama",
+            Protocol::LlamaCpp => "llamacpp",
+            Protocol::HuggingFace => "huggingface",
+        }
+    }
+
+    /// Whether the selected provider runs an explicitly addressed local server.
+    #[must_use]
+    pub const fn is_local_provider(&self) -> bool {
+        matches!(
+            self.protocol,
+            Protocol::Ollama | Protocol::LlamaCpp | Protocol::HuggingFace
+        )
+    }
+
+    /// The conventional Ollama loopback endpoint.
+    #[must_use]
+    pub fn ollama() -> Self {
+        Self {
+            base: "http://127.0.0.1:11434".to_owned(),
+            host: "127.0.0.1".to_owned(),
+            secure: false,
+            protocol: Protocol::Ollama,
+        }
+    }
+
+    /// The conventional llama.cpp loopback endpoint.
+    #[must_use]
+    pub fn llama_cpp() -> Self {
+        Self {
+            base: "http://127.0.0.1:8080".to_owned(),
+            host: "127.0.0.1".to_owned(),
+            secure: false,
+            protocol: Protocol::LlamaCpp,
+        }
+    }
+
+    /// The loopback endpoint of this repository's explicit Python Clef bridge.
+    #[must_use]
+    pub fn huggingface() -> Self {
+        Self {
+            base: "http://127.0.0.1:8787".to_owned(),
+            host: "127.0.0.1".to_owned(),
+            secure: false,
+            protocol: Protocol::HuggingFace,
+        }
+    }
+
+    /// Uses this repository's Python Clef bridge protocol at an explicit endpoint.
+    #[must_use]
+    pub fn with_huggingface(mut self) -> Self {
+        self.protocol = Protocol::HuggingFace;
+        self
+    }
+
+    /// Uses the Ollama protocol against this explicitly selected endpoint.
+    #[must_use]
+    pub fn with_ollama(mut self) -> Self {
+        self.protocol = Protocol::Ollama;
+        self
+    }
+
+    /// Uses the llama.cpp System One protocol against this explicitly selected endpoint.
+    #[must_use]
+    pub fn with_llama_cpp(mut self) -> Self {
+        self.protocol = Protocol::LlamaCpp;
+        self
     }
 
     /// The normalized base URL, without a trailing slash.
@@ -223,6 +350,12 @@ impl Endpoint {
     #[must_use]
     pub fn host(&self) -> &str {
         &self.host
+    }
+
+    /// Whether the endpoint names this machine unambiguously.
+    #[must_use]
+    pub fn is_loopback(&self) -> bool {
+        is_loopback(&self.host)
     }
 
     /// Returns `true` when the transport will use TLS.
@@ -357,9 +490,45 @@ fn is_canonical_octet(text: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn huggingface_bridge_stays_in_the_custom_credential_namespace() {
+        let endpoint = Endpoint::huggingface();
+        assert_eq!(endpoint.base(), "http://127.0.0.1:8787");
+        assert_eq!(endpoint.provider(), "huggingface");
+        assert!(endpoint.is_local_provider());
+        assert!(endpoint.is_loopback());
+        assert!(!endpoint.is_official());
+        assert!(!Endpoint::official().with_huggingface().is_official());
+    }
     use proptest::prelude::*;
 
     use super::*;
+
+    #[test]
+    fn cloudflare_protocol_never_selects_typesafe_credentials() {
+        let account = "0123456789abcdef0123456789ABCDEF";
+        let endpoint = Endpoint::cloudflare(account).unwrap();
+        assert!(endpoint.is_cloudflare());
+        assert!(!endpoint.is_official());
+        assert_eq!(endpoint.provider(), "cloudflare");
+        assert_eq!(
+            endpoint.cloudflare_account_id(),
+            Some("0123456789abcdef0123456789abcdef")
+        );
+        let overridden = Endpoint::official()
+            .with_cloudflare_account(account)
+            .unwrap();
+        assert!(!overridden.is_official());
+        for rejected in [
+            "",
+            "../api",
+            "not-a-valid-account-id",
+            "0123456789abcdef0123456789abcdeg",
+        ] {
+            let error = Endpoint::cloudflare(rejected).unwrap_err();
+            assert!(!error.to_string().contains("not-a-valid-account-id"));
+        }
+    }
 
     #[test]
     fn the_default_is_the_official_endpoint() {

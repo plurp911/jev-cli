@@ -1,0 +1,22 @@
+{
+  "schema": "jev.clef.synthetic-quality/v1",
+  "fixture_version": 1,
+  "provider": "llamacpp",
+  "model": "clef",
+  "synthetic": true,
+  "input_kind": "text",
+  "max_requests": 32,
+  "reserved_requests": 32,
+  "retries": 0,
+  "passed": true,
+  "quality": {
+    "rows": 32,
+    "positives": 8,
+    "negatives": 24,
+    "agreement_at_0_5": 1.0,
+    "brier_score": 2.8331590840348943e-05,
+    "log_loss_clipped_at_1e_15": 0.005279575378295717,
+    "generalizable": false,
+    "limitation": "Only this original synthetic shape family; no production calibration claim"
+  }
+}

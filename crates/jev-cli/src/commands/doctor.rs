@@ -34,12 +34,8 @@ pub(crate) fn run(
     // "Every invocation" means every invocation, including the diagnostic ones.
     session.warn_about_endpoint();
 
-    let credentials = jev_config::Credentials::new(
-        session.environment,
-        session.store,
-        session.context.endpoint_is_official(),
-        session.context.endpoint.value.to_string(),
-    );
+    let credentials =
+        crate::commands::credentials(&session.context, session.environment, session.store);
     let availability = credentials.availability();
 
     let live = if args.live {
@@ -153,6 +149,8 @@ fn doctor_document(
         },
         "endpoint": {
             "url": session.context.endpoint.value.to_string(),
+            "provider": session.context.provider.value.as_str(),
+            "cloudflare_account_id": session.context.endpoint.value.cloudflare_account_id(),
             "official": session.context.endpoint_is_official(),
             "secure": session.context.endpoint.value.is_secure(),
             "source": session.context.endpoint.from.as_str(),
@@ -206,6 +204,14 @@ fn doctor_text(
     );
 
     out.push_str("endpoint\n");
+    let _ = writeln!(
+        out,
+        "  provider  {}",
+        session.context.provider.value.as_str()
+    );
+    if let Some(account) = session.context.endpoint.value.cloudflare_account_id() {
+        let _ = writeln!(out, "  account   {account}");
+    }
     let _ = writeln!(
         out,
         "  url       {}  ({})",

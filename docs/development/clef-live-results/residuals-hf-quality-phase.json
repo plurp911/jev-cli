@@ -1,0 +1,76 @@
+{
+  "schema": "jev.clef.hf-quality-phase/v1",
+  "passed": true,
+  "model_repository": "Cloudflare/clef-flash",
+  "model_revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+  "runtime": {
+    "schema": "jev.clef.bridge-ready/v1",
+    "ready": true,
+    "host": "127.0.0.1",
+    "port": 18790,
+    "model": "clef-flash",
+    "device": "cpu",
+    "dtype": "bfloat16",
+    "threads": 8,
+    "elapsed_seconds": 6.017701395001495,
+    "publisher_manifest_verified_before_execution": true,
+    "offline": true,
+    "implicit_authentication_disabled": true,
+    "core_dump_limit_bytes": 0
+  },
+  "loaded_bridge_artifact": {
+    "sha256": "91ba413ea3a9f12708f3b4102f58c937c2c9941756a30d06d7995dab5e5fa6a8",
+    "bytes": 21630
+  },
+  "spawned_cli_and_helper_artifacts": {
+    "scripts/clef-quality.py": {
+      "sha256": "84c59f2367334c3c418a4947ffd21bd931125d3e143aa6bbea00dea4c7e897f7",
+      "bytes": 8696
+    },
+    "scripts/clef-live.py": {
+      "sha256": "ad5bbdf3a2ddaa6f11e213ef18330c5c51027e905a0f2b66e8859a690a9709c2",
+      "bytes": 33052
+    },
+    "target/release/jev": {
+      "sha256": "1eafe029443398687e5db7d8e92ec6b6d11d7ee9d17abcd72e23fe374bc68d8a",
+      "bytes": 6622696
+    }
+  },
+  "current_disk_artifacts_at_receipt": {
+    "scripts/clef-server.py": {
+      "sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506",
+      "differs_from_loaded_or_spawned_phase_artifact": true
+    },
+    "scripts/clef-live.py": {
+      "sha256": "ad5bbdf3a2ddaa6f11e213ef18330c5c51027e905a0f2b66e8859a690a9709c2",
+      "differs_from_loaded_or_spawned_phase_artifact": false
+    },
+    "scripts/clef-quality.py": {
+      "sha256": "84c59f2367334c3c418a4947ffd21bd931125d3e143aa6bbea00dea4c7e897f7",
+      "differs_from_loaded_or_spawned_phase_artifact": false
+    },
+    "target/release/jev": {
+      "sha256": "43c31555bcc58a841b50ab7d8b6343ff4d154c692b005e27fa090969ec0e3020",
+      "differs_from_loaded_or_spawned_phase_artifact": true
+    }
+  },
+  "binding_note": "The running bridge and CLI retained their original loaded/spawned code. Bridge and release binary changed on disk during the phase; those replacement files did not replace the running code. Matching original files were retained under the isolated target directory.",
+  "quality": {
+    "rows": 32,
+    "positives": 8,
+    "negatives": 24,
+    "agreement_at_0_5": 1.0,
+    "brier_score": 0.00013185187499999991,
+    "log_loss_clipped_at_1e_15": 0.00847308626229318,
+    "generalizable": false,
+    "limitation": "Only this original synthetic shape family; no production calibration claim"
+  },
+  "timing": {
+    "elapsed_seconds": 1790.4983907879941,
+    "attempts": 1,
+    "returncode": 0
+  },
+  "weights_retained_for_separate_corrected_input_addendum": true,
+  "final_cleanup_complete": false,
+  "generalizable": false
+}

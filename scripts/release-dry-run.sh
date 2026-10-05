@@ -11,16 +11,25 @@ set -Eeuo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-OUT=target/distrib
+# Child tools invoke Git too. Keep inherited repository redirects, configuration,
+# and executable filters outside the entire rehearsal, not only source capture.
+while IFS= read -r rehearsal_git_name; do
+  unset "$rehearsal_git_name"
+done < <(compgen -A variable GIT_ || true)
+export GIT_CONFIG_GLOBAL=/dev/null
+export GIT_CONFIG_SYSTEM=/dev/null
+export GIT_CONFIG_NOSYSTEM=1
+export GIT_TEMPLATE_DIR=""
+
+REHEARSAL_ROOT="$(pwd -P)"
+OUT="$REHEARSAL_ROOT/target/distrib"
+export CARGO_TARGET_DIR="$REHEARSAL_ROOT/target"
 
 missing() {
   printf '%s is not installed.\n  %s\n' "$1" "$2" >&2
   exit 127
 }
 command -v dist >/dev/null 2>&1 || missing dist "cargo install cargo-dist --locked"
-
-printf '==> plan\n'
-dist plan
 
 printf '\n==> build local artifacts for this host\n'
 # Only this machine's target. `dist` refuses to cross-compile to macOS, and the release
@@ -34,6 +43,34 @@ printf '  host target: %s\n' "$HOST_TARGET"
 rm -rf "$OUT"
 mkdir -p "$OUT"
 
+# Compile an isolated, read-only copy of the captured source. Main-worktree edits
+# during compilation cannot change its inputs, even if they are later restored.
+# Build tools are trusted not to deliberately rewrite the owner's read-only files.
+# Keep source outside Cargo's cache so cache cleanup cannot remove the checkout.
+SOURCE_REHEARSAL="$(mktemp -d /tmp/jev-source-rehearsal.XXXXXX)"
+SOURCE_TREE="$SOURCE_REHEARSAL/tree"
+MANIFEST=""
+STAGE=""
+cleanup() {
+  if [ -d "$SOURCE_TREE" ]; then
+    chmod -R u+w "$SOURCE_TREE"
+  fi
+  rm -rf "$SOURCE_REHEARSAL"
+  if [ -n "$MANIFEST" ]; then rm -f "$MANIFEST"; fi
+  if [ -n "$STAGE" ]; then rm -rf "$STAGE"; fi
+}
+trap cleanup EXIT
+python3 scripts/source-snapshot.py --output "$SOURCE_REHEARSAL/source.tar.gz" --build-tree "$SOURCE_TREE"
+# dist uses the workspace's target directory independently of CARGO_TARGET_DIR.
+# Pin both tools to the same writable cache; captured source stays read-only.
+chmod u+w "$SOURCE_TREE"
+ln -s "$CARGO_TARGET_DIR" "$SOURCE_TREE/target"
+chmod u-w "$SOURCE_TREE"
+cd "$SOURCE_TREE"
+
+printf '\n==> plan from captured source\n'
+dist plan
+
 # The per-target manifest is what `--artifacts=global` reads to learn each archive's
 # checksum. Producing it here is what makes the installer check below meaningful, and
 # it mirrors exactly what the release workflow's build job uploads. It is written
@@ -41,6 +78,42 @@ mkdir -p "$OUT"
 # the half-written file.
 MANIFEST="$(mktemp)"
 dist build --artifacts=local --target "$HOST_TARGET" --output-format=json > "$MANIFEST"
+# These schema fields describe local artifacts. Keep them usable after the
+# temporary source tree (including its target alias) is removed.
+python3 - "$MANIFEST" "$SOURCE_TREE/target" "$CARGO_TARGET_DIR" <<'PYTHON'
+import json
+from pathlib import Path
+import sys
+
+path, alias, destination = map(Path, sys.argv[1:])
+with path.open("rb") as stream:
+    raw = stream.read(4 * 1024 * 1024 + 1)
+if len(raw) > 4 * 1024 * 1024:
+    raise SystemExit("release manifest exceeds its size bound")
+manifest = json.loads(raw)
+resolved_destination = destination.resolve(strict=True)
+
+def canonical(value):
+    if not isinstance(value, str):
+        return value
+    requested = Path(value)
+    if ".." in requested.parts:
+        raise SystemExit("release manifest path contains a parent component")
+    if not requested.is_absolute():
+        requested = alias.parent / requested
+    try:
+        relative = requested.resolve().relative_to(resolved_destination)
+    except (ValueError, OSError, RuntimeError):
+        raise SystemExit("release manifest path escapes the captured target") from None
+    return str(resolved_destination / relative)
+
+for artifact in manifest.get("artifacts", {}).values():
+    if "path" in artifact:
+        artifact["path"] = canonical(artifact["path"])
+if "upload_files" in manifest:
+    manifest["upload_files"] = [canonical(value) for value in manifest["upload_files"]]
+path.write_text(json.dumps(manifest, indent=2) + "\n")
+PYTHON
 mv "$MANIFEST" "$OUT/$HOST_TARGET-dist-manifest.json"
 
 printf '\n==> checksums\n'
@@ -73,6 +146,24 @@ printf '\n==> installers and formula\n'
 dist build --artifacts=global >/dev/null
 python3 scripts/check-installers.py "$OUT" --only "$HOST_TARGET"
 
+printf '\n==> source matches the binary build\n'
+python3 scripts/source-snapshot.py --check-build-tree --check "$SOURCE_REHEARSAL/source.tar.gz"
+cp "$SOURCE_REHEARSAL/source.tar.gz" "$OUT/source.tar.gz"
+python3 - "$OUT" <<'PY'
+import hashlib
+from pathlib import Path
+import sys
+
+directory = Path(sys.argv[1])
+digest = hashlib.sha256((directory / "source.tar.gz").read_bytes()).hexdigest()
+(directory / "source.tar.gz.sha256").write_text(f"{digest} *source.tar.gz\n")
+aggregate = directory / "sha256.sum"
+lines = [line for line in aggregate.read_text().splitlines() if not line.endswith(" *source.tar.gz")]
+lines.append(f"{digest} *source.tar.gz")
+aggregate.write_text("\n".join(lines) + "\n")
+PY
+printf '  ok  source archive includes the exact isolated build files and original-worktree provenance\n'
+
 printf '\n==> SBOM\n'
 if command -v cargo-sbom >/dev/null 2>&1; then
   cargo sbom --output-format spdx_json_2_3 > "$OUT/jev.spdx.json"
@@ -85,7 +176,6 @@ fi
 
 printf '\n==> install smoke test\n'
 STAGE="$(mktemp -d)"
-trap 'rm -rf "$STAGE"' EXIT
 for archive in "${archives[@]}"; do
   case "$archive" in
     *.tar.xz) tar -xJf "$archive" -C "$STAGE" ;;

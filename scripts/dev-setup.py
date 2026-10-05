@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -56,6 +57,23 @@ def diagnose() -> list[dict]:
         add(tool, shutil.which(tool) is not None, False, hint)
     add("Python jsonschema", importlib.util.find_spec("jsonschema") is not None,
         True, "install jsonschema for this Python interpreter: python3 -m pip install jsonschema")
+    # Import the real media processor in the interpreter used by verify.sh, without
+    # bytecode writes or model loading. Package presence alone misses partial installs.
+    media_python = os.environ.get("JEV_CLEF_PYTHON", "python3")
+    for label, script in [
+        ("Pillow", "from PIL import Image"),
+        ("Qwen3VLVideoProcessor", "from transformers import Qwen3VLVideoProcessor; "
+         "from PIL import Image; Qwen3VLVideoProcessor()"),
+    ]:
+        available = False
+        if shutil.which(media_python):
+            try:
+                available = command(media_python, "-B", "-c", script).returncode == 0
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        add("Clef media " + label, available, True,
+            "install the pinned Clef media development environment in docs/development/clef-live-testing.md "
+            "and set JEV_CLEF_PYTHON to its Python; without that variable verify uses python3")
     if shutil.which("dist"):
         version = tomllib.loads((ROOT / "dist-workspace.toml").read_text(encoding="utf-8"))["dist"]["cargo-dist-version"]
         result = command("dist", "--version")

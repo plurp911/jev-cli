@@ -1,0 +1,33 @@
+{
+  "schema": "jev.cross-platform-check/v1",
+  "toolchain": "rustc 1.94.1",
+  "host": "x86_64-unknown-linux-gnu",
+  "native_execution": false,
+  "windows": {
+    "target": "x86_64-pc-windows-msvc",
+    "workspace_command": "cargo check --workspace --all-targets --locked --target x86_64-pc-windows-msvc",
+    "workspace_exit": 101,
+    "workspace_blocker": "ring native build cannot find MSVC lib.exe; GNU compiler unsupported for target",
+    "partial_command": "cargo check -p jev-core -p jev-config --all-targets --locked --target x86_64-pc-windows-msvc",
+    "partial_exit": 0,
+    "native_keyring_dependency": "windows-native-keyring-store 1.1.0",
+    "cache_bytes": 127010601,
+    "workspace_log": "windows-msvc-check.log",
+    "partial_log": "windows-domain-config-check.log"
+  },
+  "macos": {
+    "target": "aarch64-apple-darwin",
+    "official_stdlib_payload_bytes": 128010627,
+    "authorized_stdlib_ceiling_bytes": 150000000,
+    "workspace_command": "cargo check --workspace --all-targets --locked --target aarch64-apple-darwin",
+    "workspace_exit": 101,
+    "workspace_blocker": "ring native build uses Linux cc which rejects -arch, -mmacosx-version-min=11.0, -gfull",
+    "partial_command": "cargo check -p jev-core -p jev-config --all-targets --locked --target aarch64-apple-darwin",
+    "partial_exit": 0,
+    "native_keyring_dependency": "apple-native-keyring-store 1.0.2",
+    "cache_bytes": 65079139,
+    "authorized_additional_cache_ceiling_bytes": 1000000000,
+    "workspace_log": "macos-aarch64-check.log",
+    "partial_log": "macos-domain-config-check.log"
+  }
+}

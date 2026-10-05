@@ -25,6 +25,8 @@ Emitted by `noul`, `choice`, `score`, and `ask`.
   "model": "jev-1.13.0",
   "model_requested": "jev-latest",
   "endpoint": "https://api.typesafe.ai",
+  "provider": "typesafe",
+  "cloudflare_account_id": null,
   "answers": {
     "is_urgent": { "type": "noul", "noul": 0.92 }
   },
@@ -39,18 +41,21 @@ Emitted by `noul`, `choice`, `score`, and `ask`.
 | `model` | string | The model the API says answered. Log this, not `model_requested`. |
 | `model_requested` | string | What was asked for. Differs when a moving alias resolved. |
 | `endpoint` | string | Where the request went. |
+| `provider` | string | Selected protocol: `typesafe`, `cloudflare`, `ollama`, `llamacpp`, or `huggingface`. |
+| `cloudflare_account_id` | string or null | Selected Cloudflare account; `null` for other providers. |
 | `answers` | object | One entry per question, keyed by the id you chose. |
-| `usage.input_tokens` | integer or null | Billable. `null` if the API did not report it. |
-| `usage.output_tokens` | integer or null | Currently free of charge. |
-| `request_id` | string or null | The API's own identifier for the call, from the `x-typesafe-request-id` response header. `null` if the API did not send one. Log it: it is what TypeSafe support can use to find a specific call, and it cannot be recovered afterwards. |
+| `usage.input_tokens` | integer or null | Reported input usage, or `null` if absent. Billing depends on the provider. |
+| `usage.output_tokens` | integer or null | Reported output usage, or `null` if absent. Billing depends on the provider. |
+| `request_id` | string or null | Provider response identifier: `x-typesafe-request-id`, or Cloudflare `cf-ray`. `null` if absent. Keep it for provider support. |
 | `gate` | object | Present only with `--require`. See below. |
 | `missing_answers` | array of strings | Present only when the API returned no answer for some question ids. Never read a missing answer as a negative one. |
 
 ### Answer objects
 
-The answer objects **are the API's own shapes**, field for field. Knowledge transfers
-between <https://docs.typesafe.ai/api>, the official SDKs, and this CLI without
-translation.
+The answer objects preserve the System One primitive shapes. TypeSafe shapes follow
+<https://docs.typesafe.ai/api>; the Clef adapters normalize provider envelopes into
+these same objects. Confidence values are preserved as returned by the selected
+provider; their calibration and interpretation are provider-specific.
 
 #### Noul
 
@@ -73,8 +78,9 @@ translation.
 }
 ```
 
-`probabilities` always contains every option and sums to 1. `confidence` summarizes how
-concentrated that distribution is.
+`probabilities` contains the option distribution (subject to provider rounding).
+`confidence` is the provider's returned confidence value; do not assume identical
+calibration across models or providers.
 
 #### Score
 
@@ -132,8 +138,11 @@ One is the model's judgment; the other is a broken gate.
 }
 ```
 
-This is whatever `GET /v1/models` returned. `jev` keeps no model catalogue of its own,
-and the API accepts versioned identifiers that do not appear in this list.
+For TypeSafe, this is whatever `GET /v1/models` returned; versioned identifiers may
+be accepted even when absent from the list. Local providers use their native model
+listing endpoints. Cloudflare reports the two supported Clef identifiers after a
+successful model-search request; this is neither an entitlement check nor the full
+Workers AI catalogue. See [the provider guide](clef.md).
 
 ---
 
@@ -146,6 +155,8 @@ and the API accepts versioned identifiers that do not appear in this list.
   "platform": { "os": "linux", "arch": "x86_64" },
   "endpoint": {
     "url": "https://api.typesafe.ai",
+    "provider": "typesafe",
+    "cloudflare_account_id": null,
     "official": true,
     "secure": true,
     "source": "default"
@@ -172,6 +183,11 @@ and the API accepts versioned identifiers that do not appear in this list.
 `source` fields take `flag`, `config-file`, or `default`. `config.state` takes `loaded`,
 `absent`, `skipped`, or `no-directory`. `present` is `null` when a source could not be
 checked, which is not the same as `false`.
+
+`endpoint.provider` and `endpoint.cloudflare_account_id` use the same values as
+evaluation documents. Loopback local providers report `effective_source: "anonymous"`
+and do not consult environment credential files or the OS store. Remote providers
+use the separate custom credential namespace described in [Clef](clef.md).
 
 `credentials.error` distinguishes **nothing is configured** from **something is
 configured and broken**, which `effective_source: null` alone cannot. It is `null` on an

@@ -25,7 +25,12 @@ pub(crate) fn noul(
     args: &NoulArgs,
     transport: Option<&(dyn Transport + Send + Sync)>,
 ) -> Result<u8> {
-    let instructions = instructions(&args.instructions)?;
+    let mode = request::ContentMode::for_provider(session.context.endpoint.value.provider());
+    let instructions = mode.instructions(
+        Some(Value::String(args.instructions.clone())),
+        &args.id,
+        false,
+    )?;
     let criteria = match (&args.yes, &args.no) {
         (None, None) => None,
         (yes, no) => {
@@ -33,7 +38,7 @@ pub(crate) fn noul(
                 value
                     .as_ref()
                     .map(|text| {
-                        Content::text(text.clone())
+                        mode.content(Value::String(text.clone()))
                             .map_err(|_| CliError::usage(format!("--{flag} must not be empty")))
                     })
                     .transpose()
@@ -62,12 +67,17 @@ pub(crate) fn choice(
     args: &ChoiceArgs,
     transport: Option<&(dyn Transport + Send + Sync)>,
 ) -> Result<u8> {
-    let instructions = instructions(&args.instructions)?;
+    let mode = request::ContentMode::for_provider(session.context.endpoint.value.provider());
+    let instructions = mode.instructions(
+        Some(Value::String(args.instructions.clone())),
+        &args.id,
+        false,
+    )?;
     let options = if let Some(path) = &args.options_file {
         let (bytes, origin) = session.reader().read(path, session.stdin)?;
         let text = String::from_utf8(bytes)
             .map_err(|_| CliError::usage(format!("{origin} is not valid UTF-8")))?;
-        request::parse_options_file(&text, &origin.to_string())?
+        request::parse_options_file_with_mode(&text, &origin.to_string(), mode)?
     } else {
         if args.options.is_empty() {
             return Err(CliError::usage(
@@ -78,7 +88,7 @@ pub(crate) fn choice(
         }
         args.options
             .iter()
-            .map(|raw| request::parse_option(raw))
+            .map(|raw| request::parse_option_with_mode(raw, mode))
             .collect::<Result<Vec<_>>>()?
     };
     let question = Question::choice(instructions, options)
@@ -99,12 +109,17 @@ pub(crate) fn score(
     args: &ScoreArgs,
     transport: Option<&(dyn Transport + Send + Sync)>,
 ) -> Result<u8> {
-    let instructions = instructions(&args.instructions)?;
+    let mode = request::ContentMode::for_provider(session.context.endpoint.value.provider());
+    let instructions = mode.instructions(
+        Some(Value::String(args.instructions.clone())),
+        &args.id,
+        false,
+    )?;
     let levels = if let Some(path) = &args.levels_file {
         let (bytes, origin) = session.reader().read(path, session.stdin)?;
         let text = String::from_utf8(bytes)
             .map_err(|_| CliError::usage(format!("{origin} is not valid UTF-8")))?;
-        request::parse_levels_file(&text, &origin.to_string())?
+        request::parse_levels_file_with_mode(&text, &origin.to_string(), mode)?
     } else {
         if args.levels.is_empty() {
             return Err(CliError::usage(
@@ -116,13 +131,17 @@ pub(crate) fn score(
         args.levels
             .iter()
             .map(|text| {
-                Content::text(text.clone())
+                mode.content(Value::String(text.clone()))
                     .map_err(|_| CliError::usage("--level must not be empty"))
             })
             .collect::<Result<Vec<_>>>()?
     };
-    let question = Question::score(instructions, levels)
-        .map_err(|error| CliError::usage(error.to_string()))?;
+    let question = Question::score_with_max(
+        instructions,
+        levels,
+        crate::media::score_max(&session.context.endpoint.value),
+    )
+    .map_err(|error| CliError::usage(error.to_string()))?;
     single(
         session,
         &args.id,
@@ -131,10 +150,6 @@ pub(crate) fn score(
         &args.answer,
         transport,
     )
-}
-
-fn instructions(raw: &str) -> Result<Content> {
-    Content::text(raw.to_owned()).map_err(|_| CliError::usage("the instructions must not be empty"))
 }
 
 /// Shared path for the three single-question commands.
@@ -148,11 +163,21 @@ fn single(
 ) -> Result<u8> {
     let id = QuestionId::new(id.to_owned())
         .map_err(|error| CliError::usage(format!("--id: {error}")))?;
-    let state = session
-        .reader()
-        .state(&state_source(state_args), session.stdin)?;
+    let features =
+        crate::media::Features::for_cli(&session.context, crate::media::Features::default())?;
+    let source = state_source(state_args);
+    let state = if session.context.endpoint.value.provider() == "huggingface" {
+        session.reader().publisher_state(&source, session.stdin)?
+    } else if session.context.endpoint.value.is_cloudflare() {
+        session
+            .reader()
+            .state_with_images(&source, session.stdin, &features.images)?
+    } else {
+        session.reader().state(&source, session.stdin)?
+    };
     let model = session.context.model.value.clone();
     let request = request::build(state, model, vec![(id, question)])?;
+    let request = features.apply(request)?;
     execute(session, &request, answer_args, transport)
 }
 
@@ -200,6 +225,7 @@ pub(crate) fn execute(
         })
         .transpose()?;
 
+    crate::media::preflight(&session.context.endpoint.value, request)?;
     session.warn_about_endpoint();
 
     if session.context.dry_run {
@@ -222,11 +248,7 @@ pub(crate) fn execute(
 
     let (credential, source) = session.credential()?;
     session.note(&format!("credential source: {source}"));
-    session.note(&format!(
-        "POST {}/v1/systemone ({} question(s))",
-        session.context.endpoint.value,
-        request.question_count()
-    ));
+    describe_request(session, request)?;
 
     let (result, stats) = send(
         &session.context,
@@ -268,7 +290,7 @@ pub(crate) fn execute(
     if answer_args.value {
         write_scalar(session, &response)?;
     } else if session.json() {
-        let document = render_json::evaluation(
+        let mut document = render_json::evaluation(
             &response,
             request.model().as_str(),
             &session.context.endpoint.value.to_string(),
@@ -279,6 +301,7 @@ pub(crate) fn execute(
             stats.request_id.as_deref(),
             &response.missing(request.questions().iter().map(|(id, _)| id)),
         );
+        add_provider_metadata(&mut document, &session.context);
         render_json::write_document(session.out, &document)?;
     } else {
         // The renderer writes answers to stdout and hands back its commentary, which
@@ -313,6 +336,17 @@ pub(crate) fn execute(
             exit::GATE_UNEVALUABLE
         }
     })
+}
+
+fn describe_request(session: &mut Session<'_>, request: &EvaluationRequest) -> Result<()> {
+    session.note(&format!(
+        "POST {} ({} question(s))",
+        jev_client::build_evaluation_request(&session.context.endpoint.value, request)
+            .map_err(|error| CliError::usage(error.to_string()))?
+            .url,
+        request.question_count()
+    ));
+    Ok(())
 }
 
 /// Sends through the injected transport when there is one, and over HTTP otherwise.
@@ -371,7 +405,9 @@ fn dry_run(
     // credential is read to produce this document. `host` and `content-length` are
     // added by the HTTP layer below this crate and are not listed for the same reason.
     let mut headers: Vec<&str> = built.headers.keys().map(String::as_str).collect();
-    headers.push("authorization");
+    if crate::media::needs_authorization(&session.context.endpoint.value) {
+        headers.push("authorization");
+    }
     headers.sort_unstable();
 
     let document = json!({
@@ -492,4 +528,18 @@ pub(crate) fn gate_help() -> String {
          Example: --require 'urgent.noul > 0.9 and team.choice == billing'",
     );
     text
+}
+
+/// Records the selected protocol and nonsecret account without changing existing fields.
+pub(crate) fn add_provider_metadata(document: &mut Value, context: &crate::context::Context) {
+    if let Some(fields) = document.as_object_mut() {
+        fields.insert(
+            "provider".to_owned(),
+            serde_json::json!(context.provider.value.as_str()),
+        );
+        fields.insert(
+            "cloudflare_account_id".to_owned(),
+            serde_json::json!(context.endpoint.value.cloudflare_account_id()),
+        );
+    }
 }

@@ -46,6 +46,18 @@ missing. The installed Git hook runs this command before each push. Use
 `scripts/verify.sh --fast` while editing and
 `scripts/verify.sh` before reporting that a change is done.
 
+The push gate also requires the real Pillow image decoder and Transformers
+`Qwen3VLVideoProcessor`, including their processor dependencies. A package-name
+probe is insufficient: the Pillow import must work and the video processor must
+construct successfully without weights. Follow the pinned Python
+setup in [the Clef development guide](docs/development/clef-live-testing.md), then
+export `JEV_CLEF_PYTHON` as that environment's Python interpreter before running
+doctor and verification. Model weights and live inference are not required for
+these checks. If `JEV_CLEF_PYTHON` is unset, verification probes `python3` instead;
+default verification reports unavailable dependencies as `skip`, while `--push` fails.
+An explicitly selected interpreter with unavailable dependencies fails its real checks.
+Bootstrap does not install these Python packages; doctor checks processor construction.
+
 Read the summary. A `skip` line means a check did not run; it does not mean the check
 passed. Git hooks are local to each clone and can be bypassed. The person pushing must
 confirm that verification ran and passed. GitHub does not run CI for this repository.

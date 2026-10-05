@@ -2733,6 +2733,8 @@ fn the_evaluation_document_has_its_documented_fields() {
             "model",
             "model_requested",
             "endpoint",
+            "provider",
+            "cloudflare_account_id",
             "answers",
             "usage",
             "request_id",

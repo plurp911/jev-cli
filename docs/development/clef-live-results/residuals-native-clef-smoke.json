@@ -1,0 +1,132 @@
+{
+  "schema": "jev.clef.smoke/v1",
+  "provider": "llamacpp",
+  "model": "clef",
+  "synthetic": true,
+  "retries": 0,
+  "max_requests": 21,
+  "planned_requests": 21,
+  "reserved_requests": 21,
+  "passed": true,
+  "skipped": [
+    {
+      "case": "jpeg",
+      "reason": "optional Pillow encoder not requested or unavailable"
+    },
+    {
+      "case": "webp",
+      "reason": "optional Pillow encoder not requested or unavailable"
+    },
+    {
+      "case": "ordered-video",
+      "reason": "requires Python bridge"
+    },
+    {
+      "case": "images-and-image-eval",
+      "reason": "llama.cpp Clef images unsupported"
+    }
+  ],
+  "cases": [
+    {
+      "case": "noul",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "choice",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "score",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-text",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-object",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-array",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-structured-questions",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "map-text",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "eval-text",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "resume-first",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "resume-skip",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "mcp-noul",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-choice",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-score",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-ask",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-map",
+      "requests_reserved": 2,
+      "passed": true
+    }
+  ],
+  "quality_observations": [],
+  "quality_evaluation": {
+    "rows": 2,
+    "threshold_for_observation": 0.5,
+    "generalizable": false,
+    "observations": [
+      {
+        "expected": true,
+        "predicted": true,
+        "agreed": true
+      },
+      {
+        "expected": false,
+        "predicted": false,
+        "agreed": true
+      }
+    ]
+  },
+  "mcp": {
+    "clean_exit": true
+  }
+}

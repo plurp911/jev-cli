@@ -166,12 +166,8 @@ fn finish(raw: &str) -> Secret {
 
 fn status(session: &mut Session<'_>) -> Result<u8> {
     session.warn_about_endpoint();
-    let credentials = jev_config::Credentials::new(
-        session.environment,
-        session.store,
-        session.context.endpoint_is_official(),
-        session.context.endpoint.value.to_string(),
-    );
+    let credentials =
+        crate::commands::credentials(&session.context, session.environment, session.store);
     let availability = credentials.availability();
 
     if session.json() {

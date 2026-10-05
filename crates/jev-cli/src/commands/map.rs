@@ -34,7 +34,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use jev_client::{ClientError, Credential, Transport};
-use jev_core::{Content, EvaluationRequest, ModelId, Question, QuestionId, State, Usage};
+use jev_core::{EvaluationRequest, ModelId, Question, QuestionId, State, Usage};
 use serde_json::{Value, json};
 
 use crate::batch;
@@ -62,6 +62,7 @@ pub(crate) struct Record {
     index: usize,
     id: String,
     pub(crate) state: State,
+    pub(crate) features: crate::media::Features,
     /// A digest of the state, written into the row so `--resume` can tell whether the
     /// record at this position is still the same one. See [`state_digest`].
     digest: String,
@@ -94,9 +95,65 @@ impl Record {
             index,
             id,
             state,
+            features: crate::media::Features::default(),
             digest,
         }
     }
+
+    pub(crate) fn with_features(mut self, features: crate::media::Features) -> Self {
+        if !features.images.is_empty() || !features.videos.is_empty() {
+            self.digest = fnv1a(&format!(
+                "{}{}{}",
+                state_digest(&self.state),
+                digest::UNIT,
+                serde_json::to_string(&(&features.images, &features.videos)).unwrap_or_default()
+            ));
+        }
+        self.features = features;
+        self
+    }
+
+    pub(crate) fn request(
+        &self,
+        questions: &[(QuestionId, Question)],
+        model: &ModelId,
+    ) -> Result<EvaluationRequest> {
+        self.features.apply(request::build(
+            self.state.clone(),
+            model.clone(),
+            questions.to_vec(),
+        )?)
+    }
+}
+
+pub(crate) fn provider_fingerprint(
+    questions: &[(QuestionId, Question)],
+    model: &ModelId,
+    features: &crate::media::Features,
+    endpoint: &jev_client::Endpoint,
+) -> String {
+    let legacy = request_fingerprint(questions, model);
+    if endpoint.provider() == "typesafe"
+        && features.images.is_empty()
+        && features.options.is_none()
+        && features.keep_alive.is_none()
+        && features.videos.is_empty()
+        && features.max_length.is_none()
+        && features.max_state_tokens.is_none()
+        && features.media_kwargs.is_none()
+    {
+        return legacy;
+    }
+    fnv1a(&format!(
+        "{legacy}{}{endpoint}{}{}{}{}{}{}",
+        digest::UNIT,
+        digest::UNIT,
+        endpoint.provider(),
+        digest::UNIT,
+        endpoint.cloudflare_account_id().unwrap_or_default(),
+        digest::UNIT,
+        serde_json::to_string(features).unwrap_or_default()
+    ))
 }
 
 /// A digest of everything about the request that is the *same* for every record.
@@ -359,8 +416,12 @@ pub(crate) fn run(
     let selection = Selection::from_args(args)?;
     let classifier = parse_classifier(args)?;
 
-    let (questions, model) = load_questions(session, args)?;
-    let records = read_records(session, args)?;
+    let request::Template {
+        questions,
+        model,
+        features: template,
+    } = load_questions(session, args)?;
+    let records = prepare_records(session, args, &questions, &model, &template)?;
     if records.is_empty() {
         return Err(CliError::usage(
             "no input records were read; there is nothing to evaluate",
@@ -371,7 +432,12 @@ pub(crate) fn run(
     // Computed before the resume check, which needs it, and reused on every row. The
     // model here is the one the run will actually send, after `--model` and the request
     // file have been reconciled by `load_questions`.
-    let request_fingerprint = request_fingerprint(&questions, &model);
+    let request_fingerprint = provider_fingerprint(
+        &questions,
+        &model,
+        &template,
+        &session.context.endpoint.value,
+    );
 
     let mut done = if args.resume {
         // Both files, because a row this run diverted for review is just as done as one
@@ -491,16 +557,42 @@ pub(crate) fn run(
     )
 }
 
-/// Loads the question set once. It is the same for every record.
-fn load_questions(
+fn prepare_records(
     session: &mut Session<'_>,
     args: &MapArgs,
-) -> Result<(Vec<(QuestionId, Question)>, ModelId)> {
+    questions: &[(QuestionId, Question)],
+    model: &ModelId,
+    template: &crate::media::Features,
+) -> Result<Vec<Record>> {
+    let records = read_records(session, args, template)?;
+    records
+        .into_iter()
+        .map(|record| {
+            let features = template.merge(record.features.clone())?;
+            let mut record = record;
+            record.features = features;
+            crate::media::preflight(
+                &session.context.endpoint.value,
+                &record.request(questions, model)?,
+            )?;
+            Ok(record)
+        })
+        .collect::<Result<Vec<_>>>()
+}
+
+/// Loads the question set once. It is the same for every record.
+fn load_questions(session: &mut Session<'_>, args: &MapArgs) -> Result<request::Template> {
+    let cli_features =
+        crate::media::Features::for_cli(&session.context, crate::media::Features::default())?;
     let (bytes, origin) = session.reader().read(&args.request, session.stdin)?;
     let text = String::from_utf8(bytes)
         .map_err(|_| CliError::usage(format!("{origin} is not valid UTF-8")))?;
-    let document = request::parse_document(&text, &origin.to_string())?;
-    if document.state.is_some() {
+    let document = request::parse_template_document_for_endpoint(
+        &text,
+        &origin.to_string(),
+        &session.context.endpoint.value,
+    )?;
+    if document.supplied_state {
         session.warn(
             "note: the request document's `state` is ignored by `jev map`; each input \
              record supplies the state",
@@ -523,11 +615,21 @@ fn load_questions(
             .model
             .unwrap_or_else(|| session.context.model.value.clone())
     };
-    Ok((document.questions, model))
+    let features = cli_features.merge_cli(&session.context, document.features)?;
+    Ok(request::Template {
+        questions: document.questions,
+        model,
+        features,
+    })
 }
 
 /// Reads and validates every input record up front.
-fn read_records(session: &mut Session<'_>, args: &MapArgs) -> Result<Vec<Record>> {
+fn read_records(
+    session: &mut Session<'_>,
+    args: &MapArgs,
+    template: &crate::media::Features,
+) -> Result<Vec<Record>> {
+    validate_record_fields(args)?;
     let path = args
         .input
         .clone()
@@ -572,38 +674,108 @@ fn read_records(session: &mut Session<'_>, args: &MapArgs) -> Result<Vec<Record>
         let index = records.len();
         let where_ = format!("{origin} line {}", line_number + 1);
 
-        let (state, id) =
-            if args.lines {
-                let state = State::text(line.to_owned())
-                    .map_err(|_| CliError::usage(format!("{where_} is empty")))?;
-                (state, index.to_string())
-            } else {
-                let value: Value = serde_json::from_str(line).map_err(|error| {
-                    CliError::usage(format!(
-                        "{where_} is not valid JSON: {error}\n\n\
+        let mut images = Vec::new();
+        let mut videos = Vec::new();
+        let (state, id) = if args.lines {
+            let state = State::text(line.to_owned())
+                .map_err(|_| CliError::usage(format!("{where_} is empty")))?;
+            (state, index.to_string())
+        } else {
+            let value = crate::ordered::parse_unambiguous_value(line).map_err(|error| {
+                CliError::usage(format!(
+                    "{where_} is not valid JSON: {error}\n\n\
                      Use --lines to treat each line as plain text instead."
-                    ))
-                })?;
-                let id = match &args.id_field {
-                    Some(field) => value.get(field).map(render_id).ok_or_else(|| {
-                        CliError::usage(format!("{where_} has no `{field}` field"))
-                    })?,
-                    None => index.to_string(),
-                };
-                let state_value = match &args.state_field {
-                    Some(field) => value.get(field).cloned().ok_or_else(|| {
-                        CliError::usage(format!("{where_} has no `{field}` field"))
-                    })?,
-                    None => value,
-                };
-                let content = Content::try_from(state_value)
-                    .map_err(|error| CliError::usage(format!("{where_}: {error}")))?;
-                (State::new(content), id)
+                ))
+            })?;
+            let id = match &args.id_field {
+                Some(field) => value
+                    .get(field)
+                    .map(render_id)
+                    .ok_or_else(|| CliError::usage(format!("{where_} has no `{field}` field")))?,
+                None => index.to_string(),
             };
+            if let Some(field) = &args.images_field {
+                if value.get(field).is_none() {
+                    return Err(CliError::usage(format!("{where_} has no `{field}` field")));
+                }
+                images = crate::media::parse_image_field(
+                    line,
+                    field,
+                    &where_,
+                    session.context.endpoint.value.provider() == "ollama",
+                )?;
+            }
+            if let Some(field) = &args.videos_field {
+                if value.get(field).is_none() {
+                    return Err(CliError::usage(format!("{where_} has no `{field}` field")));
+                }
+                videos = crate::media::parse_video_field(line, field, &where_)?;
+            }
+            let state_value = record_state(value, args, &where_)?;
+            let state_images = if session.context.endpoint.value.is_cloudflare() {
+                if images.is_empty() {
+                    &template.images
+                } else {
+                    &images
+                }
+            } else {
+                &[][..]
+            };
+            let state =
+                request::ContentMode::for_provider(session.context.endpoint.value.provider())
+                    .state(state_value, &where_, state_images)?;
+            (state, id)
+        };
 
-        records.push(Record::new(index, id, state));
+        records.push(
+            Record::new(index, id, state).with_features(crate::media::Features {
+                images,
+                videos,
+                ..crate::media::Features::default()
+            }),
+        );
     }
     Ok(records)
+}
+
+fn record_state(mut value: Value, args: &MapArgs, origin: &str) -> Result<Value> {
+    if let Some(field) = &args.state_field {
+        value
+            .get(field)
+            .cloned()
+            .ok_or_else(|| CliError::usage(format!("{origin} has no `{field}` field")))
+    } else {
+        // Explicit media selections are transported separately; keeping their
+        // base64 in state also consumes the text budget.
+        if let Some(object) = value.as_object_mut() {
+            for field in [&args.images_field, &args.videos_field]
+                .into_iter()
+                .flatten()
+            {
+                object.remove(field);
+            }
+        }
+        Ok(value)
+    }
+}
+
+fn validate_record_fields(args: &MapArgs) -> Result<()> {
+    for (flag, media_field) in [
+        ("--images-field", &args.images_field),
+        ("--videos-field", &args.videos_field),
+    ] {
+        if media_field.is_some() && args.state_field == *media_field {
+            return Err(CliError::usage(format!(
+                "--state-field and {flag} must select different fields"
+            )));
+        }
+    }
+    if args.images_field.is_some() && args.images_field == args.videos_field {
+        return Err(CliError::usage(
+            "--images-field and --videos-field must select different fields",
+        ));
+    }
+    Ok(())
 }
 
 pub(crate) fn render_id(value: &Value) -> String {
@@ -780,7 +952,8 @@ fn check_resume_matches(
         {
             return Err(CliError::usage(format!(
                 "the output file was produced from a different request: record {index} \
-                 was answered with another question set or model.\n\n\
+                 was answered with another question set, model, provider, account, \
+                 media, or request option.\n\n\
                  Resume only with the request the file was written from, or drop \
                  --resume to evaluate every record again."
             )));
@@ -1016,22 +1189,21 @@ fn evaluate_one(
     classifier: Option<&Classifier>,
     request_fingerprint: &str,
 ) -> Outcome {
-    let request =
-        match EvaluationRequest::new(record.state.clone(), model.clone(), questions.to_vec()) {
-            Ok(request) => request,
-            // No request was made, so there is no identifier to report.
-            Err(error) => {
-                return failure(
-                    record,
-                    &error.to_string(),
-                    "invalid-request",
-                    0,
-                    None,
-                    classifier,
-                    request_fingerprint,
-                );
-            }
-        };
+    let request = match record.request(questions, model) {
+        Ok(request) => request,
+        // No request was made, so there is no identifier to report.
+        Err(error) => {
+            return failure(
+                record,
+                &error.to_string(),
+                "invalid-request",
+                0,
+                None,
+                classifier,
+                request_fingerprint,
+            );
+        }
+    };
 
     let (result, stats) = client.evaluate(&request, credential);
     match result {
@@ -1536,9 +1708,7 @@ fn dry_run(
     let mut url = None;
     let mut headers: Vec<String> = Vec::new();
     for record in records.iter().take(SAMPLE_LIMIT) {
-        let request =
-            EvaluationRequest::new(record.state.clone(), model.clone(), questions.to_vec())
-                .map_err(|error| CliError::usage(error.to_string()))?;
+        let request = record.request(questions, model)?;
         // The same builder a real row uses, so a preview cannot describe a request the
         // batch would not send. See `evaluate::dry_run` for the reasoning.
         let built = jev_client::build_evaluation_request(&session.context.endpoint.value, &request)
@@ -1548,7 +1718,9 @@ fn dry_run(
         if url.is_none() {
             url = Some(built.url.clone());
             headers = built.headers.keys().cloned().collect();
-            headers.push("authorization".to_owned());
+            if crate::media::needs_authorization(&session.context.endpoint.value) {
+                headers.push("authorization".to_owned());
+            }
             headers.sort_unstable();
         }
         bodies.push(json!({
@@ -1559,21 +1731,29 @@ fn dry_run(
         }));
     }
     let credential = session.credential_availability();
-    let url = url.unwrap_or_else(|| {
-        session
-            .context
-            .endpoint
-            .value
-            .url_for(jev_client::SYSTEM_ONE_PATH)
-    });
+    let url = if let Some(url) = url {
+        url
+    } else {
+        // A fully resumed batch has no samples. Resolve the selected model's
+        // route with the same adapter, without transmitting the placeholder.
+        let state =
+            State::text("dry run").map_err(|error| CliError::internal(error.to_string()))?;
+        let request = request::build(state, model.clone(), questions.to_vec())?;
+        let built = jev_client::build_evaluation_request(&session.context.endpoint.value, &request)
+            .map_err(|error| CliError::usage(error.to_string()))?;
+        headers = built.headers.keys().cloned().collect();
+        if crate::media::needs_authorization(&session.context.endpoint.value) {
+            headers.push("authorization".to_owned());
+        }
+        headers.sort_unstable();
+        built.url
+    };
     let record_count = records.len();
     render_json::write_document(
         session.out,
         &json!({
             "schema": crate::render::DRY_RUN_SCHEMA,
             "method": "POST",
-            // With no records there is no request to build, so the URL is the one the
-            // endpoint resolves to rather than one taken from a sample that is absent.
             "url": url,
             "headers": headers,
             "records": record_count,
@@ -1593,6 +1773,7 @@ fn dry_run(
 
 #[cfg(test)]
 mod tests {
+    use jev_core::Content;
     use std::io::Write as _;
 
     use super::*;
@@ -1619,6 +1800,7 @@ mod tests {
             index,
             id: id.to_owned(),
             state,
+            features: crate::media::Features::default(),
             digest,
         }
     }
@@ -2054,5 +2236,21 @@ mod tests {
         assert_eq!(error.code(), exit::USAGE);
         assert!(error.to_string().contains("between 1 and 64"), "{error}");
         assert!(error.to_string().contains("--concurrency"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod provider_fingerprint_regressions {
+    use super::*;
+    #[test]
+    fn request_fingerprints_distinguish_cloudflare_accounts() {
+        let features = crate::media::Features::default();
+        let model = ModelId::new("clef").unwrap();
+        let one = jev_client::Endpoint::cloudflare("0123456789abcdef0123456789abcdef").unwrap();
+        let two = jev_client::Endpoint::cloudflare("1123456789abcdef0123456789abcdef").unwrap();
+        assert_ne!(
+            provider_fingerprint(&[], &model, &features, &one),
+            provider_fingerprint(&[], &model, &features, &two)
+        );
     }
 }

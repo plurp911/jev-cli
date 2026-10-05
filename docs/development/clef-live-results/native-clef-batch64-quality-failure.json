@@ -1,0 +1,13 @@
+{
+  "schema": "jev.clef.synthetic-quality/v1",
+  "fixture_version": 1,
+  "provider": "llamacpp",
+  "model": "clef",
+  "synthetic": true,
+  "input_kind": "text",
+  "max_requests": 32,
+  "reserved_requests": 32,
+  "retries": 0,
+  "passed": false,
+  "failure": "Quality integration failed; no retry or fallback was sent"
+}

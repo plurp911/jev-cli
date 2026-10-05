@@ -1,0 +1,22 @@
+{
+  "synthetic": true,
+  "requests": 2,
+  "results": [
+    {
+      "model": "clef",
+      "exit_code": 2,
+      "http_422": true,
+      "code_5012": true,
+      "fallback_requested": false,
+      "stdout_empty": true
+    },
+    {
+      "model": "clef-flash",
+      "exit_code": 2,
+      "http_422": true,
+      "code_5012": true,
+      "fallback_requested": false,
+      "stdout_empty": true
+    }
+  ]
+}

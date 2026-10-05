@@ -30,6 +30,73 @@ setup = load("dev-setup")
 readiness = load("check-agent-readiness")
 
 
+class MediaVerification(unittest.TestCase):
+    def helper(self,source,name):
+        start=source.index(name+'() {')
+        end=source.index('\n}\n',start)+3
+        return source[start:end]
+
+    def test_missing_and_partial_processor_imports_skip_normally_but_fail_push(self):
+        source=(ROOT/'scripts/verify.sh').read_text()
+        helpers=self.helper(source,'run')+'\n'+self.helper(source,'optional_module')
+        for state in ['missing','partial']:
+            for mode in ['full','push']:
+                with self.subTest(state=state,mode=mode),tempfile.TemporaryDirectory() as name:
+                    python=Path(name)/'python3'
+                    # A partial install would pass find_spec('transformers') but
+                    # fails the actual processor import that the real gate uses.
+                    python.write_text('#!/bin/sh\n'+('exit 1\n' if state=='missing' else
+                        'case "$2" in *"from transformers import Qwen3VLVideoProcessor"*) exit 1;; *) exit 0;; esac\n'))
+                    python.chmod(0o700)
+                    script='set -Eeuo pipefail\nMODE='+mode+'\nFAILED=();SKIPPED=();PASSED=();BOLD="";OFF="";RED=""\n'+helpers+"\noptional_module processor transformers install-hint true\nprintf '%s,%s,%s\\n' \"${#FAILED[@]}\" \"${#SKIPPED[@]}\" \"${#PASSED[@]}\"\n"
+                    result=subprocess.run([shutil.which('bash'),'-c',script],
+                        env={'PATH':name},capture_output=True,text=True,check=False)
+                    self.assertEqual(result.returncode,0,result.stderr)
+                    self.assertEqual(result.stdout.strip(),'1,0,0' if mode=='push' else '0,1,0')
+
+    def test_explicit_media_interpreter_failures_are_not_optionalized(self):
+        source=(ROOT/'scripts/verify.sh').read_text()
+        start=source.index('  if [ -n "${JEV_CLEF_PYTHON:-}" ]; then')
+        block=source[start:source.index('\n  fi',start)+5]
+        with tempfile.TemporaryDirectory() as name:
+            log=Path(name)/'args';interpreter=Path(name)/'python'
+            interpreter.write_text("#!/bin/sh\nprintf '%s\\n' \"$*\" >> "+shlex.quote(str(log))+'\nexit 1\n')
+            interpreter.chmod(0o700)
+            script='set -Eeuo pipefail\nMODE=push\nFAILED=();SKIPPED=();PASSED=();BOLD="";OFF="";RED=""\n'+self.helper(source,'run')+'\n'+block+"\nprintf '%s,%s,%s\\n' \"${#FAILED[@]}\" \"${#SKIPPED[@]}\" \"${#PASSED[@]}\"\n"
+            result=subprocess.run([shutil.which('bash'),'-c',script],
+                env={'JEV_CLEF_PYTHON':str(interpreter),'PATH':os.environ.get('PATH','')},capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertEqual(result.stdout.splitlines()[-1],'2,0,0')
+            calls=log.read_text().splitlines()
+            self.assertEqual(calls,['scripts/test-clef-server.py --real-pillow',
+                                    'scripts/test-clef-server.py --real-processor --real-pillow'])
+
+    def test_lazy_missing_backend_class_is_not_an_available_processor(self):
+        source = (ROOT / 'scripts/verify.sh').read_text()
+        helpers = self.helper(source, 'run') + '\n' + self.helper(source, 'optional_module')
+        with tempfile.TemporaryDirectory() as name:
+            directory = Path(name)
+            (directory / 'transformers.py').write_text(
+                'class Qwen3VLVideoProcessor:\n'
+                '    def __init__(self):\n'
+                '        raise ImportError("synthetic missing backend")\n')
+            (directory / 'PIL').mkdir()
+            (directory / 'PIL/__init__.py').write_text('')
+            (directory / 'PIL/Image.py').write_text('')
+            python = directory / 'python3'
+            python.write_text('#!/bin/sh\nexec ' + shlex.quote(sys.executable) + ' "$@"\n')
+            python.chmod(0o700)
+            for mode in ['full', 'push']:
+                script = ('set -Eeuo pipefail\nMODE=' + mode +
+                          '\nFAILED=();SKIPPED=();PASSED=();BOLD="";OFF="";RED=""\n' + helpers +
+                          "\noptional_module processor transformers install-hint true\n" +
+                          "printf '%s,%s,%s\\n' \"${#FAILED[@]}\" \"${#SKIPPED[@]}\" \"${#PASSED[@]}\"\n")
+                result = subprocess.run([shutil.which('bash'), '-c', script],
+                    env={'PATH': name, 'PYTHONPATH': name}, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(result.stdout.strip(), '1,0,0' if mode == 'push' else '0,1,0')
+
+
 class Diagnosis(unittest.TestCase):
     def metadata(self, *args):
         if args[0] == "dist":
@@ -43,6 +110,34 @@ class Diagnosis(unittest.TestCase):
         else:
             output = ".githooks"
         return subprocess.CompletedProcess(args, 0, output, "")
+
+    def test_clef_media_diagnosis_uses_selected_interpreter_and_actual_imports(self):
+        with patch.dict(os.environ,{'JEV_CLEF_PYTHON':'/explicit/python'},clear=True), \
+             patch.object(setup.shutil,'which',return_value='/tool'), \
+             patch.object(setup,'command',side_effect=self.metadata) as probe:
+            checks=setup.diagnose()
+        rows=[row for row in checks if row['name'].startswith('Clef media ')]
+        self.assertEqual(len(rows),2)
+        self.assertTrue(all(row['required'] for row in rows))
+        calls=[call.args for call in probe.call_args_list if call.args[0]=='/explicit/python']
+        self.assertEqual(len(calls),2)
+        self.assertTrue(any('from transformers import Qwen3VLVideoProcessor' in call[3] for call in calls))
+        self.assertTrue(any('from PIL import Image' in call[3] for call in calls))
+        self.assertTrue(any('Qwen3VLVideoProcessor()' in call[3] for call in calls))
+
+    def test_partial_clef_media_install_is_required_and_actionable(self):
+        def metadata(*args):
+            if len(args)>1 and args[1]=='-B':
+                return subprocess.CompletedProcess(args,1,'','synthetic missing processor import')
+            return self.metadata(*args)
+        with patch.dict(os.environ,{'JEV_CLEF_PYTHON':'/explicit/python'},clear=True), \
+             patch.object(setup.shutil,'which',return_value='/tool'), \
+             patch.object(setup,'command',side_effect=metadata):
+            checks=setup.diagnose()
+        rows=[row for row in checks if row['name'].startswith('Clef media ')]
+        self.assertEqual(len(rows),2)
+        self.assertTrue(all(row['status']=='missing' and row['required'] for row in rows))
+        self.assertTrue(all('JEV_CLEF_PYTHON' in row['remedy'] and 'clef-live-testing.md' in row['remedy'] for row in rows))
 
     def test_installed_nightly_alias_is_accepted(self):
         with patch.object(setup.shutil, "which", return_value="/tool"), patch.object(setup, "command", side_effect=self.metadata):
@@ -227,6 +322,79 @@ class HookEnvironment(unittest.TestCase):
             self.assertEqual("", git("status", "--porcelain"))
 
 
+class ReleaseManifestPaths(unittest.TestCase):
+    def rewrite(self, values, *, link_escape=False, origin="alias"):
+        source = (ROOT / "scripts/release-dry-run.sh").read_text()
+        marker = 'python3 - "$MANIFEST" "$SOURCE_TREE/target" "$CARGO_TARGET_DIR" <<\'PYTHON\'\n'
+        program = source.split(marker, 1)[1].split('\nPYTHON\n', 1)[0]
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            destination = directory / "host-target"
+            destination.mkdir()
+            tree = directory / "source"
+            tree.mkdir()
+            alias = tree / "target"
+            alias.symlink_to(destination, target_is_directory=True)
+            if link_escape:
+                outside = directory / "outside"
+                outside.mkdir()
+                (destination / "escaped").symlink_to(outside, target_is_directory=True)
+            manifest = directory / "manifest.json"
+            bases = {"alias": alias, "resolved": destination, "relative": Path("target"),
+                     "outside": directory / "outside"}
+            paths = [str(bases[origin] / value) for value in values]
+            original = {"artifacts": {"archive": {"path": paths[0]}}, "upload_files": paths}
+            manifest.write_text(json.dumps(original))
+            result = subprocess.run([sys.executable, "-B", "-", str(manifest), str(alias), str(destination)],
+                                    input=program, text=True, capture_output=True, check=False, cwd=tree)
+            return result, json.loads(manifest.read_text()), original, str(destination)
+
+    def test_owned_archive_and_upload_paths_remain_usable_after_capture_cleanup(self):
+        result, actual, _, destination = self.rewrite(["dist/archive.tar.xz", "dist/checksum"])
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(actual["artifacts"]["archive"]["path"], str(Path(destination) / "dist/archive.tar.xz"))
+        self.assertEqual(actual["upload_files"], [str(Path(destination) / "dist" / name)
+                                                 for name in ["archive.tar.xz", "checksum"]])
+
+    def test_parent_components_fail_before_manifest_is_replaced(self):
+        for path in ["../source.rs", "foo/../../outside", "dist/../archive.tar.xz"]:
+            with self.subTest(path=path):
+                result, actual, original, _ = self.rewrite([path])
+                self.assertNotEqual(result.returncode, 0)
+                self.assertEqual(actual, original)
+
+    def test_symlink_escape_fails_before_manifest_is_replaced(self):
+        result, actual, original, _ = self.rewrite(["escaped/archive.tar.xz"], link_escape=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(actual, original)
+
+    def test_absolute_outside_paths_fail_before_manifest_is_replaced(self):
+        result, actual, original, _ = self.rewrite(["archive.tar.xz"], origin="outside")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(actual, original)
+
+    def test_resolved_target_symlink_escape_is_refused(self):
+        result, actual, original, _ = self.rewrite(["escaped/archive.tar.xz"],
+                                                  origin="resolved", link_escape=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(actual, original)
+
+    def test_relative_parent_escape_is_refused(self):
+        result, actual, original, _ = self.rewrite(["../source.rs"], origin="relative")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(actual, original)
+
+    def test_relative_owned_paths_are_canonicalized(self):
+        result, actual, _, destination = self.rewrite(["dist/archive.tar.xz"], origin="relative")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(actual["upload_files"], [str(Path(destination) / "dist/archive.tar.xz")])
+
+    def test_resolved_owned_paths_remain_usable(self):
+        result, actual, _, destination = self.rewrite(["dist/archive.tar.xz"], origin="resolved")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(actual["upload_files"], [str(Path(destination) / "dist/archive.tar.xz")])
+
+
 class ReleaseCredentialProbe(unittest.TestCase):
     def probe(self, diagnostic):
         # Exercise the actual smoke block, replacing only the unpacked executable.
@@ -280,6 +448,136 @@ class MapDrift(unittest.TestCase):
 
     def test_current_map_is_clean(self):
         self.assertEqual([], readiness.check(self.root))
+
+    def test_codex_read_only_tools_cannot_lose_their_offline_gate(self):
+        path = self.root / "scripts/verify.sh"
+        original = path.read_text()
+        command = "python3 scripts/test-skill-eval-tools.py"
+        self.assertIn(command, original)
+        path.write_text("\n".join("# " + line if command in line else line
+                                  for line in original.splitlines()) + "\n")
+        self.assertTrue(any("no longer runs test-skill-eval-tools.py" in error
+                            for error in readiness.check(self.root)))
+
+    def test_clef_proof_scripts_cannot_be_removed_from_the_gate(self):
+        path = self.root / "scripts/verify.sh"
+        original = path.read_text()
+        for script in ["test-source-snapshot.py", "test-clef-live.py", "test-clef-quality.py",
+                       "test-clef-python-profile.py",
+                       "test-clef-model-manifest.py", "test-clef-server.py"]:
+            with self.subTest(script=script):
+                path.write_text("\n".join("# " + line if "scripts/" + script in line else line
+                                          for line in original.splitlines()) + "\n")
+                self.assertTrue(any("no longer runs " + script in error for error in readiness.check(self.root)))
+
+    def test_real_media_checks_require_their_flags_and_both_processor_interpreters(self):
+        path = self.root / "scripts/verify.sh"
+        original = path.read_text()
+        for before, after in [("--real-processor", ""), ("--real-pillow", ""),
+                              ('"$JEV_CLEF_PYTHON" scripts/test-clef-server.py',
+                               'python3 scripts/test-clef-server.py'),
+                              ('python3 scripts/test-clef-server.py --real-processor --real-pillow',
+                               'python3 scripts/test-clef-server.py --real-pillow')]:
+            with self.subTest(mutation=before):
+                path.write_text(original.replace(before, after))
+                self.assertTrue(any("real media gate" in error for error in readiness.check(self.root)))
+
+    def test_optional_media_checks_do_not_replace_the_unconditional_bridge_suite(self):
+        path = self.root / "scripts/verify.sh"
+        lines = path.read_text().replace("\\\n", " ").splitlines()
+        removed = [line for line in lines
+                   if line.strip().startswith('run "local Clef bridge tests"')]
+        self.assertEqual(1, len(removed))
+        path.write_text("\n".join(line for line in lines if line not in removed) + "\n")
+        self.assertTrue(any("no longer runs test-clef-server.py" in error
+                            for error in readiness.check(self.root)))
+
+    def test_real_processor_checks_do_not_replace_the_pillow_only_decoder_suite(self):
+        path = self.root / "scripts/verify.sh"
+        lines = path.read_text().replace("\\\n", " ").splitlines()
+        removed = [line for line in lines
+                   if line.strip().endswith("python3 scripts/test-clef-server.py --real-pillow")]
+        self.assertEqual(1, len(removed))
+        path.write_text("\n".join(line for line in lines if line not in removed) + "\n")
+        self.assertTrue(any("real media gate python3 scripts/test-clef-server.py --real-pillow" in error
+                            for error in readiness.check(self.root)))
+
+    def test_echoing_a_script_command_does_not_execute_the_gate(self):
+        path = self.root / "scripts/verify.sh"
+        original = path.read_text()
+        for script in ["test-clef-live.py", "test-clef-server.py"]:
+            with self.subTest(script=script):
+                path.write_text(original.replace("python3 scripts/" + script,
+                                                 "echo python3 scripts/" + script))
+                self.assertTrue(any("no longer runs " + script in error for error in readiness.check(self.root)))
+
+    def test_codex_eval_harness_cannot_lose_its_offline_gate(self):
+        path = self.root / "scripts/verify.sh"
+        original = path.read_text()
+        path.write_text("\n".join("# " + line if "scripts/test-skill-eval-codex.py" in line else line
+                                  for line in original.splitlines()) + "\n")
+        self.assertTrue(any("no longer runs test-skill-eval-codex.py" in error
+                            for error in readiness.check(self.root)))
+
+    def test_codex_eval_dependencies_remain_required_without_document_markers(self):
+        document = self.root / readiness.MAP
+        document.write_text(re.sub(r"<!-- readiness: scripts/(?:skill-eval-codex|test-skill-eval-codex)\.py -->\n?",
+                                  "", document.read_text()))
+        for dependency in ["scripts/skill-eval-codex.py", "scripts/test-skill-eval-codex.py"]:
+            with self.subTest(dependency=dependency):
+                path = self.root / dependency
+                contents = path.read_bytes() if path.is_file() else (ROOT / dependency).read_bytes()
+                path.unlink(missing_ok=True)
+                self.assertTrue(any(dependency in error for error in readiness.check(self.root)))
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(contents)
+
+    def test_clef_dependencies_remain_required_without_document_markers(self):
+        document = self.root / readiness.MAP
+        # Deleting a navigation marker must not also disable the dependency check.
+        document.write_text(re.sub(r"<!-- readiness: scripts/(?:source-snapshot|test-source-snapshot|clef[^ >]*|test-clef[^ >]*)[^>]* -->\n?",
+                                  "", document.read_text()))
+        for dependency in ["scripts/source-snapshot.py", "scripts/test-source-snapshot.py",
+                           "scripts/clef-live.py", "scripts/test-clef-live.py",
+                           "scripts/clef-quality.py", "scripts/test-clef-quality.py",
+                           "scripts/clef-python-profile.py", "scripts/test-clef-python-profile.py",
+                           "scripts/clef-model-manifest.py", "scripts/test-clef-model-manifest.py",
+                           "scripts/clef-server.py", "scripts/test-clef-server.py",
+                           "scripts/clef-local/clef-manifest.json", "scripts/clef-local/clef-flash-manifest.json",
+                           "scripts/clef-local/requirements.txt", "scripts/clef-local/requirements-linux-cpu.lock",
+                           "scripts/clef-local/requirements-linux-cpu.hashes.lock",
+                           "scripts/clef-local/requirements-linux-cpu.download.lock"]:
+            with self.subTest(dependency=dependency):
+                path = self.root / dependency
+                contents = path.read_bytes() if path.is_file() else (ROOT / dependency).read_bytes()
+                path.unlink(missing_ok=True)
+                self.assertTrue(any(dependency in error for error in readiness.check(self.root)))
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(contents)
+
+    def test_canonical_skills_cannot_resolve_outside_the_checkout(self):
+        path = self.root / ".claude/skills/api-compat/SKILL.md"
+        contents = path.read_bytes()
+        path.unlink()
+        with tempfile.TemporaryDirectory(prefix="jev-external-skill-") as work:
+            external = Path(work) / "SKILL.md"
+            external.write_bytes(contents)
+            path.symlink_to(external)
+            self.assertTrue(any("external canonical development skill api-compat" in error
+                                for error in readiness.check(self.root)))
+
+    def test_generated_skill_drift_is_reported_without_mutating_the_copy(self):
+        path = self.root / ".agents/skills/api-compat/SKILL.md"
+        path.parent.mkdir(parents=True)
+        canonical = (self.root / ".claude/skills/api-compat/SKILL.md").read_text()
+        stale = canonical.replace(".claude/", ".Codex/")
+        path.write_text(stale)
+        errors = readiness.check_adapters(self.root)
+        self.assertTrue(any(".agents/skills/api-compat/SKILL.md" in error and "canonical" in error for error in errors))
+        self.assertEqual(stale, path.read_text())
+        self.assertEqual([], readiness.check(self.root))
+        path.write_text(canonical)
+        self.assertEqual([], readiness.check_adapters(self.root))
 
     def test_new_command_requires_a_proof_row(self):
         path = self.root / "crates/jev-cli/src/cli.rs"

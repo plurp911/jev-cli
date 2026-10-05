@@ -6,10 +6,21 @@
 //! tokens on a request the API is going to reject.
 #![no_main]
 
-use jev_core::{Question, limits};
+use jev_core::{EmbeddedImage, Question, limits};
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
+    // Raw image seeds let mutations reach headers directly, without first
+    // rediscovering valid JSON and base64. Accepted headers must remain bounded
+    // and survive the same canonical encoding used by request documents.
+    if data.len() <= jev_core::MAX_IMAGE_BYTES {
+        if let Ok(image) = EmbeddedImage::from_bytes(data.to_vec()) {
+            assert!(image.width() > 0 && image.height() > 0);
+            assert!(image.pixel_len() <= jev_core::MAX_IMAGE_PIXELS);
+            assert!(image.byte_len() <= jev_core::MAX_IMAGE_BYTES);
+            assert_eq!(EmbeddedImage::from_raw_base64(&image.base64()), Ok(image));
+        }
+    }
     let Ok(text) = std::str::from_utf8(data) else {
         return;
     };
@@ -19,7 +30,10 @@ fuzz_target!(|data: &[u8]| {
 
     // Anything that parsed must satisfy the limits the documentation states, so a
     // fuzzed input cannot become a request the API would reject.
-    assert!(!document.questions.is_empty(), "accepted an empty question set");
+    assert!(
+        !document.questions.is_empty(),
+        "accepted an empty question set"
+    );
     for (_, question) in &document.questions {
         match question {
             Question::Choice { options, .. } => {

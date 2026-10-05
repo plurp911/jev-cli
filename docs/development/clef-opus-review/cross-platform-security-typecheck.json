@@ -1,0 +1,75 @@
+{
+  "production_source": "crates/jev-cli/src/media.rs",
+  "source_sha256": "608dcbecc99f8ca481006129ea34747264cfd34cc0ce05d8fba1d8306369fcd9",
+  "exact_extracted_helpers_sha256": "f6c8c3c6907e87190e54f8b8273a9224bd1aa8b37751d8e506f6f1aff30ba669",
+  "boundary_start": "// Kept pure so the macOS-specific",
+  "boundary_end": "#[cfg(not(any(unix, windows)))]",
+  "harness": "target/clef-local/cross-platform-media-check/src/lib.rs",
+  "scope": "Exact actual std macOS alias helpers and actual rustix Unix / std Windows open_image functions; no stub filesystem APIs. Entire CLI and native execution are NOT proved.",
+  "schema": "jev.clef.platform-media-typecheck/v1",
+  "status": "pass",
+  "dependency_closure_matches_workspace_lockfile": true,
+  "dependencies": [
+    {
+      "name": "bitflags",
+      "version": "2.13.2",
+      "checksum": "3ded4057c258ba199e2d26386d3af3780957ecaee6c4ef4041c6b4b8b97c0b06"
+    },
+    {
+      "name": "errno",
+      "version": "0.3.14",
+      "checksum": "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
+    },
+    {
+      "name": "libc",
+      "version": "0.2.189",
+      "checksum": "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+    },
+    {
+      "name": "linux-raw-sys",
+      "version": "0.12.1",
+      "checksum": "32a66949e030da00e8c7d4434b251670a91556f4144941d37452769c25d58a53"
+    },
+    {
+      "name": "rustix",
+      "version": "1.1.5",
+      "checksum": "891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d"
+    },
+    {
+      "name": "windows-link",
+      "version": "0.2.1",
+      "checksum": "f0805222e57f7521d6a62e36fa9163bc891acd422f971defe97d64e70d0a4fe5"
+    },
+    {
+      "name": "windows-sys",
+      "version": "0.61.2",
+      "checksum": "ae137229bcbd6cdf0f7b80a31df61766145077ddf49416a728b02cb3921ff3fc"
+    }
+  ],
+  "targets": [
+    {
+      "target": "aarch64-apple-darwin",
+      "exit": 0,
+      "log": {
+        "path": "target/clef-local/opus55-code-review/outputs/macos-media-typecheck.txt",
+        "local_only": true
+      }
+    },
+    {
+      "target": "x86_64-pc-windows-msvc",
+      "exit": 0,
+      "log": {
+        "path": "target/clef-local/opus55-code-review/outputs/windows-media-typecheck.txt",
+        "local_only": true
+      }
+    }
+  ],
+  "command": "cargo check --offline --manifest-path target/clef-local/cross-platform-media-check/Cargo.toml --target TARGET",
+  "native_execution": false,
+  "entire_cli_typechecked": false,
+  "toolchain": "Rust 1.94.1; corresponding installed std targets",
+  "limitations": [
+    "No entire CLI cross-target build: TLS dependency native compiler/SDK remains unavailable.",
+    "No macOS/Windows execution; extracted actual production security helpers only, with real std and rustix APIs."
+  ]
+}

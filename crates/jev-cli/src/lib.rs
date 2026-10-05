@@ -26,6 +26,7 @@ pub mod gate;
 pub mod input;
 pub mod interrupt;
 pub mod mcp;
+pub(crate) mod media;
 pub mod metrics;
 pub mod ordered;
 pub mod output;

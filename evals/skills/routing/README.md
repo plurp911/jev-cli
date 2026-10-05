@@ -47,28 +47,32 @@ pointing Jev at this triage step?" does.
 
 ## The cases here now
 
-Generated from the graders in each case directory; regenerate it rather than editing it.
+Generated from actual graders with `python3 scripts/skill-eval-codex.py --routing-table`.
+`test-skill-eval-codex.py` checks that this table matches the grading contract.
 
-| Case | Intended winner | Asserted not to fire |
-| --- | --- | --- |
-| `after-the-audit-prove-one` | `jev-pilot` | `is-jev-useful-here`, `jev-opportunity-audit` |
-| `an-export-is-still-history` | `jev-workflow-retro` | `jev-opportunity-audit`, `jev-pilot` |
-| `calibrate-a-threshold-is-the-cli` | `jev` | `is-jev-useful-here`, `jev-pilot` |
-| `does-it-hold-up-is-a-pilot` | `jev-pilot` | `is-jev-useful-here`, `jev` |
-| `find-them-before-testing-any` | `jev-opportunity-audit` | `is-jev-useful-here`, `jev-pilot`, `jev-workflow-retro` |
-| `from-my-history-now-prove-it` | `jev-pilot` | `is-jev-useful-here`, `jev-workflow-retro` |
-| `generation-is-nobodys` | none | `is-jev-useful-here`, `jev`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` |
-| `history-but-not-a-jev-question` | none | `is-jev-useful-here`, `jev`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` |
-| `my-history-not-my-repo` | `jev-workflow-retro` | `is-jev-useful-here`, `jev`, `jev-opportunity-audit` |
-| `my-repo-not-my-history` | `jev-opportunity-audit` | `is-jev-useful-here`, `jev-workflow-retro` |
-| `one-step-named-not-the-repo` | `is-jev-useful-here` | `jev`, `jev-opportunity-audit`, `jev-pilot` |
-| `point-jev-at-the-whole-app` | `jev-opportunity-audit` | `is-jev-useful-here`, `jev` |
-| `pricing-is-nobodys` | none | `is-jev-useful-here`, `jev`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` |
-| `prove-it-not-weigh-it` | `jev-pilot` | `is-jev-useful-here`, `jev-opportunity-audit` |
-| `score-over-this-json-is-the-cli` | `jev` | `is-jev-useful-here`, `jev-pilot`, `jev-workflow-retro` |
-| `show-me-the-command-for-this-judgment` | `jev` | `jev-opportunity-audit`, `is-jev-useful-here` |
-| `weigh-it-not-prove-it` | `is-jev-useful-here` | `jev-pilot`, `jev-workflow-retro` |
-| `worth-pointing-jev-at-this-step` | `is-jev-useful-here` | `jev`, `jev-opportunity-audit` |
+| Case | Intended winner | Asserted not to fire | Ordered consultation |
+| --- | --- | --- | --- |
+| `after-the-audit-prove-one` | `jev-pilot` | `is-jev-useful-here`, `jev-opportunity-audit` | none |
+| `an-export-is-still-history` | `jev-workflow-retro` | `jev-opportunity-audit`, `jev-pilot` | none |
+| `calibrate-a-threshold-is-the-cli` | `jev` | `is-jev-useful-here`, `jev-pilot` | none |
+| `clef-image-command` | `jev` | `is-jev-useful-here`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` | none |
+| `clef-video-command` | `jev` | `is-jev-useful-here`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` | none |
+| `does-it-hold-up-is-a-pilot` | `jev-pilot` | `is-jev-useful-here` | `jev-pilot` → optional `jev` |
+| `find-them-before-testing-any` | `jev-opportunity-audit` | `is-jev-useful-here`, `jev-pilot`, `jev-workflow-retro` | none |
+| `from-my-history-now-prove-it` | `jev-pilot` | `is-jev-useful-here`, `jev-workflow-retro` | none |
+| `generation-is-nobodys` | none | `is-jev-useful-here`, `jev`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` | none |
+| `history-but-not-a-jev-question` | none | `is-jev-useful-here`, `jev`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` | none |
+| `my-history-not-my-repo` | `jev-workflow-retro` | `is-jev-useful-here`, `jev`, `jev-opportunity-audit` | none |
+| `my-repo-not-my-history` | `jev-opportunity-audit` | `is-jev-useful-here`, `jev-workflow-retro` | none |
+| `one-step-named-not-the-repo` | `is-jev-useful-here` | `jev`, `jev-opportunity-audit`, `jev-pilot` | none |
+| `point-jev-at-the-whole-app` | `jev-opportunity-audit` | `is-jev-useful-here`, `jev` | none |
+| `pricing-is-nobodys` | none | `is-jev-useful-here`, `jev`, `jev-opportunity-audit`, `jev-pilot`, `jev-workflow-retro` | none |
+| `prove-it-not-weigh-it` | `jev-pilot` | `is-jev-useful-here`, `jev-opportunity-audit` | none |
+| `score-over-this-json-is-the-cli` | `jev` | `is-jev-useful-here`, `jev-pilot`, `jev-workflow-retro` | none |
+| `show-me-the-command-for-this-judgment` | `jev` | `jev-opportunity-audit`, `is-jev-useful-here` | none |
+| `urgent-csv-pilot-before-cli` | `jev-pilot` | `is-jev-useful-here` | `jev-pilot` → optional `jev` |
+| `weigh-it-not-prove-it` | `is-jev-useful-here` | `jev-pilot`, `jev-workflow-retro` | none |
+| `worth-pointing-jev-at-this-step` | `is-jev-useful-here` | `jev`, `jev-opportunity-audit` | none |
 
 Every one of these names Jev, or describes work about it. **Four axes separate them**,
 and each pair in the table above turns on exactly one.

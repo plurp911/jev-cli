@@ -1,0 +1,24 @@
+{
+  "schema": "jev.clef.capacity-recheck/v1",
+  "requests": 4,
+  "diagnostic_requests": 2,
+  "retries": 0,
+  "results": [
+    {
+      "model": "clef",
+      "exit_code": 2,
+      "stdout_empty": true,
+      "http_422": true,
+      "provider_code_5012": true,
+      "fallback_requested": false
+    },
+    {
+      "model": "clef-flash",
+      "exit_code": 2,
+      "stdout_empty": true,
+      "http_422": true,
+      "provider_code_5012": true,
+      "fallback_requested": false
+    }
+  ]
+}

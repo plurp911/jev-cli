@@ -1,0 +1,76 @@
+{
+  "all_artifact_hashes_match_official_metadata": true,
+  "artifact_count": 37,
+  "download_verified_bytes": 251027426,
+  "inference_run": false,
+  "limitations": [
+    "Does not provision Python or operating-system dependencies.",
+    "Hashes mapped standard/system libraries of the verifier, not every later inference library or kernel/driver/hardware.",
+    "Does not hash installer bytes.",
+    "Linux x86-64 CPython3.12 CPU selected wheels only; other profiles require their own resolution and validation.",
+    "Wheel hashes prove agreement with retained official metadata, not package safety."
+  ],
+  "negative_checks": {
+    "deep_expected_profile_rejected": true,
+    "duplicate_expected_profile_fields_rejected": true,
+    "existing_report_preserved": true,
+    "modified_selected_wheel_rejected": true,
+    "runtime_profile_drift_rejected": true
+  },
+  "offline_install": {
+    "dependency_check_passed": true,
+    "fresh_environment": true,
+    "no_index": true,
+    "only_binary": true,
+    "require_hashes": true
+  },
+  "passed": true,
+  "profile": {
+    "architecture": "x86_64",
+    "installer": "pip24.0",
+    "libc": [
+      "glibc",
+      "2.39"
+    ],
+    "os": "Linux",
+    "python_version": "3.12.3"
+  },
+  "runtime_comparison": {
+    "interpreter_abi_libc_and_mapped_library_hashes_match": true,
+    "mapped_libraries_matched": 12,
+    "packages_matched": 37
+  },
+  "schema": "jev.clef.python-reproducibility-proof/v1",
+  "source_artifacts": [
+    {
+      "file": "requirements-linux-cpu.hashes.lock",
+      "sha256": "3d1c2a731ac837a5a758380118221b46595a293dc8a149bfe27a5273acadab15"
+    },
+    {
+      "file": "requirements-linux-cpu.download.lock",
+      "sha256": "e66395ddaad2f0daae4e63d94741cc5db5d1939f6302cb1c5a421e7ca329af65"
+    },
+    {
+      "file": "python-linux-cpu-profile.json",
+      "sha256": "640a92a01ff1cb1b404de21a2cfdb2136652e1a5f8496ae52f90c3f89b80f99c"
+    },
+    {
+      "file": "python-linux-cpu-wheels.json",
+      "sha256": "a1dc0f1a85e5302456f93f4ce8ad80ebee0f86ce1d6b287e1af709552586ffc6"
+    }
+  ],
+  "tests": {
+    "fresh_environment_bridge_decoder_processor": {
+      "initial_error_reason": "disposable loopback sockets denied; tests rerun with explicit socket permission",
+      "initial_restricted_sandbox_errors": 3,
+      "passed": 25
+    },
+    "python_profile": {
+      "passed": 9
+    },
+    "source_snapshot": {
+      "passed": 25
+    }
+  },
+  "weights_loaded": false
+}

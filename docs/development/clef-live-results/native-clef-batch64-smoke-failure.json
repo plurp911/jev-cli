@@ -1,0 +1,38 @@
+{
+  "schema": "jev.clef.smoke/v1",
+  "provider": "llamacpp",
+  "model": "clef",
+  "synthetic": true,
+  "retries": 0,
+  "max_requests": 21,
+  "planned_requests": 21,
+  "reserved_requests": 1,
+  "passed": false,
+  "skipped": [
+    {
+      "case": "jpeg",
+      "reason": "optional Pillow encoder not requested or unavailable"
+    },
+    {
+      "case": "webp",
+      "reason": "optional Pillow encoder not requested or unavailable"
+    },
+    {
+      "case": "ordered-video",
+      "reason": "requires Python bridge"
+    },
+    {
+      "case": "images-and-image-eval",
+      "reason": "llama.cpp Clef images unsupported"
+    }
+  ],
+  "cases": [
+    {
+      "case": "noul",
+      "requests_reserved": 1,
+      "passed": false,
+      "failure": "integration check failed; no further requests were sent"
+    }
+  ],
+  "quality_observations": []
+}

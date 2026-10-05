@@ -1,0 +1,608 @@
+{
+  "schema": "jev.clef.retained-native-runtime-inventory/v1",
+  "status": "fresh current retained release inventory, not historical loaded-library attestation",
+  "model_calls": 0,
+  "runtime_directory": {
+    "path": "target/clef-local/llama-runtime/llama-b11392",
+    "local_only": true
+  },
+  "release_metadata": {
+    "path": "target/clef-local/opus55-code-review/session-context/runtime-releases.json",
+    "local_only": true,
+    "sha256": "060ebd3ac53e8d39cec8b60ce3979fba65c14999d592aaa291defe1068b64999"
+  },
+  "method": "streaming SHA256 plus readelf -d, no runtime execution",
+  "files": [
+    {
+      "file": "libggml-base.so",
+      "bytes": 931232,
+      "sha256": "d9cbf2396c9792b3699311ed0a2097749af6604b44602dd76c187582854298f6",
+      "symlink": true,
+      "needed": [
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml-base.so.0",
+      "bytes": 931232,
+      "sha256": "d9cbf2396c9792b3699311ed0a2097749af6604b44602dd76c187582854298f6",
+      "symlink": true,
+      "needed": [
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml-base.so.0.25.3",
+      "bytes": 931232,
+      "sha256": "d9cbf2396c9792b3699311ed0a2097749af6604b44602dd76c187582854298f6",
+      "symlink": false,
+      "needed": [
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml-cpu-alderlake.so",
+      "bytes": 1408120,
+      "sha256": "f61b5572c5335791a3ecf1257f7731a0224e98bc575ddb7584b75760fdac0606",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-cannonlake.so",
+      "bytes": 1573584,
+      "sha256": "eeb0e4d92338d5422cbe6fd2a8ac341d18ddc3be353c9fc3a18185017dab4cf0",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-cascadelake.so",
+      "bytes": 1585576,
+      "sha256": "035badb60e6795258da986a413456c1f0b433a61bf8f778eac7b66b65f959399",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-cooperlake.so",
+      "bytes": 1585640,
+      "sha256": "6214a7d1818490bb334b53f2e4988f9021f809a5b75b01299ab3c2ba49297d45",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-haswell.so",
+      "bytes": 1412216,
+      "sha256": "e33722c998d99613c1be1a430282baa1a82a1ead13dca3953d9084fd202abef6",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-icelake.so",
+      "bytes": 1585576,
+      "sha256": "bbf5418d476fc8a2061d5e83a0aa4a874d5463630713dc46daff14c6c9382ace",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-ivybridge.so",
+      "bytes": 1351928,
+      "sha256": "bde5f278a8df1753812700188bca35c2119fac702db939f1f1e3bb469e2d9d83",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-piledriver.so",
+      "bytes": 1347832,
+      "sha256": "51ca2fc37c2154292d6a24aab82fcb9a6a202db4a143fb62740ed42e26957b0e",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-sandybridge.so",
+      "bytes": 1342616,
+      "sha256": "41d80d38967900be9bb50dde9b8d1db5e16b0852534384b018d8b3cd054f12d9",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-sapphirerapids.so",
+      "bytes": 1847880,
+      "sha256": "3120f1780970edc077c1d841d6709b92bc6a9301bf740890118027176df173c6",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-skylakex.so",
+      "bytes": 1573584,
+      "sha256": "3c3fcc2f43b3654ea9f63957b40b69c7793a10a1567fee0abbe7fd6453e8c2ad",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-cpu-sse42.so",
+      "bytes": 954352,
+      "sha256": "15ccc2e4d415b5d236a3e14f04661b3b0f8c3607dd8174b1212351eb02d13d81",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml-cpu-x64.so",
+      "bytes": 942240,
+      "sha256": "c435f2ba677e1dc332ee15ec8449c27dc4dd03bebf8f8817efe056935621ed2b",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml-cpu-zen4.so",
+      "bytes": 1585640,
+      "sha256": "b745d19c139747400166a7f8bc5be2919964b6e063210ea693cb8cc431e4bd27",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libgomp.so.1",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml-rpc.so",
+      "bytes": 251224,
+      "sha256": "674f64cd4561acc0cb75043da84edc25a22a1aef1083ee963cb2879e4463c672",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libggml.so",
+      "bytes": 55184,
+      "sha256": "354c630e37df7982af7b2d032aafdb0548f8e2f3a255ff0778027e531a357b82",
+      "symlink": true,
+      "needed": [
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml.so.0",
+      "bytes": 55184,
+      "sha256": "354c630e37df7982af7b2d032aafdb0548f8e2f3a255ff0778027e531a357b82",
+      "symlink": true,
+      "needed": [
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libggml.so.0.25.3",
+      "bytes": 55184,
+      "sha256": "354c630e37df7982af7b2d032aafdb0548f8e2f3a255ff0778027e531a357b82",
+      "symlink": false,
+      "needed": [
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-batched-bench-impl.so",
+      "bytes": 44808,
+      "sha256": "1c1cafd745b82f93bb751303e9badf57c7f0124c4d8991a297d587a416e79959",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-bench-impl.so",
+      "bytes": 490560,
+      "sha256": "00f537fd5e5e3ee44c897db17d93d0e6bcc338e985b02e9495cb9df106f1cfe6",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-cli-impl.so",
+      "bytes": 259600,
+      "sha256": "66f2baf5560eb86020d6c750299bf312c5205883e6e51bcfe8ef6de585df0b28",
+      "symlink": false,
+      "needed": [
+        "libllama-server-impl.so",
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-common.so",
+      "bytes": 6406584,
+      "sha256": "408b22949a843565e81b4c9b946328ae4972de5657d9bbfe1fb97dfa6288be95",
+      "symlink": true,
+      "needed": [
+        "libllama.so.0",
+        "libssl.so.3",
+        "libcrypto.so.3",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libllama-common.so.0",
+      "bytes": 6406584,
+      "sha256": "408b22949a843565e81b4c9b946328ae4972de5657d9bbfe1fb97dfa6288be95",
+      "symlink": true,
+      "needed": [
+        "libllama.so.0",
+        "libssl.so.3",
+        "libcrypto.so.3",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libllama-common.so.0.5.0",
+      "bytes": 6406584,
+      "sha256": "408b22949a843565e81b4c9b946328ae4972de5657d9bbfe1fb97dfa6288be95",
+      "symlink": false,
+      "needed": [
+        "libllama.so.0",
+        "libssl.so.3",
+        "libcrypto.so.3",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libllama-completion-impl.so",
+      "bytes": 118696,
+      "sha256": "88a1e8962658d7f41364b0cf2398774e0a5a967d4876d7084870f494d3313cb7",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-fit-params-impl.so",
+      "bytes": 39760,
+      "sha256": "55fe96d0e798fd750694c8de9c5235fa7600044abd46c8775d43755217add256",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-perplexity-impl.so",
+      "bytes": 171912,
+      "sha256": "03a573a304074db8410e3b2f220fa7f7496c8bfbb651df82a89fda8ca6765a7a",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-quantize-impl.so",
+      "bytes": 81840,
+      "sha256": "8dd43c1fb15f2e6096237a5cc3aa52694b04978c176f10db28c27d15d6c1adcc",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libllama.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    },
+    {
+      "file": "libllama-server-impl.so",
+      "bytes": 7475336,
+      "sha256": "cbda220c72aebda64b2414e3113c40a07858ac969c695bba79e55dfa2075d363",
+      "symlink": false,
+      "needed": [
+        "libllama-common.so.0",
+        "libmtmd.so.0",
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libssl.so.3",
+        "libcrypto.so.3",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libllama.so",
+      "bytes": 4780144,
+      "sha256": "f116f14903cdf46ea4fa8f162908cbfe2231001dbbbd54d084c15010c3997fc3",
+      "symlink": true,
+      "needed": [
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libllama.so.0",
+      "bytes": 4780144,
+      "sha256": "f116f14903cdf46ea4fa8f162908cbfe2231001dbbbd54d084c15010c3997fc3",
+      "symlink": true,
+      "needed": [
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libllama.so.0.5.0",
+      "bytes": 4780144,
+      "sha256": "f116f14903cdf46ea4fa8f162908cbfe2231001dbbbd54d084c15010c3997fc3",
+      "symlink": false,
+      "needed": [
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libmtmd.so",
+      "bytes": 1896696,
+      "sha256": "73018e85b4f11665025686dad28809777dcf0d1a7e65965e62f0b869d417dbea",
+      "symlink": true,
+      "needed": [
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libmtmd.so.0",
+      "bytes": 1896696,
+      "sha256": "73018e85b4f11665025686dad28809777dcf0d1a7e65965e62f0b869d417dbea",
+      "symlink": true,
+      "needed": [
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "libmtmd.so.0.5.0",
+      "bytes": 1896696,
+      "sha256": "73018e85b4f11665025686dad28809777dcf0d1a7e65965e62f0b869d417dbea",
+      "symlink": false,
+      "needed": [
+        "libllama.so.0",
+        "libggml.so.0",
+        "libggml-base.so.0",
+        "libstdc++.so.6",
+        "libm.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6",
+        "ld-linux-x86-64.so.2"
+      ]
+    },
+    {
+      "file": "llama-server",
+      "bytes": 17864,
+      "sha256": "d7cedb07f594757c107c2496d33a5d15854da571bcbf3245e1817b60fcf84601",
+      "symlink": false,
+      "needed": [
+        "libllama-server-impl.so",
+        "libstdc++.so.6",
+        "libgcc_s.so.1",
+        "libc.so.6"
+      ]
+    }
+  ],
+  "libraries_are_where_inference_code_lives": true,
+  "historical_launcher_sha256_matches": true,
+  "limitations": [
+    "Old inference process stopped; exact CPU dynamically selected library cannot be recovered from old receipt.",
+    "Host loader/libc/libstdc++/OpenMP/OS/driver not fully attested.",
+    "Release metadata has llama tags but empty asset lists; not an upstream archive content attestation.",
+    "Entry-byte sum counts10symlink targets twice;39entries represent29regularfiles and43,118,224 unique bytes, not71MB of distinct code."
+  ],
+  "inventory_counts": {
+    "entries": 39,
+    "regular_files": 29,
+    "symlink_entries": 10,
+    "entry_bytes_including_repeated_symlink_targets": 71257904,
+    "unique_regular_file_bytes": 43118224
+  }
+}

@@ -1,23 +1,23 @@
 ---
 name: api-compat
 description: >
-  Check what jev sends to and expects from the TypeSafe System One API against the
-  official TypeSafe documentation, and keep compatibility fixtures honest. Use before
+  Check what jev sends to and expects from its selected provider against that
+  provider's authoritative contract, and keep compatibility fixtures honest. Use before
   changing any request shape, response decoding, question type, model identifier, error
   mapping, or retry behaviour — and whenever you are about to state how the Jev API
-  behaves.
+  or a Clef provider behaves.
 allowed-tools: Bash Read Edit Grep Glob WebFetch
 ---
 
 # API compatibility
 
-**The official TypeSafe documentation is authoritative. Your recollection is not.**
+**Use the selected provider's primary sources. Your recollection is not authority.**
 
 This repository is a community project. It has no special knowledge of the API, and a
 confidently wrong wire format is worse than no implementation at all. Every claim about
 API behaviour must be traceable to an official source read in the current session.
 
-## Authority order
+## TypeSafe authority order
 
 1. <https://docs.typesafe.ai> — start from <https://docs.typesafe.ai/llms.txt>.
    Mintlify serves Markdown by appending `.md` to a page path, e.g.
@@ -33,11 +33,33 @@ they may not be cited and their code may not be copied.
 
 If the docs are unreachable, **say so and stop**. Do not fill the gap from memory.
 
+## Additional provider authority
+
+Select authority from the explicit provider, as required by `AGENTS.md` §6 and
+ADR-0015. Shared primitive names do not establish identical routes, media formats,
+authentication, limits, or response envelopes.
+
+| Provider or surface | Authority to read in this session |
+| --- | --- |
+| Cloudflare Workers AI | [Clef schema](https://developers.cloudflare.com/workers-ai/models/clef/) or [Clef Flash schema](https://developers.cloudflare.com/workers-ai/models/clef-flash/) for the selected model |
+| Ollama | [System One endpoint](https://docs.ollama.com/api/systemone) |
+| llama.cpp | [Official server contract](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md) for the selected runtime revision |
+| Explicit local Python bridge HTTP contract | Project-owned [docs/clef.md](../../../docs/clef.md), approved in ADR-0015 |
+| Python bridge model loader and media processing | [Publisher implementation](https://huggingface.co/Cloudflare/clef/blob/main/joint_schema_model.py), selected model revision, and the selected processor's official source |
+
+The project-owned bridge HTTP contract is authoritative only for that bridge. It
+does not establish upstream provider behavior. Read the selected official source
+before changing any adapter; if it is unavailable, stop the adapter change and
+report the missing evidence. Hosted and local capabilities must be checked
+independently. Research notes and captured live reports help locate evidence but
+do not replace a current official contract.
+
 ## Procedure
 
 ### 1. Read the relevant official page, now
 
-Do not rely on what this file or the codebase says. Fetch it in this session:
+Do not rely on what this file or the codebase says. Fetch the selected provider's
+source above in this session. For TypeSafe, use this page map:
 
 | Changing | Read |
 | --- | --- |
@@ -59,6 +81,7 @@ in the pull request. A fact without a citation does not go into the code.
 ```sh
 rg -n 'systemone|jev-latest|api\.typesafe\.ai' crates/
 rg -n 'DEFAULT_MODEL|DEFAULT_BASE_URL|SYSTEM_ONE_PATH' crates/
+rg -n 'Provider|Protocol|cloudflare|ollama|llamacpp|huggingface|clef' crates/ scripts/clef-server.py
 ```
 
 Check each against the page you just read:
@@ -98,8 +121,10 @@ If the change touches question design or confidence handling, invoke `/typesafe-
 
 ### 5. Fixtures
 
-Compatibility fixtures are recorded official responses, replayed through
-`MockTransport` so decoding is tested without a network.
+Compatibility fixtures represent the selected authoritative contract, replayed
+through `MockTransport` so decoding is tested without a network. Distinguish a
+captured response from a synthetic schema example in its provenance; neither
+establishes another provider's behavior.
 
 When adding one:
 
@@ -126,8 +151,9 @@ let transport = MockTransport::new().with_response(200, include_bytes!("fixtures
 - **An out-of-range value is rejected at the boundary.** `Probability` already does
   this; follow the pattern.
 - **Never send a field the docs do not define.**
-- **Map errors by documented status code** — 401, 422, 429, 529 — not by guessing at
-  message text.
+- **Map errors by the selected provider's documented status code**, not by guessing
+  at message text. TypeSafe's documented status mapping does not establish another
+  provider's error contract.
 
 ## Report
 

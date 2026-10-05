@@ -1,0 +1,66 @@
+{
+  "sha256": "aeaeb11fd0b6db33f89c206d61afc1f3ce0f9c1473eb105eda431d0a20a621c6",
+  "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+  "files": [
+    {
+      "path": "jev/behaviour/fresh-clef-cloudflare-scope/graders/response.md",
+      "sha256": "51c5394138fc7e11e9000cac2139718c7424da46c891068228c43b9e05fb5ab4",
+      "bytes": 1723
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-cloudflare-scope/graders/skill-use.md",
+      "sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+      "bytes": 209
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-cloudflare-scope/prompt.md",
+      "sha256": "b7a928ab6fc427a21876388555b71bf64585b9a59a878dbe7c82505d32d86b01",
+      "bytes": 942
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-cpu-runbook/graders/response.md",
+      "sha256": "b2a32dfac2d9c99b7de359a818c10ae4d608164fd5017dfd7628771b982e85e5",
+      "bytes": 2044
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-cpu-runbook/graders/skill-use.md",
+      "sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+      "bytes": 209
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-cpu-runbook/prompt.md",
+      "sha256": "bc13623460170d1447ac1511275202c0120efcc61d9fe7b0e1773e646f850415",
+      "bytes": 964
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-vision-boundaries/graders/response.md",
+      "sha256": "e0cf33a8cf4fc1fd93916f5d0ccf03e9b962dea170bc74e42040bf618f73333b",
+      "bytes": 2314
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-vision-boundaries/graders/skill-use.md",
+      "sha256": "9c40db3c759575435cdc2acacf3173f147cceda6dca1f36c84e6d608d1c5008f",
+      "bytes": 209
+    },
+    {
+      "path": "jev/behaviour/fresh-clef-vision-boundaries/prompt.md",
+      "sha256": "9d4f05b137d0367fec2979b6e86b687ba1de83226037c025c65bf8b1d012df3f",
+      "bytes": 949
+    },
+    {
+      "path": "jev/triggers/fresh-png-dimensions-no-inference/graders/response.md",
+      "sha256": "5a89202d43eb92de3e42d183382e7fb1df7e73ee09bb0424ca974cf941204c52",
+      "bytes": 1181
+    },
+    {
+      "path": "jev/triggers/fresh-png-dimensions-no-inference/graders/skill-use.md",
+      "sha256": "d6779067fe948fcb0ce3df33b0b8f2fb8fdbb855c24d7a21c8c3e39973fb211c",
+      "bytes": 320
+    },
+    {
+      "path": "jev/triggers/fresh-png-dimensions-no-inference/prompt.md",
+      "sha256": "2dc06baa22087784a9587cc58466c4522a722bcce761758e176811d9d906b977",
+      "bytes": 617
+    }
+  ]
+}

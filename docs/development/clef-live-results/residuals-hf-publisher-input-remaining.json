@@ -1,0 +1,65 @@
+{
+  "schema": "jev.clef.publisher-input-addendum/v1",
+  "provider": "huggingface",
+  "model": "clef-flash",
+  "synthetic": true,
+  "planned_requests": 31,
+  "max_requests": 31,
+  "reserved_requests": 11,
+  "retries": 0,
+  "fallback": false,
+  "passed": false,
+  "cases": [
+    {
+      "case": "score255-null-descriptions",
+      "requests_reserved": 1,
+      "passed": true,
+      "request_timeout_seconds": 3600
+    },
+    {
+      "case": "choice-options-file",
+      "requests_reserved": 1,
+      "passed": true,
+      "request_timeout_seconds": 600
+    },
+    {
+      "case": "score-levels-file",
+      "requests_reserved": 1,
+      "passed": true,
+      "request_timeout_seconds": 600
+    },
+    {
+      "case": "map-scalar-rows",
+      "requests_reserved": 8,
+      "passed": false,
+      "request_timeout_seconds": 600,
+      "failure": "input integration failed; stopped without retry"
+    }
+  ],
+  "artifacts": {
+    "jev_binary": {
+      "bytes": 6637400,
+      "sha256": "43c31555bcc58a841b50ab7d8b6343ff4d154c692b005e27fa090969ec0e3020"
+    },
+    "loaded_bridge_source_expected": {
+      "bytes": 21689,
+      "sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506"
+    },
+    "live_helper": {
+      "bytes": 33814,
+      "sha256": "78b39d87beb0d67e2f67ac62dba932c99a8b6c189cf14ab45548531df79a8a63"
+    },
+    "addendum_runner": {
+      "bytes": 10143,
+      "sha256": "7a48986073e6303e8ca4ced7c920e34038ce76648cebbc1e0c7ab7c2fc5d8a39"
+    }
+  },
+  "quality_claim": false,
+  "experiment": "remaining publisher-input coverage with distinct255null-description workload",
+  "prior_failed_report": {
+    "bytes": 1862,
+    "sha256": "21d9ffe8b7837d6583ae3bf04b0a76fa77972dbe4f9a03931beda957a5105b7f"
+  },
+  "prior_valid_cases_reexecuted": false,
+  "numeric255_timeout_retried": false
+}

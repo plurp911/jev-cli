@@ -5,7 +5,7 @@ Six targets, over six places attacker-influenced bytes enter `jev`.
 | Target | Input | Also asserts |
 | --- | --- | --- |
 | `api_response` | bytes off the network | no out-of-range probability, no Choice absent from its own distribution, no Score off its own scale |
-| `request_document` | a request file the user wrote or piped | anything accepted satisfies the documented cardinality limits |
+| `request_document` | a request file or raw image headers | accepted questions satisfy cardinality limits; accepted images respect byte/pixel bounds and round-trip through canonical base64 |
 | `gate_expression` | a `--require` expression | an unevaluable gate never reports a pass |
 | `endpoint_url` | a base URL from a flag or the config file | anything accepted is TLS-protected or unambiguously loopback; normalization is idempotent |
 | `state_input` | state from stdin or a file | the byte limit is respected exactly; nothing is silently truncated |

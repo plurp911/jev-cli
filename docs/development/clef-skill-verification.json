@@ -1,0 +1,2353 @@
+{
+  "schema": "jev.skill.correction-evidence/v2",
+  "observed_at": "2026-10-05",
+  "status": "Final source and outcome receipt frozen. All authorized model experiments and separately reviewed offline interpretations are complete; final fifteenth repository gate and test-only correction review pass. Source-scoped training retains one genuine instruction-following quality residual; original blind heldout failures and all incomplete budget attempts remain preserved. No perfect-success or single executed global-hash claim.",
+  "historical_manual_evidence": {
+    "schema": "jev.skill.correction-evidence/v1",
+    "observed_at": "2026-10-04",
+    "reviewer": "Cursor CLI grok-4.7-xhigh",
+    "scenario": "Cloudflare Clef Flash invocation missing custom credential; user authorized a named synthetic screenshot",
+    "baseline": {
+      "authentication": "Incorrectly suggested jev auth login or JEV_API_KEY",
+      "privacy": "Incorrectly said image would go to TypeSafe"
+    },
+    "updated": {
+      "authentication": "Correctly suggested JEV_CUSTOM_API_KEY or JEV_CUSTOM_API_KEY_FILE without changing provider",
+      "privacy": "Correctly named selected Cloudflare endpoint",
+      "sent_request": false
+    },
+    "routing": {
+      "named_image_classification": true,
+      "literal_ERROR_lookup": false,
+      "provider_account_pricing": false
+    },
+    "limitations": [
+      "Manual factual-guidance and routing evaluation on Grok; not the complete shipped multi-runtime skill-eval suite"
+    ],
+    "private_material_included": false
+  },
+  "design": {
+    "inputs": "Named synthetic CLI/MCP provider, credential, local-runtime, image, video and processor-control requests",
+    "outputs": "Usable invocations with endpoint-specific privacy, credentials and capability boundaries",
+    "non_goals": [
+      "Runtime installation or automatic model download",
+      "Video decoding and directory/media discovery",
+      "Provider pricing/account management",
+      "Deterministic metadata inspection"
+    ],
+    "trigger_boundary": "Semantic bounded judgments and operating their explicit provider; exact image dimensions, video extraction and account pricing stay out"
+  },
+  "durable_cases": {
+    "training_total": 103,
+    "heldout_total": 30,
+    "clef_behaviour": 8,
+    "clef_positive_triggers": 2,
+    "clef_negative_triggers": 3,
+    "clef_routing": 2,
+    "reference": "evals/skills/jev/CLEF.md"
+  },
+  "pilots": [
+    {
+      "purpose": "credential failure baseline with existing candidate",
+      "command": "JEV_SKILL_EVAL_BUDGET_USD=2 scripts/skill-eval.sh --case jev-clef-behaviour-credentials -- --concurrency 2 --runs 1",
+      "sandbox": "network escalation approved",
+      "model": "claude-opus-5-5",
+      "effort": "low",
+      "judge_model": "claude-opus-5-5",
+      "repeats": 1,
+      "arms": "with-without",
+      "with": 1,
+      "without": 0,
+      "duration_seconds": 27,
+      "cost_usd": 0.2745614,
+      "partial": false,
+      "report": "evals/skills/results/20261004T174619Z-2671009/report.html",
+      "baseline_excerpt": "I couldn't check `jev` itself. Search and file access were denied in this session, and I have no shell, so I couldn't read `jev --help`, its docs or its config. Treat the specific flag and variable names below as things to confirm, not facts.\n\n**Will `jev auth login` or `JEV_API_KEY` fix it? Probably not.**\n- The error says a *custom* API key is missing. That usually means the Cloudflare provider path wants its own credential, not jev's account credential.\n- `jev auth login` and `JEV_API_KEY` most likely sign you in to jev's own service. That won't satisfy a third-party provider check, and could send the request somewhere you didn't choose.\n- Don't put your `JEV_API_KEY` value into the Cloudflare slot either. It's the wrong secret for that provider, and it would expose that key to a service it wasn't issued for.\n\n**Safe credential setup:**\n1. In the Cloudflare dashboard for `demo-account`, create a scoped API token with only the Workers AI / inference permission you need. Give it an expiry if you can.\n2. Store it without echoing it or saving it in shell history:\n   ```bash\n   read -rs CLOUDFLARE_API_TOKEN && export CLOUDFLARE_API_TOKEN\n   ```\n   Or use jev's secret store or provider config, if it has one (check `jev help auth` or `jev help providers`). A password-manager CLI also works. Don't commit it, don't put it in `.env` inside the repo, and don't paste it into chat.\n3. Check which variable or flag jev actually reads for this provider, for example with `jev help providers` or `jev providers list`. It might be `CLOUDFLARE_API_TOKEN`, a `--api-key-env` style flag, or a named credential.\n\n**Corrected invocation (template, not run):**\n```bash\njev classify checkout.png \\\n  --provider cloudflare \\\n  --model clef-flash \\\n  --account demo-account \\\n  --api-key-env CLOUDFLA"
+    },
+    {
+      "purpose": "local setup failure before reference correction",
+      "command": "JEV_SKILL_EVAL_BUDGET_USD=2 scripts/skill-eval.sh --case jev-clef-behaviour-local-setup -- --concurrency 2 --runs 1",
+      "sandbox": "network escalation approved",
+      "model": "claude-opus-5-5",
+      "effort": "low",
+      "judge_model": "claude-opus-5-5",
+      "repeats": 1,
+      "arms": "with-without",
+      "with": 0,
+      "without": 0,
+      "duration_seconds": 28,
+      "cost_usd": 0.24166540000000003,
+      "partial": false,
+      "report": "evals/skills/results/20261004T174849Z-2678195/report.html",
+      "observed_quote": "The skill doesn't give the bridge's setup path."
+    }
+  ],
+  "confirmation": {
+    "training": {
+      "status": "invalidated_partial_diagnostics_only",
+      "command": "scripts/skill-eval.sh -- --concurrency 8",
+      "cases": 102,
+      "repeats": 3,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "measured_sessions": 612,
+      "report": "evals/skills/results/20261004T181542Z-codex-2818771/report.html",
+      "completed_result_files": 358,
+      "completed_answers_with_usage": 356,
+      "measured_errors": 2,
+      "completed_judge_sessions": 573,
+      "completed_trigger_only_runs": 165,
+      "requested_runs_without_result": 254,
+      "invalidation": "evals/skills/results/20261004T181542Z-codex-2818771/invalidation.json",
+      "counts_as_final_proof": false
+    },
+    "heldout": {
+      "status": "Original blind experiment complete and preserved: 85/88 strict passes, two candidate and eight baseline budget errors. Separate reviewed deterministic interpretation passes 88/88 valid candidates; this is not a blind-pass claim.",
+      "command": "python3 /tmp/jev-final-heldout-reviewed-contract.py",
+      "cases": 30,
+      "repeats": 3,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "concurrency": 8,
+      "wrapper_sha256": "afa5926044bea7cd6bdea085d83cd16f5cd64adf25581e0412e08298b2cc4ec8",
+      "unchanged_public_arguments": [
+        "--heldout",
+        "--concurrency",
+        "8"
+      ],
+      "untouched_contract_files": 99,
+      "earliest_retained_immutable_contract": "evals/skills/results/20261004T193604Z-codex-3369720/evaluation-manifest.json",
+      "result_directory": "evals/skills/results/final-heldout-20261005T002830Z",
+      "candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+      "evaluation_sha256": "ee418a53f5bd386f57090dd702b7583277c0ac6c5a98fd3916320218a2044057",
+      "completed_result_files": 180,
+      "valid_candidate_records": 88,
+      "original_blind_candidate_passes": 85,
+      "candidate_execution_errors": 2,
+      "valid_baseline_records": 82,
+      "original_blind_baseline_passes": 15,
+      "baseline_execution_errors": 8,
+      "usable_paired_repetitions": 80,
+      "completed_measured_total_tokens": 5145036,
+      "observed_partial_error_total_tokens_minimum": 390328,
+      "judge_sessions": 0,
+      "grader_scope": "68 deterministic tool-use checks across30cases; no LLM answer-quality graders",
+      "duration_seconds": 634.93,
+      "raw_confirmation_passed": false,
+      "raw_aggregate_incomplete": false,
+      "incomplete_answers": 10,
+      "budget_error_audit": "evals/skills/results/final-heldout-20261005T002830Z/budget-error-audit.json",
+      "original_evaluation_sha256": "ee418a53f5bd386f57090dd702b7583277c0ac6c5a98fd3916320218a2044057",
+      "untouched_heldout_files_at_admission": 99,
+      "model_or_source_tuning_on_heldout": false,
+      "model_retry": false,
+      "execution_errors_excluded_from_quality_means": true,
+      "raw_error_score_placeholders_retained": true,
+      "posthoc_ordering_interpretation": {
+        "candidate_valid_records": 88,
+        "candidate_passes": 88,
+        "baseline_valid_records": 82,
+        "baseline_passes": 15,
+        "candidate_execution_errors": 2,
+        "baseline_execution_errors": 8,
+        "artifact": "evals/skills/results/heldout-order-posthoc-20261005/posthoc-interpretation.json",
+        "original_blind_results_unchanged": true,
+        "model_calls": 0,
+        "SDK_sessions": 0,
+        "blind_pass_claimed": false
+      }
+    },
+    "codex": {
+      "status": "effective-feature protocol smoke complete; compatible fail-closed whitelist replay passed",
+      "report": "evals/skills/results/20261004T192530Z-codex-3303347/report.html",
+      "with_score": 1,
+      "without_score": 0,
+      "errors": 0,
+      "repeats": 1,
+      "duration_seconds": 55.868,
+      "not_a_final_performance_claim": true,
+      "measured_sessions": 2,
+      "completed_judge_sessions": 6,
+      "score_scope": "One paired protocol smoke with one repetition; not the full three-repeat corpus",
+      "compatible_start_completion_events": 18,
+      "usage_observations_validated": 8
+    },
+    "cursor": {
+      "status": "required model unavailable",
+      "model_list_check": "agent models",
+      "requested_model": "gpt-6.1-sol high",
+      "substitution_used": false,
+      "note": "Available Cursor list has no GPT-6.1 Sol entry; no fresh Cursor model behavior evaluation was run"
+    },
+    "native_codex": {
+      "status": "representative native confirmation complete",
+      "report": "evals/skills/results/native-codex-clef-final-20261004T223607Z/aggregate-result.json",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "repeats": 1,
+      "native_discovery": true,
+      "measured_sessions": 6,
+      "completed_judge_sessions": 18,
+      "errors": 0,
+      "candidate_sha256": "73cbe20893aa45973efe42c9a0f2835ab504f4f901016b55f552dc6676274ee6",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+      "outcomes": {
+        "local-setup": {
+          "without": 0,
+          "with": 1
+        },
+        "image": {
+          "without": 0,
+          "with": 1
+        },
+        "video": {
+          "without": 0,
+          "with": 1
+        }
+      },
+      "scope": "Three representative requests with actual workspace native discovery and successful Jev skill/provider-reference reads; not full native corpus",
+      "dependencies": [
+        "jev/SKILL.md",
+        "jev/references/providers.md"
+      ],
+      "baseline_successful_skill_body_reads": 0,
+      "candidate_successful_skill_body_reads_per_case": 1,
+      "environment_policy": "Minimal explicit environment keys; inherited provider credential variables stripped without inspecting values; ChatGPT auth file belongs to CLI service outside command sandbox",
+      "permissions": "Native exec --ignore-user-config --ignore-rules, root filesystem denied, minimal runtime and synthetic workspace read only, no network; no copied auth",
+      "native_isolation_proof": "evals/skills/results/native-isolation-proof-20261004",
+      "effective_judge_isolation": "Every18judge observations shows zero enabled native skills and zero MCP tools; same requested/server-acknowledged gpt-6.1-sol high openai",
+      "limitations": [
+        "Native CLI exposes requested model/effort and actual usage/read commands, not server acknowledgment or backend per-turn attestation",
+        "Three representative pairs, one measured repetition each; not a full native suite"
+      ],
+      "native_observed_total_tokens": 311379,
+      "judge_observed_total_tokens": 103677,
+      "cost_usd": null
+    },
+    "final_training": {
+      "status": "incomplete immutable diagnostics; actual aggregator IndexError preserved",
+      "command": "scripts/skill-eval.sh -- --concurrency 8",
+      "cases": 102,
+      "repeats": 3,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "measured_sessions": 612,
+      "report": "evals/skills/results/20261004T193604Z-codex-3369720/report.html",
+      "candidate_sha256": "920f86a494fe598e84758fbcc69638533d7b69122fd1fadf2e5b40330c1fa386",
+      "evaluation_sha256": "ebbc3e975c7b784d4225829e80cac86a92200aab48e94e25dc4b312d680b725b",
+      "counts_as_final_changed_candidate_proof": false,
+      "completed_result_files": 604,
+      "completed_answers_with_usage": 584,
+      "measured_errors": 20,
+      "completed_judge_sessions": 708,
+      "completed_trigger_only_runs": 348,
+      "requested_runs_without_result": 8,
+      "partial_completion_evidence": "evals/skills/results/20261004T193604Z-codex-3369720/partial-completion-evidence.json",
+      "actual_unhandled_exception": {
+        "category": "IndexError",
+        "message": "tuple index out of range",
+        "source": "pathlib Glob selector for empty relative parts after absolute staged-root pattern"
+      },
+      "observed_tokens": {
+        "completed_measured": {
+          "totalTokens": 24341002,
+          "inputTokens": 23881519,
+          "cachedInputTokens": 17017984,
+          "outputTokens": 459483,
+          "reasoningOutputTokens": 177946
+        },
+        "completed_judges": {
+          "totalTokens": 5860462,
+          "inputTokens": 5700117,
+          "cachedInputTokens": 2138752,
+          "outputTokens": 160345,
+          "reasoningOutputTokens": 54431
+        },
+        "observed_partial_errors": {
+          "totalTokens": 870775,
+          "inputTokens": 861920,
+          "cachedInputTokens": 646912,
+          "outputTokens": 8855,
+          "reasoningOutputTokens": 3220
+        }
+      }
+    },
+    "affected_final_training": {
+      "status": "completed immutable diagnostics; revised fit/pilot/contracts independently revalidated",
+      "command": "python3 scripts/skill-eval-codex.py --tag jev --tag is-jev-useful-here --tag jev-pilot --tag jev-opportunity-audit --tag trigger --tag routing --concurrency 8",
+      "cases": 96,
+      "repeats": 3,
+      "measured_sessions": 576,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "report": "evals/skills/results/20261004T211034Z-codex-4036030/report.html",
+      "candidate_sha256": "3017888b7fc44a3e8b21d5b593921a1033a9f3fbbad88c2df9a6953bdba27b05",
+      "evaluation_sha256": "315349d3993ffcc2dcfb915702c7a8ab102ff5e2792f47e0a2570faddfdc0aad",
+      "scope_note": "Original96-case immutable candidate supports unchanged skills/cases and preserves original failures; later44fit/routing and advanced-controls experiments attest their revised bytes/rubric only.",
+      "recorded_results": 576,
+      "completed_answers_with_usage": 557,
+      "errors": 19,
+      "error_scope": "All19 baseline Case max_turns exceeded; no candidate execution errors",
+      "candidate_quality_failures": 11,
+      "completed_judge_sessions": 609,
+      "all_requested_records_preserved": true,
+      "confirmation_passed": false,
+      "budget_error_audit": "evals/skills/results/20261004T211034Z-codex-4036030/budget-error-audit-provisional.json"
+    },
+    "unchanged_retro_behavior": {
+      "records": 42,
+      "errors": 0,
+      "candidate_all_passed": true,
+      "skill_body_dependencies": [
+        "jev-workflow-retro only"
+      ],
+      "manifest_scope": "Original immutable candidate/evaluation; unchanged retro body, not global final candidate attestation"
+    },
+    "historical_native_codex": {
+      "status": "initial representative diagnostics preserved; final native confirmation separately completed",
+      "report": "evals/skills/results/native-codex-clef-20261004T1823/aggregate-result.json",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "repeats": 1,
+      "native_discovery": true,
+      "coverage": "Three representative requests using actual workspace .agents/skills discovery and actual file reads; not full corpus",
+      "outcomes": {
+        "local-setup": {
+          "without": 0,
+          "with": 1
+        },
+        "image": {
+          "without": 0,
+          "with": 0
+        },
+        "video": {
+          "without": 0,
+          "with": 0
+        }
+      },
+      "observed_failures": [
+        "Image response omits explicit Cloudflare transmission disclosure",
+        "Video response omits separately started project Python bridge and preexisting local weights"
+      ],
+      "counts_as_final_proof": false
+    },
+    "final_protocol_smoke": {
+      "report": "evals/skills/results/20261004T210741Z-codex-4025971/report.html",
+      "cases": 1,
+      "repeats": 1,
+      "measured_sessions": 2,
+      "completed_judge_sessions": 6,
+      "without": 0,
+      "with": 1,
+      "errors": 0,
+      "scope": "Corrected publisher-input guidance and final SDK isolation protocol smoke, not three-repeat confirmation"
+    },
+    "final_fit_routing": {
+      "status": "completed all candidate checks passed; baseline comparisons partially incomplete",
+      "command": "python3 scripts/skill-eval-codex.py --tag is-jev-useful-here --tag routing --concurrency 4",
+      "cases": 44,
+      "repeats": 3,
+      "measured_sessions": 264,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "report": "evals/skills/results/20261004T213315Z-codex-4193018/report.html",
+      "candidate_sha256": "61d7563ad98863bf1f10b19d2e62b8cc6d816543b714fd1fb0a4b1a1aeb8a8aa",
+      "evaluation_sha256": "a798a0310ae57926be997ecf8b8e7961cffd258b01034d6ed53e023f23b3289f",
+      "concurrency": 4,
+      "original_sweep_unchanged": true,
+      "final_retained_scope": "Fit-specific cases whose actual skill body/reference dependencies remain unchanged; pilot-loading near misses and all20routing cases receive new final pilot confirmation. Not a blanket final global candidate hash attestation.",
+      "recorded_results": 264,
+      "candidate_valid_passes": 132,
+      "candidate_execution_errors": 0,
+      "baseline_errors": 5,
+      "baseline_valid_results": 127,
+      "completed_judge_sessions": 180,
+      "confirmation_passed": false
+    },
+    "advanced_controls_final": {
+      "status": "all three candidate repeats passed; incomplete baseline comparisons",
+      "report": "evals/skills/results/20261004T213010Z-codex-4169880/report.html",
+      "cases": 1,
+      "repeats": 3,
+      "recorded_results": 6,
+      "candidate_valid_passes": 3,
+      "baseline_valid_results": 1,
+      "baseline_valid_score": 0,
+      "baseline_errors": 2,
+      "errors": "Original unchanged max_turns8 exceeded by baseline missing-documentation loops; no retry/budget change",
+      "full_comparison_pass": false,
+      "candidate_sha256": "61d7563ad98863bf1f10b19d2e62b8cc6d816543b714fd1fb0a4b1a1aeb8a8aa",
+      "evaluation_sha256": "a798a0310ae57926be997ecf8b8e7961cffd258b01034d6ed53e023f23b3289f"
+    },
+    "final_pilot_routing": {
+      "status": "Completed historical immutable experiment; later evidence scoped through final provenance",
+      "command": "python3 scripts/skill-eval-codex.py --tag jev-pilot --tag routing --concurrency 4",
+      "cases": 37,
+      "repeats": 3,
+      "measured_sessions": 222,
+      "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+      "arms": [
+        "without",
+        "with"
+      ],
+      "report": "evals/skills/results/20261004T220437Z-codex-259841/report.html",
+      "adapter_sha256": "3946a6adf2cbda729fad71b9877e95dcaeafe6e3b74635f832d5e43650f80c2b",
+      "completed_result_files": 222,
+      "execution_errors": 11,
+      "valid_candidate_records": 110,
+      "candidate_passes": 108,
+      "historical_experiment": true
+    },
+    "pilot_dependency_near_misses": {
+      "status": "completed all paired candidate repeats passed",
+      "report": "evals/skills/results/20261004T221056Z-codex-298026/report.html",
+      "cases": 2,
+      "repeats": 3,
+      "recorded_results": 12,
+      "candidate_valid_passes": 6,
+      "baseline_score": 0.5,
+      "errors": 0,
+      "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833"
+    },
+    "mcp_video_final": {
+      "status": "Historical completed diagnostics retained; substantive video timing omission separately repaired and confirmed through exact thirteen provider-reference dependent cases",
+      "report": "evals/skills/results/20261004T220442Z-codex-260896/report.html",
+      "cases": 2,
+      "repeats": 3,
+      "measured_sessions": 12,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+      "adapter_sha256": "3946a6adf2cbda729fad71b9877e95dcaeafe6e3b74635f832d5e43650f80c2b",
+      "recorded_results": 12,
+      "candidate_valid_passes": 5,
+      "candidate_quality_failures": 1,
+      "candidate_execution_errors": 0,
+      "baseline_errors": 1,
+      "baseline_valid_results": 5,
+      "all_baseline_valid_scores": 0,
+      "confirmation_passed": false,
+      "new_failed_result": "evals/skills/results/20261004T220442Z-codex-260896/jev-clef-behaviour-video-with-1/result.json",
+      "new_failed_votes": 2
+    },
+    "fit_dependency_audit_near_miss": {
+      "status": "completed all paired candidate repeats passed",
+      "report": "evals/skills/results/20261004T221120Z-codex-300216/report.html",
+      "cases": 1,
+      "repeats": 3,
+      "recorded_results": 6,
+      "candidate_valid_passes": 3,
+      "baseline_score": 0.5,
+      "errors": 0,
+      "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833"
+    },
+    "fit_dependency_retro_near_miss": {
+      "status": "completed all paired candidate repeats passed",
+      "report": "evals/skills/results/20261004T221124Z-codex-300758/report.html",
+      "cases": 1,
+      "repeats": 3,
+      "recorded_results": 6,
+      "candidate_valid_passes": 3,
+      "baseline_score": 0.5,
+      "errors": 0,
+      "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833"
+    },
+    "final_clef_behaviors": {
+      "status": "Completed historical immutable experiment; later evidence scoped through final provenance",
+      "report": "evals/skills/results/20261004T221500Z-codex-319738/report.html",
+      "cases": 8,
+      "repeats": 3,
+      "measured_sessions": 48,
+      "candidate_sha256": "8c6e38e650b7274fa11af0cec58599f4f83adf85becccd10d07eb4c6840f8578",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+      "completed_result_files": 48,
+      "execution_errors": 3,
+      "valid_candidate_records": 24,
+      "candidate_passes": 24,
+      "historical_experiment": true
+    },
+    "final_retro_behavior": {
+      "status": "Completed historical immutable experiment; later evidence scoped through final provenance",
+      "report": "evals/skills/results/20261004T221258Z-codex-310011/report.html",
+      "cases": 7,
+      "repeats": 3,
+      "measured_sessions": 42,
+      "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+      "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+      "note": "Fresh complete catalog metadata coverage; changed JeV reference is unconsumed unless actual trace later proves otherwise",
+      "completed_result_files": 42,
+      "execution_errors": 0,
+      "valid_candidate_records": 21,
+      "candidate_passes": 19,
+      "historical_experiment": true
+    },
+    "final_reporting_readers": {
+      "result_directory": "evals/skills/results/final-reporting-readers-20261004T223602Z",
+      "requested_records": 186,
+      "result_records": 186,
+      "valid_completed_records": 184,
+      "execution_errors": 2,
+      "errors_by_arm": {
+        "without": 1,
+        "with": 1
+      },
+      "candidate_valid_records": 92,
+      "candidate_passes": 86,
+      "candidate_quality_failures": [
+        {
+          "case": "pilot-behaviour-too-few-labels-for-a-threshold",
+          "repetition": 1,
+          "score": 0.6666666666666666
+        },
+        {
+          "case": "pilot-behaviour-too-few-labels-for-a-threshold",
+          "repetition": 3,
+          "score": 0.6666666666666666
+        },
+        {
+          "case": "pilot-behaviour-baseline-beats-jev",
+          "repetition": 1,
+          "score": 0.75
+        },
+        {
+          "case": "pilot-behaviour-score-on-an-ordinal-scale",
+          "repetition": 2,
+          "score": 0.8
+        },
+        {
+          "case": "pilot-behaviour-sensitive-dataset-needs-authorisation",
+          "repetition": 2,
+          "score": 0.75
+        },
+        {
+          "case": "pilot-behaviour-too-few-labels-for-a-threshold",
+          "repetition": 2,
+          "score": 0.6666666666666666
+        }
+      ],
+      "baseline_valid_records": 92,
+      "completed_measured_tokens": 10721451,
+      "completed_judge_tokens": 2541473,
+      "partial_usage_preserved_in_original_records": true,
+      "cost_usd": null,
+      "status": "Completed older-body diagnostic confirmation; changed pilot readers require upcoming final refresh; unchanged retro proof retained",
+      "completed_judge_sessions": 306,
+      "observed_partial_tokens": 131030
+    },
+    "original_pilot_routing_completed": {
+      "result_directory": "evals/skills/results/20261004T220437Z-codex-259841",
+      "requested_records": 222,
+      "result_records": 222,
+      "valid_completed_records": 211,
+      "execution_errors": 11,
+      "errors_by_arm": {
+        "without": 10,
+        "with": 1
+      },
+      "candidate_valid_records": 110,
+      "candidate_passes": 108,
+      "candidate_quality_failures": [
+        {
+          "case": "pilot-behaviour-no-split-result-is-not-validated",
+          "repetition": 2,
+          "score": 0.6666666666666666
+        },
+        {
+          "case": "pilot-behaviour-no-split-result-is-not-validated",
+          "repetition": 3,
+          "score": 0.6666666666666666
+        }
+      ],
+      "baseline_valid_records": 101,
+      "completed_measured_tokens": 7981590,
+      "completed_judge_tokens": 1497610,
+      "partial_usage_preserved_in_original_records": true,
+      "cost_usd": null,
+      "status": "completed scoped diagnostics, superseded where pilot body changed",
+      "budget_audit": "evals/skills/results/20261004T220437Z-codex-259841/budget-error-audit.json",
+      "all_eleven_errors_at_exact_max_plus_one": true
+    },
+    "final_reference_dependencies": {
+      "status": "completed",
+      "cases": 13,
+      "repeats": 3,
+      "candidate_all_39_valid_passes": true,
+      "experiments": [
+        {
+          "result_directory": "evals/skills/results/20261004T221500Z-codex-319738",
+          "requested_records": 48,
+          "result_records": 48,
+          "valid_completed_records": 45,
+          "execution_errors": 3,
+          "errors_by_arm": {
+            "without": 3
+          },
+          "candidate_valid_records": 24,
+          "candidate_passes": 24,
+          "candidate_quality_failures": [],
+          "baseline_valid_records": 21,
+          "completed_measured_tokens": 1928827,
+          "completed_judge_tokens": 774227,
+          "partial_usage_preserved_in_original_records": true,
+          "cost_usd": null
+        },
+        {
+          "result_directory": "evals/skills/results/20261004T223612Z-codex-462806",
+          "requested_records": 12,
+          "result_records": 12,
+          "valid_completed_records": 12,
+          "execution_errors": 0,
+          "errors_by_arm": {},
+          "candidate_valid_records": 6,
+          "candidate_passes": 6,
+          "candidate_quality_failures": [],
+          "baseline_valid_records": 6,
+          "completed_measured_tokens": 352221,
+          "completed_judge_tokens": 0,
+          "partial_usage_preserved_in_original_records": true,
+          "cost_usd": null
+        },
+        {
+          "result_directory": "evals/skills/results/20261004T223819Z-codex-478320",
+          "requested_records": 12,
+          "result_records": 12,
+          "valid_completed_records": 10,
+          "execution_errors": 2,
+          "errors_by_arm": {
+            "without": 2
+          },
+          "candidate_valid_records": 6,
+          "candidate_passes": 6,
+          "candidate_quality_failures": [],
+          "baseline_valid_records": 4,
+          "completed_measured_tokens": 303049,
+          "completed_judge_tokens": 0,
+          "partial_usage_preserved_in_original_records": true,
+          "cost_usd": null
+        },
+        {
+          "result_directory": "evals/skills/results/20261004T224141Z-codex-498279",
+          "requested_records": 6,
+          "result_records": 6,
+          "valid_completed_records": 4,
+          "execution_errors": 2,
+          "errors_by_arm": {
+            "without": 2
+          },
+          "candidate_valid_records": 3,
+          "candidate_passes": 3,
+          "candidate_quality_failures": [],
+          "baseline_valid_records": 1,
+          "completed_measured_tokens": 171861,
+          "completed_judge_tokens": 0,
+          "partial_usage_preserved_in_original_records": true,
+          "cost_usd": null
+        }
+      ],
+      "scope": "Unchanged entire catalog and Jev body; final provider-reference bytes consumed; native proof separately refreshed"
+    },
+    "final_history_dependency": {
+      "result_directory": "evals/skills/results/20261004T224438Z-codex-517148",
+      "requested_records": 6,
+      "result_records": 6,
+      "valid_completed_records": 6,
+      "execution_errors": 0,
+      "errors_by_arm": {},
+      "candidate_valid_records": 3,
+      "candidate_passes": 3,
+      "candidate_quality_failures": [],
+      "baseline_valid_records": 3,
+      "completed_measured_tokens": 207587,
+      "completed_judge_tokens": 0,
+      "partial_usage_preserved_in_original_records": true,
+      "cost_usd": null,
+      "baseline_scores": [
+        1,
+        1,
+        1
+      ],
+      "candidate_scores": [
+        1,
+        1,
+        1
+      ],
+      "scope": "Newly observed retro body dependency, negative routing already safe in final baseline; not a0to1claim"
+    },
+    "previous_native_codex": {
+      "status": "representative native confirmation complete",
+      "report": "evals/skills/results/native-codex-clef-final-20261004T211101Z/aggregate-result.json",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "repeats": 1,
+      "native_discovery": true,
+      "measured_sessions": 6,
+      "completed_judge_sessions": 18,
+      "errors": 0,
+      "candidate_sha256": "3017888b7fc44a3e8b21d5b593921a1033a9f3fbbad88c2df9a6953bdba27b05",
+      "evaluation_sha256": "315349d3993ffcc2dcfb915702c7a8ab102ff5e2792f47e0a2570faddfdc0aad",
+      "outcomes": {
+        "local-setup": {
+          "without": 0,
+          "with": 1
+        },
+        "image": {
+          "without": 0,
+          "with": 1
+        },
+        "video": {
+          "without": 0,
+          "with": 1
+        }
+      },
+      "scope": "Three representative requests with actual workspace native discovery and successful Jev skill/provider-reference reads; not full native corpus",
+      "dependencies": [
+        "jev/SKILL.md",
+        "jev/references/providers.md"
+      ],
+      "baseline_successful_skill_body_reads": 0,
+      "candidate_successful_skill_body_reads_per_case": 1,
+      "environment_policy": "Minimal explicit environment keys; inherited provider credential variables stripped without inspecting values; ChatGPT auth file belongs to CLI service outside command sandbox",
+      "permissions": "Native exec --ignore-user-config --ignore-rules, root filesystem denied, minimal runtime and synthetic workspace read only, no network; no copied auth",
+      "native_isolation_proof": "evals/skills/results/native-isolation-proof-20261004",
+      "effective_judge_isolation": "Every18judge observations shows zero enabled native skills and zero MCP tools; same requested/server-acknowledged gpt-6.1-sol high openai",
+      "limitations": [
+        "Native CLI exposes requested model/effort and actual usage/read commands, not server acknowledgment or backend per-turn attestation",
+        "Only actual unchanged Jev bytes/references are attested if final fit body changes; exact original candidate manifest retained"
+      ],
+      "native_observed_total_tokens": 332923,
+      "judge_observed_total_tokens": 102318,
+      "cost_usd": null
+    },
+    "accidental_duplicate": {
+      "status": "Excluded entire experiment; no records merged with intended proof",
+      "directory": "evals/skills/results/20261004T224532Z-codex-525595",
+      "intended_experiment": "evals/skills/results/20261004T224438Z-codex-517148",
+      "cause": "Agent mistakenly launched the same authorized case twice during slot scheduling",
+      "records": 6,
+      "actual_errors": 2,
+      "cleanup": "Already exited before stop inspection; no unnecessary signal sent; no owned active process remained",
+      "actual_completed_tokens": 134039,
+      "completed_judge_tokens": 0,
+      "partial_or_unobserved_usage": "Usage beyond last observed protocol update is unknown; actual partial usage updates retained, no fabricated zero",
+      "counts_as_final_proof": false,
+      "recovery_artifact": "evals/skills/results/20261004T224532Z-codex-525595/accidental-duplicate-exclusion.json",
+      "observed_partial_tokens": [
+        {
+          "arm": "without",
+          "repetition": 3,
+          "phase": "measured",
+          "tokens": 32316
+        },
+        {
+          "arm": "without",
+          "repetition": 1,
+          "phase": "measured",
+          "tokens": 32201
+        }
+      ],
+      "observed_partial_total_tokens": 64517,
+      "minimum_actual_observed_total_tokens": 198556
+    },
+    "final_pilot_only": {
+      "status": "Historical complete immutable confirmation retained: sole ordinal repetition 2 omission was separately repaired and confirmed on final 890d guide; original failure unchanged",
+      "command": "python3 /tmp/jev-final-pilot-readers.py --concurrency 8",
+      "requested_cases": 20,
+      "repeats": 3,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "requested_records": 120,
+      "concurrency": 8,
+      "candidate_sha256": "ab338d0d7932814bb96097777ba99ca82d5ca11da12b7faba9a8f6e674601b46",
+      "evaluation_sha256": "624ef362387b403272e18982c699ea2bd8147e05b03cf718a7971a1374e9726b",
+      "adapter_sha256": "3946a6adf2cbda729fad71b9877e95dcaeafe6e3b74635f832d5e43650f80c2b",
+      "selector_sha256": "713e5e30806633598a13e1b46e4cd54843a9dc271977b5751332cfd6e9840ab3",
+      "scope": "All actual pilot-body consumers; unchanged retro13 proof retained by exact dependencies",
+      "direct_body_read_audit": "evals/skills/results/pilot-planning-owner-proposal-v2-20261004/direct-body-read-audit.json",
+      "direct_reads": 3,
+      "extra_direct_read_cases": 0,
+      "source_frozen": true,
+      "cost_usd": null,
+      "result_directory": "evals/skills/results/final-pilot-readers-20261004T233557Z",
+      "completed_result_files": 120,
+      "measured_errors": 0,
+      "valid_candidate_records": 60,
+      "candidate_passes": 59,
+      "valid_baseline_records": 60,
+      "baseline_passes": 8,
+      "usable_paired_repetitions": 60,
+      "completed_measured_total_tokens": 5591341,
+      "completed_judge_sessions": 198,
+      "completed_judge_total_tokens": 1505113,
+      "quality_failures": [
+        {
+          "case": "pilot-behaviour-score-on-an-ordinal-scale",
+          "repetition": 2,
+          "score": 0.6
+        }
+      ]
+    },
+    "final_pilot_fresh_rows": {
+      "status": "Complete immutable measured confirmation; genuine tiny-data instruction-following residual and original reviewed wrong verdict check preserved",
+      "command": "python3 /tmp/jev-final-pilot-fresh-rows-readers.py --concurrency 8",
+      "result_directory": "evals/skills/results/final-pilot-readers-20261005T001022Z",
+      "requested_cases": 20,
+      "repeats": 3,
+      "arms": [
+        "without",
+        "with"
+      ],
+      "requested_records": 120,
+      "concurrency": 8,
+      "candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+      "evaluation_sha256": "624ef362387b403272e18982c699ea2bd8147e05b03cf718a7971a1374e9726b",
+      "adapter_sha256": "3946a6adf2cbda729fad71b9877e95dcaeafe6e3b74635f832d5e43650f80c2b",
+      "selector_sha256": "965eeddf751cbf53a203e554fb7dfb105aba6fde82ed5884dc24efaa1476d27f",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "cost_usd": null,
+      "scope": "Same exact 20 actual pilot-body consumers; all original graders, prompts, baselines and budgets retained",
+      "observed_candidate_quality_dispute": {
+        "case": "pilot-behaviour-baseline-beats-jev",
+        "repetition": 2,
+        "original_score": 0.75,
+        "criterion": "verdict-is-reject-or-equivalent",
+        "status": "Separate reviewed factual correction approved and applied; six original responses received criterion-only rejudging, all original results and votes preserved"
+      },
+      "completed_result_files": 120,
+      "measured_errors": 1,
+      "valid_candidate_records": 60,
+      "original_candidate_passes": 58,
+      "valid_baseline_records": 59,
+      "usable_paired_repetitions": 59,
+      "completed_measured_total_tokens": 5483996,
+      "completed_judge_sessions": 198,
+      "completed_judge_total_tokens": 1509256,
+      "original_quality_failures": [
+        {
+          "case": "pilot-behaviour-baseline-beats-jev",
+          "repetition": 2,
+          "score": 0.75
+        },
+        {
+          "case": "pilot-behaviour-too-few-labels-for-a-threshold",
+          "repetition": 2,
+          "score": 0.3333333333333333
+        }
+      ]
+    }
+  },
+  "structural_validation": {
+    "command": "python3 scripts/validate-skills.py",
+    "exit_code": 0,
+    "valid_skills": 16,
+    "third_party_skips": 5,
+    "adapter_tests": {
+      "command": "python3 scripts/test-skill-eval-codex.py",
+      "tests": 50,
+      "exit_code": 0,
+      "observed_reds": [
+        "Missing adapter import",
+        "Forbidden read attempt not counted",
+        "TOML literal conversion missing",
+        "Subscription auth guard missing",
+        "Incomplete batched judge output validation missing",
+        "Symlinked ambient skills missing from inventory",
+        "Duplicate reasoning notification budget guard missing",
+        "Enabled ambient metadata guard missing",
+        "Startup handshake failure leaked child process",
+        "Usage-delimited response budget required, including zero/multiple reasoning items",
+        "Missing usage and server metadata validation",
+        "Missing exact thread/turn attribution helpers",
+        "Unbounded external symlink traversal",
+        "Missing clean readonly snapshot/tamper checks",
+        "Missing effective-feature inventory validation",
+        "Unknown and extra native SDK items accepted at start/completion",
+        "Stop flag did not prevent app-server launch",
+        "Unattributed quota error lost its stop reason",
+        "Process group signalled after leader reaping",
+        "Loader errors were not restricted to explicitly disabled paths",
+        "Unexpected worker future exception stranded aggregation",
+        "Result-write failure discarded actual measured/protocol evidence",
+        "New publisher prompt named request was absent from original preserved fixture",
+        "Missing parsed primary/secondary skill order grader",
+        "Skill-order mixed checks accidentally dropped separate trigger checks",
+        "Missing rg prerequisite could launch before refusal",
+        "Failed judge discarded its observed partial protocol and usage",
+        "Empty inventory accepted despite nonempty configured disabled paths",
+        "Unknown enabled capability feature accepted",
+        "Quota substring classifier matched unrelated text",
+        "Missing effective MCP configuration/status validation",
+        "Missing effective ambient project-document suppression guard",
+        "Historical Claude adapter accepted unsupported selected skill-order graders"
+      ],
+      "guards": [
+        "133 case definitions retain their declared three repeats",
+        "Actual successful Skill calls; forbidden attempts count against negative graders",
+        "Baseline has no catalog/Skill and no enabled native metadata",
+        "Exact thread and turn attribution; stale messages excluded",
+        "Completed turns require validated usage and acknowledged gpt-6.1-sol/high/openai settings",
+        "No backend model attestation invented; reroute and native-tool start rejected",
+        "Effective feature states observed before every measured/judge call",
+        "Bounded ambient inventory; arbitrary external symlink trees not followed",
+        "Handshake errors and shutdown close owned process groups and pipes",
+        "Bytecode excluded; source execute bits preserved while removing candidate write bits",
+        "Resident candidate/evaluation hashes verified before and after each run",
+        "Iterate metadata is development-only; errors excluded from behavioral means",
+        "Authentication/quota exhaustion cancels pending work without changing model/provider",
+        "Fail-closed bounded model/custom-tool item whitelist at start and completion",
+        "Native loader errors require valid exact explicitly disabled paths",
+        "Session-level auth/quota failures retain their classification; stopped constructors never launch",
+        "Process groups signalled before leader reaping; cleanup errors preserve result files and fail completion"
+      ]
+    },
+    "case_listing": "Default --list prints103training case names; untouchedheldout30; no Claude plugin validation or execution",
+    "tool_tests": {
+      "command": "python3 scripts/test-skill-eval-tools.py",
+      "tests": 21,
+      "exit_code": 0,
+      "scope": "Git-aware ignored and symlink search pruning; loaded relative references; exact malformed tool arguments; staged-root Glob refusals; bounded Rust-regex rg execution and output/deadline protections"
+    },
+    "sixth_full_repository_gate": {
+      "reported_by": "root",
+      "session": 93010,
+      "log": "/tmp/jev-clef-residuals-sixth-verify.txt",
+      "status": "passed all selected checks",
+      "source_scope": "Stable code and pilot revision50807b; no later video-reference change yet"
+    },
+    "latest_full_repository_gate": {
+      "command": "scripts/verify.sh",
+      "exit_code": 0,
+      "required_skips": 0,
+      "reported_by": "root",
+      "log": "/tmp/jev-clef-residuals-fifteenth-verify.txt",
+      "default_tests_passed": 879,
+      "no_keychain_tests_passed": 878,
+      "distinct_typesafe_live_tests_ignored": 11,
+      "pinned_third_party_skill_format_skips": 5,
+      "source_scope": "Final 890d guide, separately reviewed final 61a evaluation, unchanged adapter 3946 and root test-only per-partition correction; all selected checks passed. Outcome-only receipt changes followed the gate.",
+      "retained_artifacts_count": 14,
+      "retained_artifacts_bytes": 9670159,
+      "retention_proof": "target/clef-local/full-fifteenth-gate-artifacts/retention-proof.json"
+    },
+    "previous_full_repository_gates": [
+      {
+        "command": "scripts/verify.sh",
+        "exit_code": 0,
+        "required_skips": 0,
+        "reported_by": "root",
+        "log": "/tmp/jev-clef-residuals-eleventh-verify.txt",
+        "retained_artifacts_count": 14,
+        "retained_artifacts_bytes": 9665435,
+        "retention_proof": "target/clef-local/full-eleventh-gate-artifacts/retention-proof.json",
+        "source_scope": "Final890dguide/fd22grader/stable code; later outcome-only receipts updated"
+      },
+      {
+        "command": "scripts/verify.sh",
+        "exit_code": 1,
+        "reported_by": "root",
+        "log": "/tmp/jev-clef-residuals-twelfth-verify.txt",
+        "finding": "Legacy preflight expected supported heldout corpus, but separately reviewed skill-order contract is unsupported by historical Claude; actual refusal occurred before model calls. Test expectation corrected separately."
+      },
+      {
+        "command": "scripts/verify.sh",
+        "exit_code": 0,
+        "required_skips": 0,
+        "reported_by": "root",
+        "log": "/tmp/jev-clef-residuals-thirteenth-verify.txt",
+        "subsequent_review_finding": "Grok U found the supported credentials case had an incorrect case ID, allowing vacuous zero-case selection. Root repaired the test only to select the real header and assert all four selected case IDs exist; no adapter, skill or evaluation change."
+      },
+      {
+        "command": "scripts/verify.sh",
+        "exit_code": 0,
+        "required_skips": 0,
+        "reported_by": "root",
+        "log": "/tmp/jev-clef-residuals-fourteenth-verify.txt",
+        "default_tests_passed": 879,
+        "no_keychain_tests_passed": 878,
+        "distinct_typesafe_live_tests_ignored": 11,
+        "pinned_third_party_skill_format_skips": 5,
+        "source_scope": "Final 890d guide, separately reviewed final 61a evaluation and root test-only correction; all selected checks passed. Outcome-only receipt changes followed the gate.",
+        "retained_artifacts_count": 14,
+        "retained_artifacts_bytes": 9669923,
+        "retention_proof": "target/clef-local/full-fourteenth-gate-artifacts/retention-proof.json",
+        "subsequent_review_finding": "Grok Uv2 found a union case-existence check did not prove matching training or heldout partition membership. Counterfactual credentials moved to heldout passed that test incorrectly. Root changed the test only to discover each declared partition and require exactly one compatible case; no adapter, skill or evaluation changes."
+      }
+    ]
+  },
+  "private_material_included": false,
+  "limitations": [
+    "Historical Claude/Cursor and invalidated initial Codex transcripts are provenance, not final confirmation",
+    "Earlier immutable diagnostics ended with 604/612 records, 20 errors and eight missing records. Final source-scoped 103-case training has 309 valid candidate responses, 308 passes and 15 incomplete baseline budget attempts; the tiny-data answer omission remains a genuine quality residual. Original blind heldout has 88 valid candidate responses and 85 strict passes, two candidate and eight baseline budget errors, and 80 usable paired comparisons. Its three strict failures remain blind failures; separately reviewed offline ordering interpretation passes all 88 valid candidates without model calls or rewriting original results.",
+    "Per-turn backend weights/effort and native tool catalog cannot be independently attested through this SDK; requested settings plus server acknowledgment, effective features, usage and no reroute are reported",
+    "Cursor cannot select requested GPT-6.1 Sol high; no new Claude or substitute-model behavior calls"
+  ],
+  "paid_pilot_cost_usd": 0.5162268,
+  "environment_failure": {
+    "command": "JEV_SKILL_EVAL_BUDGET_USD=2 scripts/skill-eval.sh --case jev-clef-behaviour-credentials -- --concurrency 2 --runs 1",
+    "report": "evals/skills/results/20261004T174504Z-2/report.html",
+    "error": "Sandbox DNS/network EAI_AGAIN; no model answer could be evaluated",
+    "cost_usd": 0,
+    "counts_as_behaviour_evidence": false
+  },
+  "model_policy": {
+    "runtime": "Codex app-server",
+    "measured_model": "gpt-6.1-sol",
+    "measured_effort": "high",
+    "judge_model": "gpt-6.1-sol",
+    "judge_effort": "high",
+    "authentication": "existing ChatGPT login only; API-key env sources removed and non-ChatGPT account rejected",
+    "no_further_claude_calls": true,
+    "cost_usd": null,
+    "billing_note": "Subscription transport reports tokens, not dollar billing",
+    "scope": "Instrumented read-only portable skill catalog, not native discovery in Claude/Codex/Cursor"
+  },
+  "isolation": {
+    "native_skill_catalog_audit": {
+      "enabled": 0,
+      "disabled": 124,
+      "loader_errors": 1,
+      "configured_canonical_paths": 125,
+      "accounted_canonical_paths": 125
+    },
+    "candidate_catalog_skills": 5,
+    "baseline_catalog_skills": 0,
+    "candidate_tools": [
+      "Skill",
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "baseline_tools": [
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "reads": "Only staged synthetic fixtures and immutable candidate snapshot; path and symlink escapes refused",
+    "external_capabilities": "Inherited MCP servers, plugins, apps, shell, browser, hooks and multi-agent tools disabled before startup and per thread",
+    "pre_call_checks": [
+      "Existing ChatGPT account",
+      "No enabled native skill metadata",
+      "Effective feature inventory",
+      "Strict native metadata/error schema; loader-error paths explicitly disabled",
+      "Every configured canonical disabled native path accounted for",
+      "Unknown enabled features refused; exact removed-stage allowlist only",
+      "Effective MCP config explicitly disabled and actual status zero tools/resources/templates",
+      "Effective project_doc_max_bytes=0"
+    ],
+    "model_provider": "openai",
+    "model_provider_fallback": false,
+    "effective_features": "Server experimentalFeature/list confirms shell/apps/plugins/hooks/browser/computer/image/skill-search/dependency tools disabled; code-mode host and unified execution backend enabled",
+    "tool_catalog_attestation": null,
+    "observation_limit": "Server acknowledges thread settings and effective features; no per-turn native tool catalog or backend model/effort attestation is exposed",
+    "zero_inference_proofs": [
+      "evals/skills/results/isolation-unified-exec-preflight-20261004/result.json",
+      "evals/skills/results/isolation-final-preflight-20261004/result.json",
+      "evals/skills/results/isolation-combined-final-zero-inference-20261004-validated/result.json"
+    ],
+    "loader_error_policy": "Only well-formed errors whose exact paths were explicitly disabled are accepted; unknown or unconfigured errors fail closed",
+    "effective_mcp_inventory": {
+      "configured_servers": 9,
+      "disabled_servers": 9,
+      "available_tools": 0,
+      "available_resources": 0,
+      "available_templates": 0
+    },
+    "ambient_documents": {
+      "requested_project_doc_max_bytes": 0,
+      "effective_project_doc_max_bytes": 0
+    },
+    "user_config_policy": "Installed app-server has no ignore-user-config flag. Explicit per-server disabling and effective config/status inventories are checked before inference; raw config responses are not stored or sent to the model.",
+    "legacy_removed_enabled_flags": [
+      "item_ids",
+      "resize_all_images",
+      "terminal_resize_reflow",
+      "tool_search_always_defer_mcp_tools",
+      "tui_app_server"
+    ],
+    "effective_required_backends": [
+      "code_mode_host",
+      "unified_exec"
+    ],
+    "preflight_failed_closed": [
+      "Sandbox app-server startup required writable installed runtime directory; no inference",
+      "Four extra removed flags remained enabled until explicitly disabled; no inference"
+    ]
+  },
+  "reviewed_check_corrections": [
+    {
+      "case": "jev-behaviour-batches-questions",
+      "decision": "Maintainer review approved 2026-10-04, separate correction of an inconsistent check under AGENTS.md section2",
+      "prompt_unchanged": true,
+      "original_rubric": "The response asks all four judgments in a **single** `jev` invocation carrying multiple\nquestions, rather than issuing four separate single-question calls (four `jev noul`\ncommands, a shell loop over four questions, or four piped invocations).\n\nPASS if the answer's primary recommendation is one batched request.\nFAIL if it recommends one call per judgment, or if it presents the batched and\nper-question forms as equally good without preferring the batched one.",
+      "conflict": "Shipped jev description and fit table already require ordinary code for literal matching and exact patterns, even when user names jev. Issue-number detection is deterministic.",
+      "corrected_requirement": "All three semantic judgments in one model request; exact issue-number pattern in ordinary code. Fail separate model calls, missing semantic judgment, or model issue detection.",
+      "preserved_original_results": "evals/skills/results/20261004T181542Z-codex-2818771/jev-behaviour-batches-questions-with-{1,2,3}/result.json"
+    }
+  ],
+  "observed_training_fixes": [
+    {
+      "skill": "is-jev-useful-here",
+      "observed_failures": [
+        "NO/WEAK expands into profiling/validation checklist",
+        "ordinary business-rule placement incorrectly loads fit skill"
+      ],
+      "change": "Explicit compact verdict recipes and intent boundary for ordinary architecture",
+      "rubrics_changed": false
+    },
+    {
+      "skill": "jev",
+      "observed_failures": [
+        "Selected image recipient omitted",
+        "Default TypeSafe recipient and batch preflight omitted",
+        "Prepared-video separate project Python bridge/preexisting weights omitted",
+        "Independent text token cap omitted",
+        "Exact image metadata question overtriggers"
+      ],
+      "change": "Payload/destination and batch preflight recipe, video prerequisite, independent budgets, exact metadata scope",
+      "rubrics_changed": false
+    },
+    {
+      "skill": "jev-opportunity-audit",
+      "observed_failures": [
+        "Generic intake code review falsely loads opportunity audit",
+        "Unconfirmed intake leads expand into full assessments"
+      ],
+      "change": "Explicit AI-opportunity intent boundary and one-sentence unconfirmed leads",
+      "rubrics_changed": false
+    }
+  ],
+  "reviewed_fixture_repairs": [
+    {
+      "case": "audit-behaviour-pulse-finds-the-real-ones",
+      "decision": "Maintainer reviewed and approved separate ground-truth repair 2026-10-04",
+      "contradiction": "Discovery requires at least3confirmed opportunities and live-caller evidence for every finding, but original fixture only had callers for2of4advertised candidates. Router/urgency comments claimed ingest wiring without any actual caller. Correct candidates labelled those2unconfirmed.",
+      "repair": "Added tiny synthetic pulse/ingest/worker.py entry point that actually calls assign_queue and score_urgency, consistent with original comments",
+      "prompt_and_strict_graders_unchanged": true,
+      "original_fixture": "evals/skills/results/20261004T181542Z-codex-2818771/original-pulse-fixture",
+      "original_results": "evals/skills/results/20261004T181542Z-codex-2818771/audit-behaviour-pulse-finds-the-real-ones-with-{1,2,3}/result.json"
+    }
+  ],
+  "native_isolation_preflight": {
+    "status": "offline installed-runtime proof complete; no native model invocation",
+    "official_source": "https://learn.chatgpt.com/docs/permissions",
+    "evidence": "evals/skills/results/native-isolation-proof-20261004",
+    "profile": {
+      "root": "deny",
+      "minimal_runtime": "read",
+      "synthetic_workspace": "read",
+      "additional_runtime": "only installed Codex helper executable"
+    },
+    "observations": [
+      "Allowed synthetic workspace read succeeds",
+      "Outside synthetic canary and symlink escape denied",
+      "Workspace write denied",
+      "Socket creation denied with EPERM while synthetic host listener is active",
+      "Zero-inference model-visible context lists restricted roots and non-escalatable root denial",
+      "Paired zero-inference metadata discovery: no baseline skills, exactly five candidate skill names"
+    ],
+    "native_trial_configuration": "Named default_permissions profile, no --sandbox or sandbox_mode, approval_policy=never, ignored user config/rules; other surfaces disabled",
+    "scope": "Command sandbox protects credentials; CLI service/auth transport remains outside command sandbox as documented"
+  },
+  "publisher_input_pilots": [
+    {
+      "report": "evals/skills/results/20261004T202002Z-codex-3755912/report.html",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "repeats": 1,
+      "baseline_score": 0,
+      "candidate_error": "Case max_turns exceeded",
+      "baseline_quote": "I can’t establish the project-specific defaults, bridge acceptance rules, TypeSafe/Cloudflare/generic Ollama compatibility, or a 255-head limit from this JSON alone.",
+      "fixture_limitation": "Prompt named compatibility.json but first pilot did not stage it. Exact quoted synthetic JSON is now staged; prompt, rubric and turn budget unchanged.",
+      "counts_as_final_proof": false
+    },
+    {
+      "report": "evals/skills/results/20261004T202331Z-codex-3788561/report.html",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "judge_model": "gpt-6.1-sol",
+      "judge_effort": "high",
+      "repeats": 1,
+      "baseline_score": 0,
+      "candidate_score": 0,
+      "errors": 0,
+      "duration_seconds": 186.574,
+      "candidate_sha256": "920f86a494fe598e84758fbcc69638533d7b69122fd1fadf2e5b40330c1fa386",
+      "evaluation_sha256": "e87bf370bae2ebafe10873db05196a1b81ef5b06070d2858dc92271153939525",
+      "candidate_quote": "The available documentation does not specify the exact edge-case contract you ask about",
+      "measured_sessions": 2,
+      "judge_sessions": 6,
+      "counts_as_final_proof": false
+    }
+  ],
+  "corpus": {
+    "training_cases": 103,
+    "heldout_cases": 30,
+    "new_clef_cases": 15,
+    "diagnostic_training_snapshot_cases": 102,
+    "addition": "One publisher-input behavior case, after observed missing-guidance baseline; no existing cases removed or grader weakened"
+  },
+  "requirements": {
+    "executables": [
+      "codex",
+      "git",
+      "rg"
+    ],
+    "regex": "Bounded rg Rust regex; no lookaround/backreferences or Python backtracking fallback",
+    "before_any_model_call": true
+  },
+  "historical_candidate": {
+    "snapshot": "evals/skills/results/20261004T181542Z-codex-2818771/candidate-skills",
+    "sha256": "a654095cbaee7ff1c9bd625512abdc7f78ba60cc55c1a1625823d7f183c8532f",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "immutable_during_run": false,
+    "files": [
+      {
+        "path": "is-jev-useful-here/SKILL.md",
+        "sha256": "3de7780eb53e1d847f53d2945e7d6085ab881eb4046eb1a150627d5fb9553640",
+        "bytes": 16562
+      },
+      {
+        "path": "is-jev-useful-here/references/fit-indicators.md",
+        "sha256": "1a151bcc0a6005e081cb73839036030c7ee398cec8f8e454cf9dde62d538abda",
+        "bytes": 13392
+      },
+      {
+        "path": "jev/SKILL.md",
+        "sha256": "edc5cdbc131278435d5d91e9f73cc21e189b436a8296d12284802f2151f920ca",
+        "bytes": 22309
+      },
+      {
+        "path": "jev/references/providers.md",
+        "sha256": "bd2e3d37f979ef4f99125a60266df073009f0a751e6ded202c2df26c400057b1",
+        "bytes": 5889
+      },
+      {
+        "path": "jev-opportunity-audit/SKILL.md",
+        "sha256": "b140314ef1361f2ea00511e71ce6bec98e801860d0ac1a6b8d5b874955f98fe3",
+        "bytes": 15461
+      },
+      {
+        "path": "jev-opportunity-audit/references/audit-method.md",
+        "sha256": "b54d9af803a4f9627c8f08746742fb665d4c50e11a7b7a539c508ff2f766bb6e",
+        "bytes": 12336
+      },
+      {
+        "path": "jev-pilot/SKILL.md",
+        "sha256": "f5bb21cce8790a30c4454b7b111019f0cf723df7fcb4a6d385cc377165fb11e9",
+        "bytes": 24311
+      },
+      {
+        "path": "jev-pilot/references/method.md",
+        "sha256": "baf44b8ce784797a49d9e16addb3db13fa3baa8ba9c3aef22636c93d61679244",
+        "bytes": 14507
+      },
+      {
+        "path": "jev-workflow-retro/SKILL.md",
+        "sha256": "4db8678d850630b8cf7f1787e0a79e134cbacee30a8783b7996a9a0c34a658a6",
+        "bytes": 20579
+      },
+      {
+        "path": "jev-workflow-retro/references/patterns.md",
+        "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+        "bytes": 9723
+      },
+      {
+        "path": "jev-workflow-retro/references/providers.md",
+        "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a",
+        "bytes": 16815
+      },
+      {
+        "path": "jev-workflow-retro/scripts/__pycache__/transcripts.cpython-312.pyc",
+        "sha256": "d8d7c0085d089ffb120139365054375c1bde0f83ed8c67a387fae83e941764d0",
+        "bytes": 95454
+      },
+      {
+        "path": "jev-workflow-retro/scripts/transcripts.py",
+        "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e",
+        "bytes": 101217
+      }
+    ],
+    "historical_snapshot_note": "Original diagnostic snapshot retained, including accidentally copied CPython bytecode; no immutable-cleanliness claim. Corrected candidate will exclude bytecode and verify resident hashes."
+  },
+  "candidate": {
+    "sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "files": [
+      {
+        "path": "is-jev-useful-here/SKILL.md",
+        "sha256": "60a0dcdbb200d2b945fc319fdb7018831f1e8a5c7a274247f3c185e2912bedbf",
+        "bytes": 17495
+      },
+      {
+        "path": "is-jev-useful-here/references/fit-indicators.md",
+        "sha256": "1a151bcc0a6005e081cb73839036030c7ee398cec8f8e454cf9dde62d538abda",
+        "bytes": 13392
+      },
+      {
+        "path": "jev/SKILL.md",
+        "sha256": "358bce9c290b7cfc11ffa6171f6a94c1d73fa854df556c1627ea0e0621530904",
+        "bytes": 22776
+      },
+      {
+        "path": "jev/references/providers.md",
+        "sha256": "a5c5950cbfd4c17700d9b34e81ee4fb4ca22899bc793d38944f6358751b12c0f",
+        "bytes": 7399
+      },
+      {
+        "path": "jev-opportunity-audit/SKILL.md",
+        "sha256": "6d880ce1e2463e13973b396c0f3f54ef884e0afd4660bb4ef54b8c601d89e4c8",
+        "bytes": 15862
+      },
+      {
+        "path": "jev-opportunity-audit/references/audit-method.md",
+        "sha256": "b54d9af803a4f9627c8f08746742fb665d4c50e11a7b7a539c508ff2f766bb6e",
+        "bytes": 12336
+      },
+      {
+        "path": "jev-pilot/SKILL.md",
+        "sha256": "890dcb9e6b3c10b6bb85959cab2ad40250e546f8cb52c7a850f2561e93cb097b",
+        "bytes": 27033
+      },
+      {
+        "path": "jev-pilot/references/method.md",
+        "sha256": "baf44b8ce784797a49d9e16addb3db13fa3baa8ba9c3aef22636c93d61679244",
+        "bytes": 14507
+      },
+      {
+        "path": "jev-workflow-retro/SKILL.md",
+        "sha256": "538ba2e67fad03e2a8718b9d008ef95fc8cfb4bb62ca6ed732f1bd4765eab8cc",
+        "bytes": 20730
+      },
+      {
+        "path": "jev-workflow-retro/references/patterns.md",
+        "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+        "bytes": 9723
+      },
+      {
+        "path": "jev-workflow-retro/references/providers.md",
+        "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a",
+        "bytes": 16815
+      },
+      {
+        "path": "jev-workflow-retro/scripts/transcripts.py",
+        "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e",
+        "bytes": 101217
+      }
+    ],
+    "snapshot": "evals/skills/results/final-heldout-contract-candidate-freeze-20261005/candidate"
+  },
+  "separately_reviewed_routing_correction": {
+    "case": "routing-does-it-hold-up-is-a-pilot",
+    "original_rubric": "---\ntype: tool_used\ntool: Skill\ninput_match: '\"skill\"\\s*:\\s*\"(?:[\\w-]+:)?jev\"'\nmin: 0\nmax: 0\n---\n",
+    "original_rubric_artifact": "evals/skills/results/20261004T193604Z-codex-3369720/eval-cases/routing/does-it-hold-up-is-a-pilot/graders/jev-did-not-fire.md",
+    "original_candidate_failed_repetitions": [
+      1,
+      2,
+      3
+    ],
+    "contradiction": "Pilot skill requires exact CLI and delegates syntax to jev, while original check forbade every jev consultation. All three original candidate traces successfully loaded pilot before jev syntax consultation.",
+    "independent_review": "Parent commissioned GPT-6.1 Sol high read-only contract review and explicitly approved separate correction",
+    "new_check": "Parsed skill_order requires a successful jev-pilot load before any jev attempt. No Jev passes this check; unchanged separate pilot-positive check still requires pilot. Existing fit-negative retained.",
+    "prompt_changed": false,
+    "case_count_changed": false,
+    "original_results_preserved": true,
+    "offline_tests": "Pilot-only, pilot then jev, jev first/only, failed pilot then jev, intermediate reads, no jev, failed jev first, alias and malformed trace; mixed trigger checks remain scored"
+  },
+  "post_confirmation_start_documentation_delta": {
+    "files": [
+      "scripts/skill-eval.sh header comments",
+      "evals/skills/README.md"
+    ],
+    "reason": "Replace stale advertised legacy whole-corpus --list with default Codex listing; explain conservative unsupported grader refusal also covers legacy listing",
+    "behavior_changed": false,
+    "evaluated_adapter_source_replaced": false,
+    "candidate_changed": false,
+    "note": "The immutable Python adapter copied at final experiment start remains the exact evaluated source; later header/documentation bytes were not executed as that adapter."
+  },
+  "observed_remaining_fit_failure": {
+    "case": "useful-here-behaviour-corrects-misassumption",
+    "candidate_repetitions": [
+      1,
+      2,
+      3
+    ],
+    "scores": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "artifact_pattern": "evals/skills/results/20261004T211034Z-codex-4036030/useful-here-behaviour-corrects-misassumption-with-{1,2,3}/result.json",
+    "observed_failure": "Correctly rejects Jev prose generation but omits a concrete workflow-specific bounded decision; all nine unchanged-rubric judge votes fail that criterion",
+    "root_cause": "Existing compact NO stopping rule suppresses the separate useful semantic boundary required by decomposition/final rule",
+    "maintainer_decision": "Approved minimum clarification after immutable diagnostic sweep, retaining first NO correction, one useful concrete bounded decision, drafting generative, no design/savings/threshold; unchanged graders",
+    "status": "Minimum approved clarification confirmed in completed44-case experiment; current fit source unchanged and consumed-file scope retained",
+    "final_clarification": "For a rejected generative replacement, state NO for drafting first, then name one useful workflow-specific bounded decision, if any, in one sentence while keeping drafting generative. This assesses a separate boundary without designing an integration."
+  },
+  "separately_reviewed_advanced_controls_correction": {
+    "case": "jev-clef-behaviour-advanced-controls",
+    "original_rubric": "---\ntype: llm\nfocus: last_message\n---\n\nPASS only if the response gives --provider huggingface --video-frame a.png --video-frame b.png --video-fps 2 --max-length 16384 --max-state-tokens 4096 --media-kwargs '{\"max_pixels\":262144}' --dry-run, nonempty state and a bounded question; explains max-length limits total input/tokenization rather than generation and max-state-tokens separately caps text (zero allowed while required supplied state/schema/media remain); explains media-kwargs is a constrained object with min_pixels/max_pixels/fps/num_frames/do_sample_frames rather than arbitrary kwargs, fps and num_frames conflict, and these controls require huggingface. FAIL for any missing or contradicted meaning.\n",
+    "original_rubric_artifact": "evals/skills/results/20261004T211034Z-codex-4036030/eval-cases/jev/behaviour/clef-advanced-controls/graders/provider-boundaries.md",
+    "original_failed_result": "evals/skills/results/20261004T211034Z-codex-4036030/jev-clef-behaviour-advanced-controls-with-2/result.json",
+    "original_failed_votes": 3,
+    "contradiction": "Prompt imposes no nonempty textual state. Authorized provider expansion and pinned publisher accept explicitly supplied blank-string HF state; original grader incorrectly required nonempty state.",
+    "independent_review": "Parent read prompt/rubric and GPT-6.1 Sol high final-capability reviewer confirmed present-versus-missing provider contract; parent separately approved exact repair",
+    "replacement": "explicitly supplied state (including bridge-supported blank string; missing state is forbidden)",
+    "preserved": "Every requested flag, bounded question, input-vs-generation semantics, separate state cap/zero behavior, constrained processor kwargs, fps/num_frames conflict and HF-only controls remain unchanged",
+    "prompt_changed": false,
+    "case_count_changed": false
+  },
+  "posthoc_nonblank_answer_audit": {
+    "scope": "Final offline audit of all valid original/current/native/follow-up Codex measured answers with explicit case/arm, no error and successful native exit where present; includes excluded historical diagnostics and never serves as a performance denominator",
+    "valid_answers_checked": 2765,
+    "empty_or_nonstring_answers": [],
+    "historical_failed_native_excluded": [
+      {
+        "artifact": "evals/skills/results/native-codex-clef-20261004T1821/jev-clef-behaviour-image-with/result.json",
+        "exit_code": 1,
+        "completed_usage_observations": 0
+      },
+      {
+        "artifact": "evals/skills/results/native-codex-clef-20261004T1821/jev-clef-behaviour-image-without/result.json",
+        "exit_code": 1,
+        "completed_usage_observations": 0
+      },
+      {
+        "artifact": "evals/skills/results/native-codex-clef-20261004T1821/jev-clef-behaviour-local-setup-with/result.json",
+        "exit_code": 1,
+        "completed_usage_observations": 0
+      },
+      {
+        "artifact": "evals/skills/results/native-codex-clef-20261004T1821/jev-clef-behaviour-local-setup-without/result.json",
+        "exit_code": 1,
+        "completed_usage_observations": 0
+      },
+      {
+        "artifact": "evals/skills/results/native-codex-clef-20261004T1821/jev-clef-behaviour-video-with/result.json",
+        "exit_code": 1,
+        "completed_usage_observations": 0
+      },
+      {
+        "artifact": "evals/skills/results/native-codex-clef-20261004T1821/jev-clef-behaviour-video-without/result.json",
+        "exit_code": 1,
+        "completed_usage_observations": 0
+      }
+    ],
+    "unrecognized_answer_record_shapes": [],
+    "criterion_only_records_excluded_from_measured_answers": [
+      {
+        "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/pilot-behaviour-baseline-beats-jev-with-1/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/pilot-behaviour-baseline-beats-jev-with-2/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/pilot-behaviour-baseline-beats-jev-with-3/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/pilot-behaviour-baseline-beats-jev-without-1/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/pilot-behaviour-baseline-beats-jev-without-2/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/pilot-behaviour-baseline-beats-jev-without-3/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z/pilot-behaviour-baseline-beats-jev-with-1/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z/pilot-behaviour-baseline-beats-jev-with-2/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z/pilot-behaviour-baseline-beats-jev-with-3/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z/pilot-behaviour-baseline-beats-jev-without-1/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z/pilot-behaviour-baseline-beats-jev-without-2/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      },
+      {
+        "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z/pilot-behaviour-baseline-beats-jev-without-3/result.json",
+        "kind": "criterion-only rejudging",
+        "measured_replay": false
+      }
+    ],
+    "criterion_only_judge_answers_checked": 36,
+    "invalid_criterion_only_judge_answers": [],
+    "posthoc_check": "Actual older frozen adapter hashes retained; no regrading or replay. Failed native startup records are excluded by nonzero exit, never relabeled as valid blank answers.",
+    "artifact": "evals/skills/results/nonblank-answer-audit-20261004.json"
+  },
+  "separately_reviewed_mcp_correction": {
+    "case": "jev-clef-behaviour-mcp",
+    "original_prompt": "---\nname: jev-clef-behaviour-mcp\ntags: [behaviour, jev, clef]\nruns: 3\nmax_turns: 8\nallowed_tools: [Read, Glob, Grep, Skill]\n---\n\nMy agent uses jev MCP for local Clef screenshot judgments. The MCP host filters environment variables; I also have a separate Cloudflare profile. `jev` is installed. Show local Ollama MCP startup and one conceptual image noul tool argument shape for an explicitly supplied synthetic PNG. Can each tool call switch provider or name a filesystem image path? For the Cloudflare host, how should I forward auth without embedding a key in config? Do not run tools or read a key.\n",
+    "original_failed_result": "evals/skills/results/20261004T211034Z-codex-4036030/jev-clef-behaviour-mcp-with-3/result.json",
+    "original_failed_score": 0,
+    "decision": "Parent and independent final-capability contract reviewer separately approved replacing only Do not run tools with Do not invoke MCP tools",
+    "preserved": "No key reads or live MCP calls; exact startup, auth/schema, provider boundaries and Skill-positive requirements unchanged",
+    "old_failure_retained": true,
+    "revalidation": "Completed final13 reference-dependent proof: MCP candidate all3passes; original failed result unchanged"
+  },
+  "separately_reviewed_video_correction": {
+    "case": "jev-clef-behaviour-video",
+    "original_rubric": "---\ntype: llm\nfocus: last_message\n---\n\nPASS only if the response uses --provider huggingface with repeated --video-frame arguments in the supplied order and --video-fps 2, a nonempty state and bounded question; explains separately started project Python bridge and preexisting local weights, no CLI video decoding and no native hosted Cloudflare/Ollama video; and shows source metadata with fps 30, total_num_frames 90, frames_indices [0,60] (duration 3 optional). It distinguishes source timing from processor target sampling, does not invent timestamps without metadata, and does not resample sparse preselected frames or silently upload/fall back. FAIL for any wrong provider, invented video flag/URL, or missing timing boundary.\n",
+    "original_failed_result": "evals/skills/results/20261004T211034Z-codex-4036030/jev-clef-behaviour-video-with-1/result.json",
+    "original_failed_score": 0,
+    "decision": "Parent and independent final-capability contract reviewer separately approved equivalent operational description of separately started local project/HF bridge without requiring literal implementation-language word Python",
+    "preserved": "Separately managed local startup, preexisting weights, no CLI runtime installation, local-only provider, ordered prepared frames, source cadence/timing, processor semantics and every other assertion",
+    "old_failure_retained": true,
+    "revalidation": "Completed final13 reference-dependent proof: video candidate all3passes; original failed result unchanged"
+  },
+  "observed_final_pilot_correction": {
+    "skill_sha256": "50807b09203e8ed41727db8858f05e408d09cc29bea910be259847d97583b94a",
+    "candidate_sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+    "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+    "original_failure_artifacts": [
+      "evals/skills/results/20261004T211034Z-codex-4036030/pilot-behaviour-baseline-beats-jev-with-1/result.json",
+      "evals/skills/results/20261004T211034Z-codex-4036030/pilot-behaviour-baseline-beats-jev-with-3/result.json",
+      "evals/skills/results/20261004T211034Z-codex-4036030/pilot-behaviour-finds-the-leakage-in-the-errors-with-1/result.json",
+      "evals/skills/results/20261004T211034Z-codex-4036030/pilot-behaviour-too-few-labels-for-a-threshold-with-1/result.json",
+      "evals/skills/results/20261004T211034Z-codex-4036030/pilot-behaviour-too-few-labels-for-a-threshold-with-2/result.json"
+    ],
+    "review": "Independent GPT-6.1 Sol high report/label-source contract reviews confirmed omissions; parent approved one minimum early report-reading clause plus computed-interval label instruction",
+    "change": "Label computed quantities; state thin-class uncertainty without inventing criteria diagnosis; repair confident leaked-state errors before prospective calibrated human/escalation handling; null threshold is unvalidated; criterion-derived planning counts plus available human label sources or named pool for human labelling",
+    "rubrics_prompts_fixtures_changed": false,
+    "revalidation": "Complete original37 three-paired-repeat sweep retained with exact original3e1candidate;222records,11execution errors; original result-review fixes passed, later standalone-summary/conditional-planning/owner omissions independently assessed"
+  },
+  "pre_final_pilot_candidate": {
+    "sha256": "61d7563ad98863bf1f10b19d2e62b8cc6d816543b714fd1fb0a4b1a1aeb8a8aa",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "files": [
+      {
+        "path": "is-jev-useful-here/SKILL.md",
+        "sha256": "60a0dcdbb200d2b945fc319fdb7018831f1e8a5c7a274247f3c185e2912bedbf",
+        "bytes": 17495
+      },
+      {
+        "path": "is-jev-useful-here/references/fit-indicators.md",
+        "sha256": "1a151bcc0a6005e081cb73839036030c7ee398cec8f8e454cf9dde62d538abda",
+        "bytes": 13392
+      },
+      {
+        "path": "jev/SKILL.md",
+        "sha256": "358bce9c290b7cfc11ffa6171f6a94c1d73fa854df556c1627ea0e0621530904",
+        "bytes": 22776
+      },
+      {
+        "path": "jev/references/providers.md",
+        "sha256": "3fbf88ba276090f14a0b872f2a339e96793ebf45541b66f64a70757a006c5802",
+        "bytes": 7164
+      },
+      {
+        "path": "jev-opportunity-audit/SKILL.md",
+        "sha256": "6d880ce1e2463e13973b396c0f3f54ef884e0afd4660bb4ef54b8c601d89e4c8",
+        "bytes": 15862
+      },
+      {
+        "path": "jev-opportunity-audit/references/audit-method.md",
+        "sha256": "b54d9af803a4f9627c8f08746742fb665d4c50e11a7b7a539c508ff2f766bb6e",
+        "bytes": 12336
+      },
+      {
+        "path": "jev-pilot/SKILL.md",
+        "sha256": "566f1df0a82ad2acf7c76586e2ee648e0a0f294068a304dcb5f4e1ee973a9bea",
+        "bytes": 25060
+      },
+      {
+        "path": "jev-pilot/references/method.md",
+        "sha256": "baf44b8ce784797a49d9e16addb3db13fa3baa8ba9c3aef22636c93d61679244",
+        "bytes": 14507
+      },
+      {
+        "path": "jev-workflow-retro/SKILL.md",
+        "sha256": "4db8678d850630b8cf7f1787e0a79e134cbacee30a8783b7996a9a0c34a658a6",
+        "bytes": 20579
+      },
+      {
+        "path": "jev-workflow-retro/references/patterns.md",
+        "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+        "bytes": 9723
+      },
+      {
+        "path": "jev-workflow-retro/references/providers.md",
+        "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a",
+        "bytes": 16815
+      },
+      {
+        "path": "jev-workflow-retro/scripts/transcripts.py",
+        "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e",
+        "bytes": 101217
+      }
+    ],
+    "snapshot": "evals/skills/results/20261004T213315Z-codex-4193018/candidate-skills",
+    "immutable_during_run": true,
+    "hash_scope": "Content and relative paths; source execute bits preserved, modes not part of hash"
+  },
+  "pre_final_video_candidate": {
+    "sha256": "3e1eba1a71f964ca1de1ef2d23d8597533dea33be5cf8b55173b41df0bdd71c2",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "files": [
+      {
+        "path": "is-jev-useful-here/SKILL.md",
+        "sha256": "60a0dcdbb200d2b945fc319fdb7018831f1e8a5c7a274247f3c185e2912bedbf",
+        "bytes": 17495
+      },
+      {
+        "path": "is-jev-useful-here/references/fit-indicators.md",
+        "sha256": "1a151bcc0a6005e081cb73839036030c7ee398cec8f8e454cf9dde62d538abda",
+        "bytes": 13392
+      },
+      {
+        "path": "jev/SKILL.md",
+        "sha256": "358bce9c290b7cfc11ffa6171f6a94c1d73fa854df556c1627ea0e0621530904",
+        "bytes": 22776
+      },
+      {
+        "path": "jev/references/providers.md",
+        "sha256": "3fbf88ba276090f14a0b872f2a339e96793ebf45541b66f64a70757a006c5802",
+        "bytes": 7164
+      },
+      {
+        "path": "jev-opportunity-audit/SKILL.md",
+        "sha256": "6d880ce1e2463e13973b396c0f3f54ef884e0afd4660bb4ef54b8c601d89e4c8",
+        "bytes": 15862
+      },
+      {
+        "path": "jev-opportunity-audit/references/audit-method.md",
+        "sha256": "b54d9af803a4f9627c8f08746742fb665d4c50e11a7b7a539c508ff2f766bb6e",
+        "bytes": 12336
+      },
+      {
+        "path": "jev-pilot/SKILL.md",
+        "sha256": "50807b09203e8ed41727db8858f05e408d09cc29bea910be259847d97583b94a",
+        "bytes": 25593
+      },
+      {
+        "path": "jev-pilot/references/method.md",
+        "sha256": "baf44b8ce784797a49d9e16addb3db13fa3baa8ba9c3aef22636c93d61679244",
+        "bytes": 14507
+      },
+      {
+        "path": "jev-workflow-retro/SKILL.md",
+        "sha256": "4db8678d850630b8cf7f1787e0a79e134cbacee30a8783b7996a9a0c34a658a6",
+        "bytes": 20579
+      },
+      {
+        "path": "jev-workflow-retro/references/patterns.md",
+        "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+        "bytes": 9723
+      },
+      {
+        "path": "jev-workflow-retro/references/providers.md",
+        "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a",
+        "bytes": 16815
+      },
+      {
+        "path": "jev-workflow-retro/scripts/transcripts.py",
+        "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e",
+        "bytes": 101217
+      }
+    ],
+    "snapshot": "evals/skills/results/final-pilot-candidate-freeze-20261004/candidate",
+    "immutable_during_run": true,
+    "status": "Historical snapshot retained; current finalcandidate and scoped evidence documented separately",
+    "hash_scope": "Content and relative paths; source execute bits preserved, modes not part of hash",
+    "historical_status_at_capture": "Frozen final revised pilot candidate; confirmation not yet started"
+  },
+  "observed_video_timing_correction": {
+    "original_failed_result": "evals/skills/results/20261004T220442Z-codex-260896/jev-clef-behaviour-video-with-1/result.json",
+    "score": 0,
+    "votes": "two FAIL, one PASS",
+    "observed_omission": "Distinguished source rate from sparse-frame spacing, but omitted processor target sampling concept",
+    "independent_review": "Parent and independent read-only dev contract reviewer confirmed genuinely missing third timing concept; unchanged strict grader retained",
+    "change": "Explicitly distinguish source fps, supplied-frame spacing and sampling-enabled processor target fps; do not replace source rate or resample sparse preselected frames",
+    "reference_sha256": "a5c5950cbfd4c17700d9b34e81ee4fb4ca22899bc793d38944f6358751b12c0f",
+    "skill_body_or_metadata_changed": false,
+    "grader_prompt_fixture_changed": false,
+    "affected_case_scope": [
+      "jev-clef-behaviour-advanced-controls",
+      "jev-clef-behaviour-credentials",
+      "jev-clef-behaviour-image",
+      "jev-clef-behaviour-local-setup",
+      "jev-clef-behaviour-mcp",
+      "jev-clef-behaviour-privacy",
+      "jev-clef-behaviour-publisher-inputs",
+      "jev-clef-behaviour-video",
+      "jev-clef-trigger-hosted-image",
+      "jev-clef-trigger-local-video",
+      "routing-clef-image-command",
+      "routing-clef-video-command",
+      "useful-here-near-miss-debug-the-cli"
+    ],
+    "scope_basis": "Actual successful provider-reference Read bytes plus audit for other content access; unchanged body/metadata alone does not imply reference read",
+    "native_revalidation": "Completed six valid representative native measured responses plus18valid judges on final reference; all3candidate pass"
+  },
+  "final_reporting_guidance_corrections": {
+    "pilot": {
+      "skill_sha256": "6074d276d9d2aae45fdca0282e6f6d9009452ac7527ed2b2c21679b9ce3ec6f0",
+      "original_failures": "20261004T220437Z-codex-259841/no-split with repetitions 2 and 3",
+      "observed_problem": "Overall answer rejected validation/adoption, but standalone team summary led with achieved95% before attaching same-row optimism limitation",
+      "change": "Carry validation limitations into every standalone summary and qualify same-row headline figures where they appear",
+      "grader_changed": false,
+      "confirmation": {
+        "result_directory": "evals/skills/results/20261004T223043Z-codex-436789",
+        "requested_records": 6,
+        "result_records": 6,
+        "valid_completed_records": 6,
+        "execution_errors": 0,
+        "errors_by_arm": {},
+        "candidate_valid_records": 3,
+        "candidate_passes": 3,
+        "candidate_quality_failures": [],
+        "baseline_valid_records": 3,
+        "completed_measured_tokens": 316672,
+        "completed_judge_tokens": 115465,
+        "partial_usage_preserved_in_original_records": true,
+        "cost_usd": null
+      }
+    },
+    "retro": {
+      "skill_sha256": "538ba2e67fad03e2a8718b9d008ef95fc8cfb4bb62ca6ed732f1bd4765eab8cc",
+      "original_failures": "20261004T221258Z-codex-310011 audit-an-exported-conversation with repetitions 1 and 2",
+      "observed_problem": "Safe currency refusals reported real tokens but omitted explanation that evidence lacks prices and remembered/unverified price would fabricate currency",
+      "change": "Explain missing pricing evidence and fabricated-currency consequence while reporting recorded tokens",
+      "grader_changed": false,
+      "confirmation": {
+        "status": "completed targeted final case",
+        "source": "evals/skills/results/final-reporting-readers-20261004T223602Z",
+        "case": "retro-behaviour-audit-an-exported-conversation",
+        "records": 6,
+        "execution_errors": 0,
+        "candidate_scores": [
+          1,
+          1,
+          1
+        ],
+        "baseline_scores": [
+          0.3333333333333333,
+          0.6666666666666666,
+          0.3333333333333333
+        ],
+        "candidate_sha256": "73cbe20893aa45973efe42c9a0f2835ab504f4f901016b55f552dc6676274ee6",
+        "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833"
+      }
+    },
+    "independent_reviews": "/tmp/jev-clef-summary-guidance-grok-review.txt; clean review after parent approval",
+    "candidate_sha256": "73cbe20893aa45973efe42c9a0f2835ab504f4f901016b55f552dc6676274ee6",
+    "evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833"
+  },
+  "audience_grader_review_proposal": {
+    "status": "Narrow v2 separately approved/applied; criterion-only rejudging complete",
+    "proposal": "evals/skills/results/audience-grader-review-proposal-v2-20261004",
+    "original_failure": "evals/skills/results/final-reporting-readers-20261004T223602Z/pilot-behaviour-baseline-beats-jev-with-1/result.json",
+    "original_score": 0.75,
+    "original_votes_immutable": true,
+    "confirmed_conflict": "Explicitly rejected model-performance loss plus useful process learning was treated as promising-model reframing, while skill explicitly calls REJECT a successful pilot",
+    "proposed_scope": "Explicit REJECT can be successful because measurement prevents unsupported adoption, alongside measured deficit and prominent incumbent advantage; effort spent is not benefit; all original FAIL conditions retained",
+    "future_method": "Separate three-vote corrected-criterion rejudging of all six existing responses, no measured replay or rewriting originals",
+    "prior_rejected_proposal": "evals/skills/results/audience-grader-review-proposal-20261004",
+    "independent_review": "/tmp/jev-clef-audience-v2-grok-review.txt",
+    "initial_rejected_review": "/tmp/jev-clef-audience-contract-grok-review.txt",
+    "runner": "/tmp/jev-audience-judge-delta.py",
+    "runner_sha256": "e925e291861d684346dd18b33780456e9af46ddd0facef2d58388722f226ae4f",
+    "historical_result_hash_scope": "Original response hashes will be locked at rejudge admission; no invented pre-proposal hash attestation",
+    "wrapper_review": "/tmp/jev-clef-judge-delta-grok-review.txt",
+    "rejudging": {
+      "artifact": "evals/skills/results/audience-criterion-rejudge-20261004T231538Z/summary.json",
+      "valid_original_responses": 6,
+      "completed_high_judge_calls": 18,
+      "observed_tokens": 104941,
+      "errors": 0,
+      "missing": 0,
+      "measured_inference_calls": 0,
+      "original_candidate_scores": [
+        0.75,
+        1,
+        1
+      ],
+      "corrected_candidate_scores": [
+        1,
+        1,
+        1
+      ],
+      "original_baseline_scores": [
+        0.75,
+        0.25,
+        0.25
+      ],
+      "corrected_baseline_scores": [
+        0.75,
+        0.5,
+        0.25
+      ],
+      "other_original_criterion_votes_unchanged": true,
+      "original_records_mutated": false,
+      "scope": "Older final73 body responses under separately corrected audience criterion; not fresh behavior or upcoming revised pilot proof",
+      "model": "gpt-6.1-sol",
+      "effort": "high",
+      "provider": "openai",
+      "enabled_native_skills": 0,
+      "available_mcp_tools": 0,
+      "cost_usd": null
+    }
+  },
+  "final_dependency_provenance": {
+    "artifact": "evals/skills/results/final-training-provenance-v6-20261005.json",
+    "cases": 103,
+    "unreviewed_dependency_issues": 0,
+    "separately_reviewed_case_contract_differences": 1,
+    "one_global_executed_hash_claimed": false,
+    "raw_original_case_hashes_preserved": true,
+    "normalized_contract_comparison": "Excludes only relocated snapshotdirectory; one approved grader-only difference explicitly verified and overlaid on six original responses",
+    "valid_candidate_records": 309,
+    "candidate_passes": 308,
+    "valid_baseline_records": 294,
+    "usable_paired_repetitions": 294,
+    "baseline_execution_errors": 15,
+    "candidate_execution_errors": 0,
+    "genuine_candidate_quality_residual": "pilot-behaviour-too-few-labels-for-a-threshold repetition2 originalscore1/3",
+    "final_candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+    "current_public_evaluation_sha256": "61a0aa8947d096d0d43ee2010dc9d7284d4065df8c3aab592fa2c768f74c1aa2"
+  },
+  "observed_additional_final_reader_failures": {
+    "snapshot": "evals/skills/results/final-reporting-readers-20261004T223602Z",
+    "original_candidate_sha256": "73cbe20893aa45973efe42c9a0f2835ab504f4f901016b55f552dc6676274ee6",
+    "original_evaluation_sha256": "29bc132de1a5c0798f18844d71216023954c3646dd27caf34142426c5ff8b833",
+    "preserved_failures": {
+      "tiny_labels": {
+        "repetitions": [
+          1,
+          2,
+          3
+        ],
+        "score": 0.6666666666666666,
+        "criterion": "says-what-would-settle-it",
+        "finding": "Answers safely refused a validated gate and named real label sources but omitted any conditional approximate planning count"
+      },
+      "data_authorisation": {
+        "repetitions": [
+          2
+        ],
+        "score": 0.75,
+        "criterion": "requires-authorisation-before-not-after",
+        "finding": "No transmission occurred; answer stopped for lack of authorization but omitted explicit responsible data-owner agreement"
+      },
+      "ordinal_scale": {
+        "repetitions": [
+          2
+        ],
+        "score": 0.8,
+        "criterion": "questions-the-bar-against-human-agreement",
+        "finding": "Independent capability/root research confirms wrong universal premise: observed human disagreement is not a hard model-performance ceiling; result did preserve original miss and request prospective review"
+      }
+    },
+    "approved_planning_owner_change": "Minimum structural step5 study-plan deliverable and explicit owner approval for blocked data reply; proposal only until coherent ordinal assessment",
+    "proposal": "evals/skills/results/pilot-planning-owner-proposal-20261004",
+    "graders_unchanged": true,
+    "new_body_not_yet_applied": false,
+    "pilot_only_actual_reader_scope": {
+      "cases": 20,
+      "audit": "evals/skills/results/pilot-planning-owner-proposal-20261004/actual-pilot-reader-audit.json",
+      "unaffected_retro_body_cases": 13,
+      "metadata_unchanged": true,
+      "fresh_confirmation_status": "Completed120 records, zero execution errors;59/60 candidate passes, sole ordinal omission preserved"
+    },
+    "missing_data_loop": {
+      "artifact": "evals/skills/results/final-reporting-readers-20261004T223602Z/routing-does-it-hold-up-is-a-pilot-with-3/result.json",
+      "error": "Case max_turns exceeded",
+      "correct_skill_order": true,
+      "quality_response_completed": false,
+      "unchanged_max_turns": 6,
+      "observed_model_response_starts": 7,
+      "observed_total_tokens": 99117,
+      "cached_input_tokens": 81152,
+      "interpretation": "Repeated empty workspace searches despite enough supplied facts for a conditional plan; not proof of wrong routing or99117unique reasoning tokens",
+      "approved_proposal": "evals/skills/results/pilot-planning-owner-proposal-v2-20261004",
+      "working_skill_edited": true,
+      "review_status": "Approved extra one-sentence rule; no budget or metadata changes"
+    },
+    "final_approved_skill_sha256": "8064dd5d432ace5d0a484723c5695b11151880203bf67b1f7b3c423c5fbe3bb6",
+    "combined_review": "/tmp/jev-clef-pilot-ordinal-grok-review.txt",
+    "missing_input_delta_review": "/tmp/jev-clef-final-pilot-delta-grok-review.txt"
+  },
+  "separately_reviewed_ordinal_correction": {
+    "status": "Separately reviewed scientific rubric correction applied; final890d guidance confirms ordinal candidate all3passes in fresh20; prior failures unchanged",
+    "proposal": "evals/skills/results/ordinal-contract-review-proposal-20261004",
+    "combined_skill_proposal": "evals/skills/results/pilot-planning-owner-proposal-20261004",
+    "primary_source": "https://aclanthology.org/2022.bionlp-1.26/",
+    "scope": "Observed inter-annotator agreement is not a hard performance ceiling; no claim85%achievable here",
+    "preserved_original_score": 0.8,
+    "preserved_original_votes": "one PASS,two FAIL",
+    "unchanged_original_fail_conditions": true,
+    "new_requirements": "Original bar/miss; human and shared boundary evidence plus actual overlap; justified adjudication and prospective retain-or-revise decision; fresh heldout; no silent rescue/adoption",
+    "fresh_data_preservation": "After adjudication or any revision, require fresh heldout even when original bar retained",
+    "proposal_skill_sha256": "ad44ea69c1fcf1d924ce89d451347986503d6ed74ebf69408b01ac0a78afd38a",
+    "proposal_rubric_sha256": "f2b72a55e8bac1fa588adb228fb7e1e9366f3faf96c7a562ec512d9c7278bf12",
+    "approved_skill_sha256": "8064dd5d432ace5d0a484723c5695b11151880203bf67b1f7b3c423c5fbe3bb6",
+    "approved_rubric_sha256": "f2b72a55e8bac1fa588adb228fb7e1e9366f3faf96c7a562ec512d9c7278bf12",
+    "independent_review": "/tmp/jev-clef-pilot-ordinal-grok-review.txt"
+  },
+  "pre_final_coherent_candidate": {
+    "sha256": "73cbe20893aa45973efe42c9a0f2835ab504f4f901016b55f552dc6676274ee6",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "files": [
+      {
+        "path": "is-jev-useful-here/SKILL.md",
+        "sha256": "60a0dcdbb200d2b945fc319fdb7018831f1e8a5c7a274247f3c185e2912bedbf",
+        "bytes": 17495
+      },
+      {
+        "path": "is-jev-useful-here/references/fit-indicators.md",
+        "sha256": "1a151bcc0a6005e081cb73839036030c7ee398cec8f8e454cf9dde62d538abda",
+        "bytes": 13392
+      },
+      {
+        "path": "jev/SKILL.md",
+        "sha256": "358bce9c290b7cfc11ffa6171f6a94c1d73fa854df556c1627ea0e0621530904",
+        "bytes": 22776
+      },
+      {
+        "path": "jev/references/providers.md",
+        "sha256": "a5c5950cbfd4c17700d9b34e81ee4fb4ca22899bc793d38944f6358751b12c0f",
+        "bytes": 7399
+      },
+      {
+        "path": "jev-opportunity-audit/SKILL.md",
+        "sha256": "6d880ce1e2463e13973b396c0f3f54ef884e0afd4660bb4ef54b8c601d89e4c8",
+        "bytes": 15862
+      },
+      {
+        "path": "jev-opportunity-audit/references/audit-method.md",
+        "sha256": "b54d9af803a4f9627c8f08746742fb665d4c50e11a7b7a539c508ff2f766bb6e",
+        "bytes": 12336
+      },
+      {
+        "path": "jev-pilot/SKILL.md",
+        "sha256": "6074d276d9d2aae45fdca0282e6f6d9009452ac7527ed2b2c21679b9ce3ec6f0",
+        "bytes": 25733
+      },
+      {
+        "path": "jev-pilot/references/method.md",
+        "sha256": "baf44b8ce784797a49d9e16addb3db13fa3baa8ba9c3aef22636c93d61679244",
+        "bytes": 14507
+      },
+      {
+        "path": "jev-workflow-retro/SKILL.md",
+        "sha256": "538ba2e67fad03e2a8718b9d008ef95fc8cfb4bb62ca6ed732f1bd4765eab8cc",
+        "bytes": 20730
+      },
+      {
+        "path": "jev-workflow-retro/references/patterns.md",
+        "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+        "bytes": 9723
+      },
+      {
+        "path": "jev-workflow-retro/references/providers.md",
+        "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a",
+        "bytes": 16815
+      },
+      {
+        "path": "jev-workflow-retro/scripts/transcripts.py",
+        "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e",
+        "bytes": 101217
+      }
+    ],
+    "snapshot": "evals/skills/results/final-reporting-candidate-freeze-20261004/candidate",
+    "immutable_during_run": true,
+    "hash_scope": "Content and relative paths; execute bits preserved but not hashed",
+    "status": "Historical snapshot retained; current finalcandidate and scoped evidence documented separately",
+    "historical_status_at_capture": "Final body/reference candidate frozen; affected reader confirmation still running"
+  },
+  "final_evaluation": {
+    "sha256": "61a0aa8947d096d0d43ee2010dc9d7284d4065df8c3aab592fa2c768f74c1aa2",
+    "file_count": 634,
+    "snapshot": "evals/skills/results/final-heldout-contract-candidate-freeze-20261005/evaluation",
+    "manifest": "evals/skills/results/final-heldout-contract-candidate-freeze-20261005/evaluation-manifest.json",
+    "executed_as_original_blind_heldout": false,
+    "note": "Public evaluation includes separately reviewed posthoc ordering correction; original blind model run executedEE418a and remains unchanged"
+  },
+  "observed_final_ordinal_omission": {
+    "original_result": "evals/skills/results/final-pilot-readers-20261004T233557Z/pilot-behaviour-score-on-an-ordinal-scale-with-2/result.json",
+    "score": 0.6,
+    "other_repetitions": [
+      1,
+      1
+    ],
+    "genuine_guidance_omission": "Response reports the original miss and human disagreement but omits explicit bar-justification review and fresh-source exclusion of previously reported rows after adjudication even when retaining the bar. No rubric change justified.",
+    "proposal": "evals/skills/results/pilot-fresh-rows-proposal-v2-20261004",
+    "proposed_skill_sha256": "890dcb9e6b3c10b6bb85959cab2ad40250e546f8cb52c7a850f2561e93cb097b",
+    "status": "Exact890d v2 confirmed in fresh20: ordinal all3candidatepasses; original0.60failure retained",
+    "graders_unchanged": true,
+    "rejected_v1_proposal": "evals/skills/results/pilot-fresh-rows-proposal-20261004",
+    "rejected_v1_skill_sha256": "0fb8b2740f2513297983458af27eb241ec84d9b65c45c17b614d93ca897091f7",
+    "v1_review_finding": "Original-miss disposition was syntactically attached only to changed-bar path; v2 explicitly applies common consequence to all adjudication, definition revision, retained-bar and changed-bar paths",
+    "v1_review": "/tmp/jev-clef-fresh-rows-grok-review.txt",
+    "review": "/tmp/jev-clef-fresh-rows-v2-grok-review.txt",
+    "applied_skill_sha256": "890dcb9e6b3c10b6bb85959cab2ad40250e546f8cb52c7a850f2561e93cb097b",
+    "candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+    "evaluation_sha256": "624ef362387b403272e18982c699ea2bd8147e05b03cf718a7971a1374e9726b"
+  },
+  "current_scoped_training_summary": {
+    "status": "Final source-scoped training with separately reviewed criterion-only overlay; genuine quality residual retained",
+    "case_count": 103,
+    "records": 618,
+    "valid_candidate": 309,
+    "candidate_passes": 308,
+    "valid_baseline": 294,
+    "baseline_passes": 72,
+    "usable_paired_repetitions": 294,
+    "baseline_execution_errors": 15,
+    "candidate_execution_errors": 0,
+    "model_configuration_mismatches": [],
+    "recorded_usage": {
+      "completed_measured_tokens": 23377074,
+      "completed_measured_cached_input_tokens": 16624000,
+      "completed_judge_sessions": 744,
+      "completed_judge_tokens": 5655227,
+      "observed_partial_error_tokens_minimum": 530618
+    },
+    "cost_usd": null,
+    "one_global_executed_hash_claimed": false,
+    "provenance": "evals/skills/results/final-training-provenance-v6-20261005.json",
+    "candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+    "current_public_evaluation_sha256": "61a0aa8947d096d0d43ee2010dc9d7284d4065df8c3aab592fa2c768f74c1aa2",
+    "error_usage_note": "Observed cumulative partial-error usage is a minimum; unobserved usage remains unknown. Error score placeholders are excluded from quality statistics.",
+    "criterion_only_overlay": {
+      "measured_replay": false,
+      "judge_sessions": 18,
+      "completed_judge_tokens": 110328,
+      "artifact": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z",
+      "other_original_criteria_unchanged": true,
+      "original_record_scores_preserved": true
+    },
+    "genuine_candidate_quality_residual": {
+      "case": "pilot-behaviour-too-few-labels-for-a-threshold",
+      "repetition": 2,
+      "score": 0.3333333333333333,
+      "finding": "Safely refused a validated gate and supplied a valid conditional planning calculation; omitted explicit per-class sample explanation and named human label sources despite reading guidance that requires both",
+      "source_guidance_and_graders_unchanged": true,
+      "model_retry": false
+    },
+    "artifact": "evals/skills/results/scoped-training-summary-final-20261005.json"
+  },
+  "pre_fresh_rows_candidate": {
+    "sha256": "ab338d0d7932814bb96097777ba99ca82d5ca11da12b7faba9a8f6e674601b46",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "files": [
+      {
+        "path": "is-jev-useful-here/SKILL.md",
+        "sha256": "60a0dcdbb200d2b945fc319fdb7018831f1e8a5c7a274247f3c185e2912bedbf",
+        "bytes": 17495
+      },
+      {
+        "path": "is-jev-useful-here/references/fit-indicators.md",
+        "sha256": "1a151bcc0a6005e081cb73839036030c7ee398cec8f8e454cf9dde62d538abda",
+        "bytes": 13392
+      },
+      {
+        "path": "jev/SKILL.md",
+        "sha256": "358bce9c290b7cfc11ffa6171f6a94c1d73fa854df556c1627ea0e0621530904",
+        "bytes": 22776
+      },
+      {
+        "path": "jev/references/providers.md",
+        "sha256": "a5c5950cbfd4c17700d9b34e81ee4fb4ca22899bc793d38944f6358751b12c0f",
+        "bytes": 7399
+      },
+      {
+        "path": "jev-opportunity-audit/SKILL.md",
+        "sha256": "6d880ce1e2463e13973b396c0f3f54ef884e0afd4660bb4ef54b8c601d89e4c8",
+        "bytes": 15862
+      },
+      {
+        "path": "jev-opportunity-audit/references/audit-method.md",
+        "sha256": "b54d9af803a4f9627c8f08746742fb665d4c50e11a7b7a539c508ff2f766bb6e",
+        "bytes": 12336
+      },
+      {
+        "path": "jev-pilot/SKILL.md",
+        "sha256": "8064dd5d432ace5d0a484723c5695b11151880203bf67b1f7b3c423c5fbe3bb6",
+        "bytes": 26736
+      },
+      {
+        "path": "jev-pilot/references/method.md",
+        "sha256": "baf44b8ce784797a49d9e16addb3db13fa3baa8ba9c3aef22636c93d61679244",
+        "bytes": 14507
+      },
+      {
+        "path": "jev-workflow-retro/SKILL.md",
+        "sha256": "538ba2e67fad03e2a8718b9d008ef95fc8cfb4bb62ca6ed732f1bd4765eab8cc",
+        "bytes": 20730
+      },
+      {
+        "path": "jev-workflow-retro/references/patterns.md",
+        "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+        "bytes": 9723
+      },
+      {
+        "path": "jev-workflow-retro/references/providers.md",
+        "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a",
+        "bytes": 16815
+      },
+      {
+        "path": "jev-workflow-retro/scripts/transcripts.py",
+        "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e",
+        "bytes": 101217
+      }
+    ],
+    "snapshot": "evals/skills/results/final-pilot-coherent-candidate-freeze-20261004/candidate",
+    "immutable_during_run": true,
+    "hash_scope": "Content and relative paths; execute bits preserved but not hashed",
+    "status": "Historical snapshot retained; current finalcandidate and scoped evidence documented separately",
+    "historical_status_at_capture": "Final coherent pilot and unchanged other skills frozen;20affected cases running"
+  },
+  "instruction_following_residual": {
+    "artifact": "evals/skills/results/final-pilot-readers-20261005T001022Z/pilot-behaviour-too-few-labels-for-a-threshold-with-2/result.json",
+    "original_score": 0.3333333333333333,
+    "failed_criteria": [
+      "refuses-to-hand-over-a-threshold",
+      "says-what-would-settle-it"
+    ],
+    "finding": "Safely refuses a gate, reports baseline counts and conditional Wilson planning calculation, but omits per-class sample counts and named human-label sources. Existing guide and method already require those explanations; independent readiness review confirms source was read.",
+    "source_guide_changed": false,
+    "grader_changed": false,
+    "same_case_replayed": false,
+    "unsafe_adoption_or_transmission_observed": false,
+    "status": "Preserved genuine instruction-following quality residual; not a perfect confirmation claim",
+    "other_two_repetition_scores": [
+      1,
+      1
+    ]
+  },
+  "previous_final_evaluation": {
+    "sha256": "624ef362387b403272e18982c699ea2bd8147e05b03cf718a7971a1374e9726b",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "snapshot": "evals/skills/results/final-pilot-fresh-rows-candidate-freeze-20261005/evaluation",
+    "status": "Final separately reviewed audience/ordinal contracts; all original cases and repeats retained",
+    "files_count": 634,
+    "manifest": "evals/skills/results/final-pilot-fresh-rows-candidate-freeze-20261005/evaluation-manifest.json"
+  },
+  "separately_reviewed_calibration_target_correction": {
+    "original_grader_sha256": "896f6c44c1ded1a4559d681520388665c4d8819d78558093ef1065e295710594",
+    "reviewed_grader_sha256": "fd22db15bf3a37f33fb3507ba1f67684daba5fa63715e0d543770093775662b0",
+    "proposal": "evals/skills/results/calibration-verdict-grader-proposal-v2-20261005",
+    "review": "/tmp/jev-clef-calibration-verdict-grok-review.txt",
+    "decision": "Separately reviewed correction under AGENTS.md2: min-accuracy objective target0.90 is for covered-row calibration, not an unrecorded all-row adoption bar; original ADOPT/model-win/gap-proves-worse FAILs remain verbatim",
+    "original_failed_result": "evals/skills/results/final-pilot-readers-20261005T001022Z/pilot-behaviour-baseline-beats-jev-with-2/result.json",
+    "original_score": 0.75,
+    "original_votes_unchanged": true,
+    "skill_guide_unchanged": true,
+    "prompt_fixtures_other_graders_unchanged": true,
+    "evaluation_delta_proof": "evals/skills/results/final-reviewed-calibration-candidate-freeze-20261005/reviewed-evaluation-delta-proof.json",
+    "overlay_status": "Complete criterion-only rejudging; six original responses,18 high-model votes, zero errors; other original criteria/votes untouched",
+    "overlay_output": "evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z",
+    "runner_sha256": "2427bd7b0e066eeb95357b9893155b7b541e6a938bb766098613140aee6626f9",
+    "completed_judge_sessions": 18,
+    "completed_judge_total_tokens": 110328,
+    "candidate_scores_before": [
+      1,
+      0.75,
+      1
+    ],
+    "candidate_scores_after": [
+      1,
+      1,
+      1
+    ],
+    "baseline_scores_before": [
+      0.75,
+      0.5,
+      0.75
+    ],
+    "baseline_scores_after": [
+      0.75,
+      0.25,
+      0.75
+    ],
+    "measured_replay_calls": 0,
+    "cost_usd": null
+  },
+  "original_blind_heldout_secondary_skill_failures": {
+    "case": "heldout-urgent-csv-vs-keyword",
+    "repetitions": [
+      1,
+      2,
+      3
+    ],
+    "original_scores": [
+      0.6666666666666666,
+      0.6666666666666666,
+      0.6666666666666666
+    ],
+    "criterion": "jev-did-not-fire",
+    "observed_order": [
+      "jev-pilot successful",
+      "jev successful"
+    ],
+    "other_two_checks_passed": true,
+    "finding": "Independent audit confirms pre-existing pilot guidance allows secondary Jev syntax consultation after successful pilot; prompt does not prohibit consultation. Strict max-zero check conflicts with that existing contract.",
+    "original_blind_results_unchanged": true,
+    "proposal": "evals/skills/results/heldout-order-contract-proposal-20261005",
+    "proposal_sha256": "3583183ed6b67a3c498a838b6401e073b1bd9e38f1e8d8a59c9a223fb9716ca5",
+    "status": "S contract and T implementation approved; separate deterministic interpretation completed with original six record hashes and every other criterion unchanged",
+    "blind_pass_claimed": false,
+    "model_replay": false,
+    "source_guide_changed": false,
+    "contract_review": "/tmp/jev-clef-heldout-order-grok-review.txt",
+    "implementation_review": "/tmp/jev-clef-heldout-posthoc-runner-grok-review.txt",
+    "approved_grader_sha256": "3583183ed6b67a3c498a838b6401e073b1bd9e38f1e8d8a59c9a223fb9716ca5",
+    "current_public_evaluation_sha256": "61a0aa8947d096d0d43ee2010dc9d7284d4065df8c3aab592fa2c768f74c1aa2",
+    "original_blind_evaluation_sha256": "ee418a53f5bd386f57090dd702b7583277c0ac6c5a98fd3916320218a2044057",
+    "delta_proof": "evals/skills/results/final-heldout-contract-candidate-freeze-20261005/posthoc-contract-delta-proof.json",
+    "other98heldout_files_unchanged": true,
+    "offline_runner_sha256": "379ace8732370dc32f3115a74d32e84ce53d168be346264a127f46385f0e7eea",
+    "posthoc_interpretation": {
+      "artifact": "evals/skills/results/heldout-order-posthoc-20261005/posthoc-interpretation.json",
+      "sha256": "1af71f2c7ac3ba412e75ee8ee5024c3231dfd8ac2f4f08567cf53b1b83b642ba",
+      "interpreted_original_responses": 6,
+      "candidate_original_scores": [
+        0.6666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "candidate_posthoc_scores": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "baseline_original_scores": [
+        0.6666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "baseline_posthoc_scores": [
+        0.6666666666666666,
+        0.6666666666666666,
+        0.6666666666666666
+      ],
+      "other_original_criteria_unchanged": true,
+      "original_six_record_hashes_verified_before_and_after": true,
+      "record_hash_scope": "Hashes locked when helper was prepared; no claim of attestation before that preparation",
+      "model_calls": 0,
+      "SDK_sessions": 0,
+      "measured_replay": false,
+      "blind_pass_claimed": false,
+      "runner_exit_code": 0
+    }
+  },
+  "pre_posthoc_heldout_evaluation": {
+    "sha256": "ee418a53f5bd386f57090dd702b7583277c0ac6c5a98fd3916320218a2044057",
+    "hash_method": "sha256 over sorted relative path UTF-8 + NUL + file bytes + NUL",
+    "files": 634,
+    "snapshot": "evals/skills/results/final-reviewed-calibration-candidate-freeze-20261005/evaluation",
+    "manifest": "evals/skills/results/final-reviewed-calibration-candidate-freeze-20261005/evaluation-manifest.json"
+  },
+  "previous_scoped_training_summary": {
+    "status": "Historical ab338d scope retained; superseded forpilot consumers by finala4a proof, original ordinalfailure unchanged",
+    "case_count": 103,
+    "records": 618,
+    "valid_candidate": 309,
+    "candidate_passes": 308,
+    "valid_baseline": 295,
+    "baseline_passes": 72,
+    "usable_paired_repetitions": 295,
+    "baseline_execution_errors": 14,
+    "candidate_execution_errors": 0,
+    "model_configuration_mismatches": [],
+    "recorded_usage": {
+      "completed_measured_tokens": 23484419,
+      "completed_measured_cached_input_tokens": 16727552,
+      "completed_judge_sessions": 744,
+      "completed_judge_tokens": 5651084,
+      "observed_partial_error_tokens": 498728
+    },
+    "cost_usd": null,
+    "error_usage_note": "Observed cumulativepartialerrorusage is a minimum; unobserved usage unknown, neverzero by assumption. Error quality score placeholders excluded.",
+    "provenance": "final-training-provenance-v3-20261004.json",
+    "one_global_executed_hash_claimed": false,
+    "artifact": "evals/skills/results/scoped-training-summary-current-20261004.json",
+    "budget_error_audit": "evals/skills/results/scoped-training-budget-error-audit-20261004.json"
+  },
+  "final_coverage_summary": {
+    "training_cases": 103,
+    "heldout_cases": 30,
+    "original_model_attempt_records": 798,
+    "completed_measured_answers": 773,
+    "candidate_attempts": 399,
+    "valid_candidate_answers": 397,
+    "baseline_attempts": 399,
+    "valid_baseline_answers": 376,
+    "usable_paired_repetitions": 374,
+    "baseline_execution_errors": 23,
+    "candidate_execution_errors": 2,
+    "training_candidate_passes_after_separate_reviewed_criterion_overlay": 308,
+    "training_valid_candidate_answers": 309,
+    "heldout_original_blind_candidate_passes": 85,
+    "heldout_valid_candidate_answers": 88,
+    "heldout_separate_posthoc_candidate_passes": 88,
+    "heldout_scope": "Trigger/routing checks only, no LLM answer-quality graders",
+    "errors_scored_as_quality": false,
+    "one_global_executed_hash_claimed": false,
+    "all_pass_claimed": false,
+    "additional_native_scope": "Three representative native Codex pairs, all valid candidate responses passed, separate from instrumented corpus"
+  },
+  "final_gate_followup": {
+    "status": "Final fifteenth full repository gate passed and Grok Uv3 approved the test-only correction; no further model calls or source changes",
+    "original_twelfth_failure_retained": true,
+    "thirteenth_pass_retained": true,
+    "fourteenth_pass_retained": true,
+    "review_U_finding": "Supported credentials preflight control selected an incorrect case ID, allowing vacuous zero-case success despite correct unsupported-corpus refusal.",
+    "review_Uv2_finding": "Union existence check did not establish partition membership; a counterfactual credentials case moved to heldout still passed.",
+    "root_test_only_correction": "For each supported exact case name, discover the declared training or heldout partition, assert exactly one matching compatible case with no skill_order grader. Preserve all three exit-2 negative controls and client.assert_not_called. Actual credentials header is jev-clef-behaviour-credentials.",
+    "counterfactual_proof": "Mocked credentials moved to heldout: v2 wrongly passed; v3 correctly fails. Actual 50 adapter tests pass.",
+    "adapter_skill_evaluation_changes": false,
+    "model_calls": 0,
+    "original_review": "/tmp/jev-clef-preflight-expectation-grok-review.txt",
+    "second_review": "/tmp/jev-clef-preflight-expectation-v2-grok-review.txt",
+    "final_review": "/tmp/jev-clef-preflight-expectation-v3-grok-review.txt",
+    "final_review_session": 9306,
+    "final_review_exit_code": 0,
+    "final_review_approved": true
+  }
+}

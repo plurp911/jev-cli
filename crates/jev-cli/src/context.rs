@@ -10,7 +10,8 @@
 //! 3. the built-in default.
 //!
 //! `NO_COLOR` sits between (1) and (2) for colour only, per <https://no-color.org>.
-//! Nothing else in the environment changes behaviour, and no `.env` file is ever read.
+//! `CLOUDFLARE_ACCOUNT_ID` is consulted only for explicitly selected Cloudflare.
+//! No `.env` file is ever read.
 //!
 //! Resolution happens once, in one place, and the result is a value that every command
 //! reads. `jev doctor` prints exactly this structure, so what the user is told is what
@@ -24,7 +25,7 @@ use jev_config::{Environment, Settings};
 use jev_core::ModelId;
 use jev_core::limits::DEFAULT_MAX_INPUT_BYTES;
 
-use crate::cli::{ColorArg, OutputFormat};
+use crate::cli::{ColorArg, OutputFormat, ProviderArg};
 use crate::errors::{CliError, Result};
 use crate::output::ColorChoice;
 
@@ -127,8 +128,28 @@ pub struct Verbosity {
 /// Everything resolved, ready for a command to use.
 #[derive(Debug, Clone)]
 pub struct Context {
+    /// Selected inference protocol and its provenance.
+    pub(crate) provider: Sourced<ProviderArg>,
+    /// Explicit image file paths; read only while constructing inference requests.
+    pub(crate) image_paths: Vec<PathBuf>,
+    /// Explicitly prepared frames for one local video.
+    pub(crate) video_frames: Vec<PathBuf>,
+    /// Source cadence for the explicitly supplied prepared video frames.
+    pub(crate) video_fps: Option<f64>,
+    /// Bridge context length control.
+    pub(crate) max_length: Option<u32>,
+    /// Independent local state token budget.
+    pub(crate) max_state_tokens: Option<u32>,
+    /// Explicit processor media controls.
+    pub(crate) media_kwargs: Option<serde_json::Value>,
+    /// Cloudflare capacity control for this invocation.
+    pub(crate) reject_if_busy: bool,
+    /// Ollama model lifetime override for this invocation.
+    pub(crate) keep_alive: Option<String>,
     /// The API base URL.
     pub(crate) endpoint: Sourced<Endpoint>,
+    /// A saved endpoint belonged to a different provider and was not inherited.
+    pub(crate) ignored_config_endpoint: bool,
     /// The model to request.
     pub(crate) model: Sourced<ModelId>,
     /// The output format.
@@ -157,6 +178,26 @@ pub struct Context {
 /// without building an argument vector.
 #[derive(Debug, Default, Clone)]
 pub struct Overrides {
+    /// `--provider`
+    pub(crate) provider: Option<ProviderArg>,
+    /// `--cloudflare-account-id`
+    pub(crate) cloudflare_account_id: Option<String>,
+    /// Repeated `--image` paths.
+    pub(crate) image_paths: Vec<PathBuf>,
+    /// Repeated `--video-frame` paths.
+    pub(crate) video_frames: Vec<PathBuf>,
+    /// Source cadence for the explicitly supplied prepared video frames.
+    pub(crate) video_fps: Option<f64>,
+    /// `--max-length`
+    pub(crate) max_length: Option<u32>,
+    /// Independent local state token budget.
+    pub(crate) max_state_tokens: Option<u32>,
+    /// `--media-kwargs` JSON.
+    pub(crate) media_kwargs: Option<String>,
+    /// `--reject-if-busy`
+    pub(crate) reject_if_busy: bool,
+    /// `--keep-alive`
+    pub(crate) keep_alive: Option<String>,
     /// `--endpoint`
     pub(crate) endpoint: Option<String>,
     /// `--model`
@@ -248,14 +289,8 @@ impl Context {
             }
         };
 
-        let endpoint = match (&overrides.endpoint, &settings.endpoint) {
-            (Some(raw), _) => Sourced::new(parse_endpoint(raw, "--endpoint")?, Provenance::Flag),
-            (None, Some(raw)) => Sourced::new(
-                parse_endpoint(raw, "the `endpoint` setting")?,
-                Provenance::ConfigFile,
-            ),
-            (None, None) => Sourced::new(Endpoint::official(), Provenance::Default),
-        };
+        let provider = resolve_provider(overrides.provider, settings.provider.as_deref());
+        validate_provider_flags(overrides, provider.value)?;
 
         let model = match (&overrides.model, &settings.model) {
             (Some(raw), _) => Sourced::new(parse_model(raw, "--model")?, Provenance::Flag),
@@ -263,7 +298,14 @@ impl Context {
                 parse_model(raw, "the `model` setting")?,
                 Provenance::ConfigFile,
             ),
-            (None, None) => Sourced::new(ModelId::default(), Provenance::Default),
+            (None, None) => Sourced::new(
+                if provider.value == ProviderArg::Typesafe {
+                    ModelId::default()
+                } else {
+                    parse_model("clef", "provider default")?
+                },
+                Provenance::Default,
+            ),
         };
 
         let output = match (overrides.output, settings.output.as_deref()) {
@@ -315,8 +357,26 @@ impl Context {
 
         let retry = resolve_retry(overrides.retries, settings.retries, timeout.value)?;
 
+        let endpoint = resolve_endpoint(overrides, &settings, environment, provider.value)?;
+        let ignored_config_endpoint =
+            settings.endpoint.is_some() && endpoint.from == Provenance::Default;
+
         Ok(Self {
+            provider,
+            image_paths: overrides.image_paths.clone(),
+            video_frames: overrides.video_frames.clone(),
+            video_fps: overrides.video_fps,
+            max_length: overrides.max_length,
+            max_state_tokens: overrides.max_state_tokens,
+            media_kwargs: overrides
+                .media_kwargs
+                .as_deref()
+                .map(parse_media_kwargs)
+                .transpose()?,
+            reject_if_busy: overrides.reject_if_busy,
+            keep_alive: overrides.keep_alive.clone(),
             endpoint,
+            ignored_config_endpoint,
             model,
             output,
             color,
@@ -348,6 +408,13 @@ impl Context {
         if self.endpoint_is_official() {
             return None;
         }
+        if self.endpoint.value.is_local_provider() && self.endpoint.value.is_loopback() {
+            return Some(format!(
+                "note: using local {} server at {}; no credentials are used",
+                self.provider.value.as_str(),
+                self.endpoint.value
+            ));
+        }
         Some(format!(
             "warning: sending to a non-official endpoint: {} (from {})\n\
              warning: TypeSafe credentials are not used for this host; \
@@ -357,6 +424,178 @@ impl Context {
             jev_config::CUSTOM_API_KEY_ENV,
         ))
     }
+}
+
+fn resolve_provider(flag: Option<ProviderArg>, file: Option<&str>) -> Sourced<ProviderArg> {
+    if let Some(provider) = flag {
+        return Sourced::new(provider, Provenance::Flag);
+    }
+    let provider = match file {
+        Some("cloudflare") => ProviderArg::Cloudflare,
+        Some("ollama") => ProviderArg::Ollama,
+        Some("huggingface") => ProviderArg::Huggingface,
+        Some("llamacpp" | "llama-cpp") => ProviderArg::LlamaCpp,
+        _ => ProviderArg::Typesafe,
+    };
+    Sourced::new(
+        provider,
+        if file.is_some() {
+            Provenance::ConfigFile
+        } else {
+            Provenance::Default
+        },
+    )
+}
+
+fn validate_provider_flags(overrides: &Overrides, provider: ProviderArg) -> Result<()> {
+    if provider != ProviderArg::Cloudflare {
+        if overrides.cloudflare_account_id.is_some() {
+            return Err(CliError::usage(
+                "--cloudflare-account-id requires --provider cloudflare",
+            ));
+        }
+        if overrides.reject_if_busy {
+            return Err(CliError::usage(
+                "--reject-if-busy requires --provider cloudflare",
+            ));
+        }
+    }
+    if overrides.keep_alive.is_some() && provider != ProviderArg::Ollama {
+        return Err(CliError::usage("--keep-alive requires --provider ollama"));
+    }
+    if !overrides.image_paths.is_empty()
+        && !matches!(
+            provider,
+            ProviderArg::Cloudflare | ProviderArg::Ollama | ProviderArg::Huggingface
+        )
+    {
+        return Err(CliError::usage(
+            "--image requires --provider cloudflare, ollama, or huggingface",
+        ));
+    }
+    if (!overrides.video_frames.is_empty()
+        || overrides.video_fps.is_some()
+        || overrides.max_length.is_some()
+        || overrides.max_state_tokens.is_some()
+        || overrides.media_kwargs.is_some())
+        && provider != ProviderArg::Huggingface
+    {
+        return Err(CliError::usage(
+            "--video-frame, --video-fps, --max-length, --max-state-tokens, and --media-kwargs require --provider huggingface",
+        ));
+    }
+    if overrides
+        .max_state_tokens
+        .is_some_and(|value| value > 65536)
+    {
+        return Err(CliError::usage(
+            "--max-state-tokens must be between 0 and 65536",
+        ));
+    }
+    if overrides
+        .video_fps
+        .is_some_and(|value| !value.is_finite() || value <= 0.0 || value > 120.0)
+    {
+        return Err(CliError::usage(
+            "--video-fps must be finite, greater than zero, and at most 120",
+        ));
+    }
+    if overrides.video_fps.is_some() && overrides.video_frames.is_empty() {
+        return Err(CliError::usage(
+            "--video-fps requires explicitly supplied --video-frame paths; document videos carry their own metadata",
+        ));
+    }
+    if overrides.video_frames.len() > 32 {
+        return Err(CliError::usage(
+            "--video-frame accepts at most 32 frames per video",
+        ));
+    }
+    if overrides
+        .max_length
+        .is_some_and(|value| value == 0 || value > 65_536)
+    {
+        return Err(CliError::usage("--max-length must be between 1 and 65536"));
+    }
+    if overrides.image_paths.len() > 4 {
+        return Err(CliError::usage(
+            "--image accepts at most 4 images per request",
+        ));
+    }
+    Ok(())
+}
+
+fn resolve_endpoint(
+    overrides: &Overrides,
+    settings: &Settings,
+    environment: &dyn Environment,
+    provider: ProviderArg,
+) -> Result<Sourced<Endpoint>> {
+    let override_endpoint = match (&overrides.endpoint, &settings.endpoint) {
+        (Some(raw), _) => Some(Sourced::new(
+            parse_endpoint(raw, "--endpoint")?,
+            Provenance::Flag,
+        )),
+        (None, Some(raw))
+            if resolve_provider(None, settings.provider.as_deref()).value == provider =>
+        {
+            Some(Sourced::new(
+                parse_endpoint(raw, "the `endpoint` setting")?,
+                Provenance::ConfigFile,
+            ))
+        }
+        _ => None,
+    };
+    match provider {
+        ProviderArg::Typesafe => Ok(override_endpoint
+            .unwrap_or_else(|| Sourced::new(Endpoint::official(), Provenance::Default))),
+        ProviderArg::Cloudflare => {
+            let account = overrides
+                .cloudflare_account_id
+                .clone()
+                .or_else(|| environment.var("CLOUDFLARE_ACCOUNT_ID"))
+                .or_else(|| settings.cloudflare_account_id.clone())
+                .ok_or(CliError::IncompleteCloudflareConfiguration)?;
+            let configured = match override_endpoint {
+                Some(configured) => Sourced::new(
+                    configured
+                        .value
+                        .with_cloudflare_account(&account)
+                        .map_err(|e| CliError::usage(e.to_string()))?,
+                    configured.from,
+                ),
+                None => Sourced::new(
+                    Endpoint::cloudflare(&account).map_err(|e| CliError::usage(e.to_string()))?,
+                    Provenance::Default,
+                ),
+            };
+            Ok(configured)
+        }
+        ProviderArg::Ollama => Ok(match override_endpoint {
+            Some(configured) => Sourced::new(configured.value.with_ollama(), configured.from),
+            None => Sourced::new(Endpoint::ollama(), Provenance::Default),
+        }),
+        ProviderArg::Huggingface => Ok(match override_endpoint {
+            Some(configured) => Sourced::new(configured.value.with_huggingface(), configured.from),
+            None => Sourced::new(Endpoint::huggingface(), Provenance::Default),
+        }),
+        ProviderArg::LlamaCpp => Ok(match override_endpoint {
+            Some(configured) => Sourced::new(configured.value.with_llama_cpp(), configured.from),
+            None => Sourced::new(Endpoint::llama_cpp(), Provenance::Default),
+        }),
+    }
+}
+
+fn parse_media_kwargs(raw: &str) -> Result<serde_json::Value> {
+    if raw.len() > 4096 {
+        return Err(CliError::usage(
+            "--media-kwargs exceeds the 4096 byte client limit",
+        ));
+    }
+    crate::ordered::parse_unambiguous_value(raw).map_err(|error| {
+        CliError::usage(format!(
+            "--media-kwargs must be valid JSON with unique object keys: {error}"
+        ))
+    })
 }
 
 fn parse_endpoint(raw: &str, origin: &str) -> Result<Endpoint> {

@@ -50,6 +50,9 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 zeroize = { workspace = true }
 
+[target.'cfg(unix)'.dependencies]
+rustix = { workspace = true }
+
 [dev-dependencies]
 assert_cmd = { workspace = true }
 jev-client = { workspace = true, features = ["testing"] }

@@ -1,10 +1,9 @@
 ---
 name: jev-pilot
 description: >-
-  Run, or judge the results of, a small honest experiment that settles whether Jev,
-  TypeSafe's System One model, works well enough for one decision -- and report the
-  result even when it is no. Use when someone asks whether Jev really beats what they do
-  today, whether it measurably beats a classifier, a heuristic or an LLM call, or how
+  Run or judge a small experiment settling whether Jev, TypeSafe's System One
+  model, works for one decision; report negative results honestly. Use when someone asks whether Jev really beats what they do
+  today, whether it measurably beats a classifier, rules or an LLM call, or how
   accurate it would be on their data; and equally when they already have a pilot's numbers -- a
   `jev eval` report, a baseline, an error list -- and ask what they mean, why a run
   missed its bar, whether they support adopting, or which threshold from them to gate on.
@@ -12,7 +11,8 @@ description: >-
   reads the errors, and ends in one of four verdicts from ADOPT CANDIDATE to REJECT FOR
   THIS WORKFLOW. Prototype only. Whether a candidate is worth trying at all is
   `is-jev-useful-here`; finding candidates is `jev-opportunity-audit` or
-  `jev-workflow-retro`; `jev eval` flags and output fields are the `jev` skill.
+  `jev-workflow-retro`; Use `jev` alone for exact eval commands, flags and report-field definitions; use
+  this skill for experiments or judging measured results.
 allowed-tools: Bash Read Write Edit Glob Grep
 ---
 
@@ -37,8 +37,20 @@ then reported on the same rows, and a recommendation to adopt.
 **Arriving with results already in hand** — a `jev eval` report, a baseline, a list of
 errors — is the same job entered later. Read what the criteria were (step 1) and how
 the incumbent was measured (step 6) before reading the headline number, then do steps
-8 to 11 on what is there. Most of the defects this skill exists to catch are visible in
-a finished report: a split that was reused, a bar that moved, a baseline measured
+8 to 11 on what is there. Carry validation limitations into every standalone summary.
+For `--no-split` results, qualify each headline figure where it appears as an optimistic
+same-row estimate that cannot establish the bar, before showing any candidate cut;
+name the repair: rerun with the default held-out split or separate calibration and
+test files. The candidate cut remains unvalidated until then. Do not append arbitrary
+numerical study targets to a results verdict. If more labels are needed, use the
+conditional study-plan deliverable in step 5.
+Use steps 7–9 explicitly for completed reports: label independently computed quantities;
+explain when a weak class has too few rows to judge, while diagnosing criteria requires
+scored examples. Confident wrong-direction predictions point to state/question repair;
+uncertain cases motivate human review or a separately calibrated escalation policy after
+repair. A null threshold supplies no validated operating cut.
+
+Most of the defects this skill exists to catch are visible in a finished report: a split that was reused, a bar that moved, a baseline measured
 differently, a field in the state that should not be there.
 
 ## This is a prototype. Keep it that way.
@@ -80,10 +92,15 @@ checks come first, and any of them can end the pilot at zero cost:
    output with nothing behind it. Users usually have labels they have not recognised as
    labels: resolved tickets, past decisions, a corrections table, a spreadsheet, the
    queue a human worked through.
-3. **May this data leave?** Whatever goes in `state` is transmitted to TypeSafe. If the
-   content is customer data, personal data, proprietary source or under an agreement,
-   whoever owns it agrees **before** the run, not after. An unanswered authorisation
-   question stops the pilot; it does not become a caveat in the report.
+3. **May this data leave?** State and supplied media go to the selected endpoint.
+   Name the actual recipient: TypeSafe by default, Cloudflare for `cloudflare`, or
+   the selected server for a local provider. Loopback sends to the local server;
+   it keeps content on this machine only if that server runs locally without cloud
+   offload or proxy forwarding. Confirm that condition when the data must stay local.
+   The data owner must agree to this content and recipient **before any transmission**,
+   including a prototype. An unanswered authorisation question stops the pilot; it
+   does not become a caveat in the report. Consult the [provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md)
+   for the selected endpoint's boundaries.
 
 Stopping here is a successful outcome, and it is cheaper than every other outcome.
 
@@ -170,7 +187,9 @@ state a decision needs is almost always far smaller than the record someone was 
 to send.
 
 **A pilot having been requested does not authorise the transmission.** If the dry run
-shows something that should not leave, fix the state or stop.
+shows something that should not leave, fix the state or stop. In a blocked reply,
+explicitly require the responsible data owner's approval of the minimised state and its
+destination before transmission. Scrubbing alone is not authorisation.
 
 **One row is a sample; the batch is every row.** Before `map` or `eval`, scan all of the
 rows locally for the same things, counting by kind as above, and tell the user how many rows, and so how many billed requests, are about to be sent.
@@ -185,10 +204,23 @@ user can open the file; they do not need you to excerpt it.
 
 ### 5. Assemble the examples
 
+Use the user's facts and named inputs; if required project files or labels are confirmed
+unavailable in this workspace, state the missing inputs and give a conditional plan,
+without repeating broad searches, guessing unrelated files, or concluding that the user's
+real data does not exist.
+
 Prefer real, representative, already-labelled examples. Failing that, build a small set a
 human has actually judged, and **mark synthetic labels as synthetic wherever the result
 is reported.** A number measured against labels you invented is a number about your
 invention.
+
+When examples cannot support the decision, deliver a study plan: name the metric and
+decision criterion, derive a rough held-out row count with a calculation and assumptions,
+separate calibration needs, and specify row types and relevant boundaries. If the
+criterion is not agreed, ask for it and give only a clearly conditional illustrative
+calculation, not a guaranteed count or default target. Check available recorded human
+routing, corrections or resolved tickets; if absent, propose human labelling of a named
+representative pool. Heuristics are not ground truth.
 
 Two traps, both common:
 
@@ -259,7 +291,7 @@ predicted positives has a 95% interval of roughly 0.76 to 0.99, which does not s
 "at least 0.90" — it shows "probably around there". Precision and recall rest on the
 predicted-positive and actually-positive counts, not on the total, so their intervals are
 wider than the accuracy interval the report prints. Where the report does not give one,
-work it out from the counts or say it is missing. Write the criterion that way in step 1,
+work it out from the counts and label it as computed, or say it is missing. Write the criterion that way in step 1,
 so the decision was made before the number arrived.
 
 That gives three outcomes, not two: **met** (the lower bound clears the bar), **missed**
@@ -315,8 +347,10 @@ another pass.
 
 Jev against the incumbent, on the dimensions that matter here: quality on the agreed
 metric, the escalated or uncertain fraction, latency, usage actually recorded, coverage,
-operational complexity, and what happens when the service is unavailable. Say which ones
-you could not measure.
+operational complexity, and what happens when the service is unavailable. Weigh
+credentials, network failure behavior, model-version pinning, recurring billing and
+recalibration on releases against any measured benefit, including a tie at low volume.
+Say which ones you could not measure.
 
 **Better on the metric is not the same as better.** A result that is two points better
 and introduces a network dependency on a hot path may be worse.
@@ -340,10 +374,16 @@ option the criteria never define, a field the decision needs and the state does 
 not been spent. Almost every miss concentrates somewhere, so a boundary you can only see
 in the errors is not enough. A second miss after the revision is `REJECT`.
 
-Two misses are not the question's fault. **If a second human disagrees with the label at
-the same boundary**, the limit is the labels, not the wording: say the criterion was
-wrong, as step 1 requires, and re-measure against the revised bar on fresh rows — still
-`REVISE AND RE-EVALUATE`, with the bar named as what is revised. **If the incumbent
+**Shared disagreement with a second human at the same boundary signals ambiguity in
+labels or definitions needing adjudication.** It does not prove a label-only cause or
+set a performance ceiling. Record the original bar and miss, and explain how the bar
+compares with human agreement and why its justification needs review. Record the
+prospective retain-or-revise decision and the evidence supporting the bar. If revised,
+name both bars and the rationale. After adjudicating labels or revising definitions,
+require a new labelled batch or a new held-out split that excludes every previously
+reported row, even when retaining the original bar. A changed bar also requires that
+fresh measurement. In all these cases, report `REVISE AND RE-EVALUATE`; the original
+run remains a miss and cannot justify adoption. **If the incumbent
 already does the job** — meets every criterion step 1 set, cost and latency included,
 with Jev showing no measured advantage on any of them — a fixable boundary does not
 rescue a pilot nobody needs; that is `REJECT`. With fewer than about fifty reported rows, `PROMISING — NEED MORE DATA` comes

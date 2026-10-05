@@ -22,6 +22,7 @@ An ADR is never edited to change its decision. It is superseded by a new one.
 | [0012](0012-mcp-server.md) | A local, stdio-only MCP server, and the one async runtime it needs | Accepted |
 | [0013](0013-local-verification.md) | Local verification before push; no automatic GitHub Actions | Accepted |
 | [0014](0014-manual-release-gate.md) | Manual release gate and optional provenance | Accepted |
+| [0015](0015-clef-providers-and-vision.md) | Explicit hosted/local Clef providers and bounded vision | Accepted |
 
 ## When an ADR is required
 

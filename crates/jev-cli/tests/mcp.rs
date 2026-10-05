@@ -304,7 +304,13 @@ fn the_server_negotiates_every_supported_revision_and_lists_the_same_five_tools(
                 info.instructions
                     .as_deref()
                     .unwrap()
-                    .contains("sent to TypeSafe")
+                    .contains("sent to the configured inference endpoint")
+            );
+            assert!(
+                info.instructions
+                    .as_deref()
+                    .unwrap()
+                    .contains("images and videos")
             );
 
             let names: Vec<String> = client
@@ -381,7 +387,7 @@ fn every_tool_is_annotated_read_only_non_idempotent_and_open_world() {
             assert_eq!(output.get("type"), Some(&json!("object")));
             let description = tool.description.clone().unwrap_or_default();
             assert!(
-                description.contains("sent to the configured TypeSafe endpoint"),
+                description.contains("sent to the configured inference endpoint"),
                 "{} does not say where the state goes",
                 tool.name
             );
@@ -687,6 +693,7 @@ fn invalid_arguments_are_tool_errors_the_model_can_correct_and_nothing_is_sent()
         let cases = [
             ("noul", json!({"instructions": "?"}), "state"),
             ("noul", json!({"state": "x", "instructions": "?", "extra": 1}), "extra"),
+            ("noul", json!({"state": "x", "instructions": "?", "options": {"rejectIfBusy":false}}), "only by cloudflare"),
             ("noul", json!({"state": "x", "instructions": "   "}), "must not be empty"),
             ("noul", json!({"state": null, "instructions": "?"}), "null"),
             ("choice", json!({"state": "x", "instructions": "?", "options": [{"name": "only"}]}), "option"),
@@ -1409,4 +1416,558 @@ fn a_record_id_that_is_not_a_string_or_number_is_refused_and_large_ids_count() {
         client.cancel().await.unwrap();
     });
     assert_eq!(api.hits(), 0);
+}
+
+#[test]
+fn local_mcp_sends_structured_instructions_and_explicit_video_without_credentials() {
+    const PIXEL: &str = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6cS8AAAAASUVORK5CYII=";
+    let response = json!({"model":"clef",
+        "answers":{"answer":{"type":"noul","noul":0.8}},
+        "usage":{"input_tokens":20,"output_tokens":0}})
+    .to_string();
+    let api = MockApi::start(vec![Reply::ok(response.clone()), Reply::ok(response)]);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(
+            &api.endpoint(),
+            &[
+                "--provider",
+                "huggingface",
+                "--max-length",
+                "1024",
+                "--max-state-tokens",
+                "256",
+                "--media-kwargs",
+                "{\"fps\":1}",
+            ],
+        );
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        let output = structured(
+            &call(
+                &client,
+                "noul",
+                json!({
+                    "state":{"scene":"clip"}, "instructions":{"task":"Motion?"},
+                    "images":[PIXEL], "videos":[{"frames":[PIXEL,PIXEL],"metadata":{"fps":30,"frames_indices":[0,60],"total_num_frames":90,"duration":3}}],
+                    "max_length":4096, "max_state_tokens":128, "media_kwargs":{"fps":2}
+                }),
+            )
+            .await,
+        );
+        assert_eq!(output["answers"]["answer"]["noul"], 0.8);
+        assert_eq!(output["provider"], "huggingface");
+        assert!(output.get("cloudflare_account_id").is_some());
+        assert!(output["cloudflare_account_id"].is_null());
+        structured(
+            &call(
+                &client,
+                "noul",
+                json!({"state":"receipt","instructions":"Readable?"}),
+            )
+            .await,
+        );
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 2);
+    assert!(!requests[0].headers.contains_key("authorization"));
+    let body: Value = serde_json::from_str(&requests[0].body).unwrap();
+    assert_eq!(
+        body["questions"]["answer"]["instructions"],
+        json!({"task":"Motion?"})
+    );
+    assert_eq!(body["videos"][0]["frames"].as_array().unwrap().len(), 2);
+    assert_eq!(body["images"][0]["content_type"], "image/png");
+    assert_eq!(body["max_length"], 4096);
+    assert_eq!(body["max_state_tokens"], 128);
+    assert_eq!(body["videos"][0]["metadata"]["fps"], 30);
+    assert_eq!(body["media_kwargs"]["fps"], 2);
+    let inherited: Value = serde_json::from_str(&requests[1].body).unwrap();
+    assert_eq!(inherited["max_length"], 1024);
+    assert_eq!(inherited["max_state_tokens"], 256);
+    assert_eq!(inherited["media_kwargs"], json!({"fps":1}));
+}
+
+#[test]
+fn map_advertises_and_sends_per_record_video_timing() {
+    const PIXEL: &str = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6cS8AAAAASUVORK5CYII=";
+    let response = json!({"model":"clef", "answers":{"q":{"type":"noul","noul":0.8}},
+        "usage":{"input_tokens":20,"output_tokens":0}})
+    .to_string();
+    let api = MockApi::start(vec![Reply::ok(response)]);
+    let metadata = json!({"fps":30,"total_num_frames":90,"frames_indices":[0,60],"duration":3});
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(&api.endpoint(), &["--provider", "huggingface"]);
+        let client = connect(command, ProtocolVersion::V_2025_11_25).await;
+        let tools = client.list_all_tools().await.unwrap();
+        let map = tools.iter().find(|tool| tool.name == "map").unwrap();
+        let schema = serde_json::to_value(&map.input_schema).unwrap();
+        assert_eq!(
+            schema["properties"]["records"]["items"]["properties"]["videos"]["items"]["properties"]
+                ["metadata"],
+            schema["properties"]["videos"]["items"]["properties"]["metadata"],
+            "record timing must have the same advertised contract as template timing"
+        );
+        assert_eq!(
+            schema["properties"]["videos"]["items"]["properties"]["metadata"]["properties"]["fps"]
+                ["exclusiveMinimum"],
+            0
+        );
+        let result = structured(
+            &call(
+                &client,
+                "map",
+                json!({
+                    "questions":[{"id":"q","type":"noul","instructions":"Motion?"}],
+                    "records":[{"id":"clip","state":"frame sequence","videos":[{
+                        "frames":[PIXEL,PIXEL],"metadata":metadata}]}]
+                }),
+            )
+            .await,
+        );
+        assert_eq!(result["rows"][0]["answers"]["q"]["noul"], 0.8);
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 1);
+    let body: Value = serde_json::from_str(&requests[0].body).unwrap();
+    assert_eq!(body["videos"][0]["metadata"], metadata);
+    assert!(!requests[0].headers.contains_key("authorization"));
+}
+
+#[test]
+fn ollama_single_tools_use_id_only_when_instructions_are_omitted() {
+    let replies=vec![
+        Reply::ok(json!({"model":"clef","answers":{"q":{"type":"noul","noul":0.5}},"usage":{}}).to_string()),
+        Reply::ok(json!({"model":"clef","answers":{"q":{"type":"choice","choice":"a","confidence":0.5,"probabilities":{"a":0.5,"b":0.5}}},"usage":{}}).to_string()),
+        Reply::ok(json!({"model":"clef","answers":{"q":{"type":"score","score":0.5,"confidence":0.5,"legend":{"0":"low","1":"high"},"probabilities":{"0":0.5,"1":0.5}}},"usage":{}}).to_string()),
+    ];
+    let api = MockApi::start(replies);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(&api.endpoint(), &["--provider", "ollama"]);
+        let client = connect(command, ProtocolVersion::V_2025_11_25).await;
+        for (tool, args) in [
+            ("noul", json!({"id":" q ","state":"text"})),
+            (
+                "choice",
+                json!({"id":" q ","state":"text","options":[{"name":"a"},{"name":"b"}]}),
+            ),
+            (
+                "score",
+                json!({"id":" q ","state":"text","levels":["low","high"]}),
+            ),
+        ] {
+            let _ = structured(&call(&client, tool, args.clone()).await);
+            for instructions in [json!(null), json!(""), json!("   ")] {
+                let mut invalid = args.clone();
+                invalid["instructions"] = instructions.clone();
+                let result = call(&client, tool, invalid).await;
+                assert_eq!(tool_error(&result)["kind"], "usage");
+
+                let mut question = args.clone();
+                question.as_object_mut().unwrap().remove("state");
+                question["type"] = json!(tool);
+                question["instructions"] = instructions;
+                for (batch_tool, batch_args) in [
+                    ("ask", json!({"state":"text","questions":[question]})),
+                    (
+                        "map",
+                        json!({"records":[{"state":"text"}],"questions":[question]}),
+                    ),
+                ] {
+                    let result = call(&client, batch_tool, batch_args).await;
+                    assert_eq!(tool_error(&result)["kind"], "usage");
+                }
+            }
+        }
+        client.cancel().await.unwrap();
+    });
+    assert_eq!(api.hits(), 3);
+    for request in api.requests() {
+        let body: Value = serde_json::from_str(&request.body).unwrap();
+        assert_eq!(body["questions"]["q"]["instructions"], "q");
+    }
+}
+
+#[test]
+fn publisher_large_score_scales_flow_through_score_ask_and_map_tools() {
+    let mut replies = Vec::new();
+    for count in [26, 255] {
+        let legend: serde_json::Map<String, Value> = (0..count)
+            .map(|index| (index.to_string(), json!(42)))
+            .collect();
+        let probabilities: serde_json::Map<String, Value> = (0..count)
+            .map(|index| (index.to_string(), json!(if index == 0 { 1.0 } else { 0.0 })))
+            .collect();
+        let body=json!({"model":"clef","answers":{"q":{"type":"score","score":0.0,"confidence":1.0,"legend":legend,"probabilities":probabilities}},"usage":{"input_tokens":1,"output_tokens":0}}).to_string();
+        for _ in 0..3 {
+            replies.push(Reply::ok(&body));
+        }
+    }
+    let api = MockApi::start(replies);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(&api.endpoint(), &["--provider", "huggingface"]);
+        let client = connect(command, ProtocolVersion::V_2025_11_25).await;
+        for count in [26, 255, 256] {
+            let levels = vec![json!(42); count];
+            let question = json!({"id":"q","type":"score","levels":levels});
+            for (tool, args) in [
+                ("score", json!({"id":"q","state":-1,"levels":levels})),
+                ("ask", json!({"state":-1,"questions":[question]})),
+                (
+                    "map",
+                    json!({"records":[{"state":-1}],"questions":[question]}),
+                ),
+            ] {
+                let result = call(&client, tool, args).await;
+                if count <= 255 {
+                    let _ = structured(&result);
+                } else {
+                    assert!(
+                        tool_error(&result)["message"]
+                            .as_str()
+                            .unwrap()
+                            .contains("255")
+                    );
+                }
+            }
+        }
+        client.cancel().await.unwrap();
+    });
+    assert_eq!(api.hits(), 6);
+    for (index, request) in api.requests().into_iter().enumerate() {
+        let body: Value = serde_json::from_str(&request.body).unwrap();
+        assert_eq!(body["state"], -1);
+        assert_eq!(
+            body["questions"]["q"]["criteria"].as_array().unwrap().len(),
+            if index < 3 { 26 } else { 255 }
+        );
+    }
+}
+
+#[test]
+fn publisher_mcp_content_preserves_scalar_state_criteria_and_score_legend() {
+    let noul = json!({"type":"noul","noul":0.8});
+    let choice =
+        json!({"type":"choice","choice":"a","confidence":0.8,"probabilities":{"a":0.8,"b":0.2}});
+    let score = json!({"type":"score","score":0,"confidence":1,
+        "probabilities":{"0":1,"1":0,"2":0,"3":0,"4":0},
+        "legend":{"0":null,"1":false,"2":1.5,"3":"","4":"   "}});
+    let replies = [noul.clone(), choice, score, noul.clone(), noul].into_iter().map(|answer|
+        Reply::ok(json!({"model":"clef","answers":{"q":answer},"usage":{"input_tokens":10,"output_tokens":0}}).to_string())).collect();
+    let api = MockApi::start(replies);
+    runtime().block_on(async {
+        let (command,_cwd) = serve_command(&api.endpoint(), &["--provider","huggingface"]);
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        for (tool,args) in [
+            ("noul",json!({"id":"q","state":null,"instructions":null,"criteria":{"true":null,"false":false}})),
+            ("choice",json!({"id":"q","state":true,"options":[{"name":"a","description":false},{"name":"b","description":42}]})),
+            ("score",json!({"id":"q","state":"","instructions":0,"levels":[null,false,1.5,"","   "]})),
+            ("ask",json!({"state":42,"questions":[{"id":"q","type":"noul","instructions":""}]})),
+            ("map",json!({"records":[{"state":false}],"questions":[{"id":"q","type":"noul","instructions":false}]})),
+        ] {
+            let mut missing_state = args.clone();
+            if tool == "map" {
+                missing_state["records"][0].as_object_mut().unwrap().remove("state");
+            } else {
+                missing_state.as_object_mut().unwrap().remove("state");
+            }
+            let rejected = call(&client, tool, missing_state).await;
+            assert_eq!(tool_error(&rejected)["kind"], "usage");
+            assert!(tool_error(&rejected)["message"].as_str().unwrap().contains("state"));
+            let output=structured(&call(&client,tool,args).await);
+            if tool=="score" { assert_eq!(output["answers"]["q"]["legend"],json!({"0":null,"1":false,"2":1.5,"3":"","4":"   "})); }
+        }
+        client.cancel().await.unwrap();
+    });
+    let bodies: Vec<Value> = api
+        .requests()
+        .iter()
+        .map(|request| serde_json::from_str(&request.body).unwrap())
+        .collect();
+    assert_eq!(bodies.len(), 5);
+    assert_eq!(
+        bodies
+            .iter()
+            .map(|body| body["state"].clone())
+            .collect::<Vec<_>>(),
+        vec![json!(null), json!(true), json!(""), json!(42), json!(false)]
+    );
+    assert_eq!(
+        bodies[0]["questions"]["q"]["criteria"],
+        json!({"true":null,"false":false})
+    );
+    assert_eq!(bodies[0]["questions"]["q"]["instructions"], "q");
+    assert_eq!(bodies[1]["questions"]["q"]["instructions"], "q");
+    assert_eq!(
+        bodies[1]["questions"]["q"]["criteria"],
+        json!({"a":false,"b":42})
+    );
+    assert_eq!(
+        bodies[2]["questions"]["q"]["criteria"],
+        json!([null, false, 1.5, "", "   "])
+    );
+    assert_eq!(bodies[3]["questions"]["q"]["instructions"], "q");
+    assert_eq!(bodies[4]["questions"]["q"]["instructions"], false);
+}
+
+#[test]
+fn cloudflare_mcp_accepts_image_only_state_across_single_ask_and_map_tools() {
+    const PIXEL: &str = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6cS8AAAAASUVORK5CYII=";
+    let answer: Value = json!({"model":"clef","answers":{"answer":{"type":"noul","noul":0.9}},
+        "usage":{"input_tokens":10,"output_tokens":1}});
+    let reply =
+        Reply::ok(json!({"result":answer,"success":true,"errors":[],"messages":[]}).to_string());
+    let choice = json!({"model":"clef","answers":{"answer":{"type":"choice","choice":"red",
+        "probabilities":{"red":0.9,"blue":0.1},"confidence":0.9}},
+        "usage":{"input_tokens":10,"output_tokens":1}});
+    let score = json!({"model":"clef","answers":{"answer":{"type":"score","score":0.9,
+        "probabilities":{"0":0.1,"1":0.9},"confidence":0.9,
+        "legend":{"0":"unclear","1":"clear"}}},
+        "usage":{"input_tokens":10,"output_tokens":1}});
+    let api = MockApi::start(vec![
+        reply.clone(),
+        Reply::ok(json!({"result":choice,"success":true,"errors":[],"messages":[]}).to_string()),
+        Reply::ok(json!({"result":score,"success":true,"errors":[],"messages":[]}).to_string()),
+        reply.clone(),
+        reply.clone(),
+        reply,
+    ]);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(
+            &api.endpoint(),
+            &[
+                "--provider",
+                "cloudflare",
+                "--cloudflare-account-id",
+                "0123456789abcdef0123456789abcdef",
+            ],
+        );
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        for (tool, args) in [
+            (
+                "noul",
+                json!({"state":"", "images":[PIXEL], "instructions":"Visible?"}),
+            ),
+            (
+                "choice",
+                json!({"state":"", "images":[PIXEL], "instructions":"Color?",
+                    "options":[{"name":"red"},{"name":"blue"}]}),
+            ),
+            (
+                "score",
+                json!({"state":"", "images":[PIXEL], "instructions":"Readable?",
+                    "levels":["unclear","clear"]}),
+            ),
+            (
+                "ask",
+                json!({"state":"", "images":[PIXEL], "questions":[
+                {"id":"answer", "type":"noul", "instructions":"Visible?"}]}),
+            ),
+            (
+                "map",
+                json!({"records":[{"state":"", "images":[PIXEL]}], "questions":[
+                {"id":"answer", "type":"noul", "instructions":"Visible?"}]}),
+            ),
+            (
+                "map",
+                json!({"images":[PIXEL], "records":[{"state":""}], "questions":[
+                {"id":"answer", "type":"noul", "instructions":"Visible?"}]}),
+            ),
+        ] {
+            structured(&call(&client, tool, args).await);
+        }
+        let failure = tool_error(
+            &call(
+                &client,
+                "noul",
+                json!({"state":"", "instructions":"Visible?"}),
+            )
+            .await,
+        );
+        assert_eq!(failure["kind"], "usage");
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 6);
+    for request in requests {
+        let body: Value = serde_json::from_str(&request.body).unwrap();
+        assert_eq!(body["state"], "");
+        assert_eq!(body["images"][0]["content_type"], "image/png");
+    }
+}
+
+#[test]
+fn cloudflare_mcp_choice_keeps_options_array_and_distinct_capacity_policy() {
+    let answer: Value = serde_json::from_str(&choice_body()).unwrap();
+    let api = MockApi::start(vec![Reply::ok(
+        json!({"result":answer,"success":true,
+        "errors":[],"messages":[]})
+        .to_string(),
+    )]);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(
+            &api.endpoint(),
+            &[
+                "--provider",
+                "cloudflare",
+                "--cloudflare-account-id",
+                "0123456789abcdef0123456789abcdef",
+            ],
+        );
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        let output = structured(
+            &call(
+                &client,
+                "choice",
+                json!({
+                    "state":"receipt", "instructions":{"task":"Owner?"}, "id":"team",
+                    "options":[{"name":"billing","description":{"department":"Finance"}},
+                               {"name":"tech","description":["Engineering"]}],
+                    "reject_if_busy":true
+                }),
+            )
+            .await,
+        );
+        assert_eq!(output["answers"]["team"]["choice"], "billing");
+        assert_eq!(output["provider"], "cloudflare");
+        assert_eq!(
+            output["cloudflare_account_id"],
+            "0123456789abcdef0123456789abcdef"
+        );
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 1);
+    let body: Value = serde_json::from_str(&requests[0].body).unwrap();
+    assert_eq!(body["options"], json!({"rejectIfBusy":true}));
+    assert_eq!(
+        body["questions"]["team"]["criteria"]["billing"],
+        json!({"department":"Finance"})
+    );
+    assert_eq!(
+        body["questions"]["team"]["criteria"]["tech"],
+        json!(["Engineering"])
+    );
+}
+
+#[test]
+fn mcp_choice_can_disable_the_servers_capacity_default() {
+    let answer: Value = serde_json::from_str(&choice_body()).unwrap();
+    let api = MockApi::start(vec![Reply::ok(
+        json!({"result":answer,"success":true,
+        "errors":[],"messages":[]})
+        .to_string(),
+    )]);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(&api.endpoint(), &["--provider", "cloudflare",
+            "--cloudflare-account-id", "0123456789abcdef0123456789abcdef", "--reject-if-busy"]);
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        structured(&call(&client, "choice", json!({"state":"receipt", "instructions":"Owner?", "id":"team",
+            "options":[{"name":"billing"},{"name":"technical"},{"name":"sales"}],"reject_if_busy":false})).await);
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 1);
+    let body: Value = serde_json::from_str(&requests[0].body).unwrap();
+    assert!(body.get("options").is_none(), "{body}");
+}
+
+#[test]
+fn mcp_ollama_calls_override_or_inherit_the_servers_keep_alive_default() {
+    let api = MockApi::start(vec![Reply::ok(noul_body()), Reply::ok(noul_body())]);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(
+            &api.endpoint(),
+            &["--provider", "ollama", "--keep-alive", "5m"],
+        );
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        for arguments in [
+            json!({"state":"receipt","instructions":"Readable?","keep_alive":90}),
+            json!({"state":"receipt","instructions":"Readable?"}),
+        ] {
+            structured(&call(&client, "noul", arguments).await);
+        }
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 2);
+    let explicit: Value = serde_json::from_str(&requests[0].body).unwrap();
+    let inherited: Value = serde_json::from_str(&requests[1].body).unwrap();
+    assert_eq!(explicit["keep_alive"], 90);
+    assert_eq!(inherited["keep_alive"], "5m");
+}
+
+#[test]
+fn mcp_capacity_options_override_defaults_for_single_ask_and_map() {
+    let noul = json!({"model":"clef","answers":{"answer":{"type":"noul","noul":0.8}},
+        "usage":{"input_tokens":20,"output_tokens":0}});
+    let score = json!({"model":"clef","answers":{"answer":{"type":"score","score":0.2,
+        "confidence":0.8,"probabilities":{"0":0.8,"1":0.2},"legend":{"0":"Low","1":"High"}}},
+        "usage":{"input_tokens":20,"output_tokens":0}});
+    let replies = [noul.clone(), score, noul.clone(), noul.clone(), noul]
+        .into_iter()
+        .map(|result| {
+            Reply::ok(json!({"result":result,"success":true,"errors":[],"messages":[]}).to_string())
+        })
+        .collect();
+    let api = MockApi::start(replies);
+    runtime().block_on(async {
+        let (command, _cwd) = serve_command(&api.endpoint(), &["--provider", "cloudflare",
+            "--cloudflare-account-id", "0123456789abcdef0123456789abcdef", "--reject-if-busy"]);
+        let client = connect(command, ProtocolVersion::V_2025_06_18).await;
+        let question = json!([{"id":"answer","type":"noul","instructions":"Readable?"}]);
+        for (tool, arguments) in [
+            ("noul", json!({"state":"receipt","instructions":"Readable?","options":{"rejectIfBusy":false}})),
+            ("score", json!({"state":"receipt","instructions":"Quality?","levels":["Low","High"],"options":{"rejectIfBusy":false}})),
+            ("ask", json!({"state":"receipt","questions":question,"options":{"rejectIfBusy":false}})),
+            ("map", json!({"records":[{"state":"receipt"}],"questions":question,"options":{"rejectIfBusy":false}})),
+            ("noul", json!({"state":"receipt","instructions":"Readable?"})),
+        ] {
+            structured(&call(&client, tool, arguments).await);
+        }
+        client.cancel().await.unwrap();
+    });
+    let requests = api.requests();
+    assert_eq!(requests.len(), 5);
+    for request in requests.iter().take(4) {
+        let body: Value = serde_json::from_str(&request.body).unwrap();
+        assert!(body.get("options").is_none(), "{body}");
+    }
+    let inherited: Value = serde_json::from_str(&requests[4].body).unwrap();
+    assert_eq!(inherited["options"], json!({"rejectIfBusy":true}));
+}
+
+#[test]
+fn map_input_budget_counts_record_and_template_media_before_transport() {
+    let image = serde_json::to_value(
+        jev_core::EmbeddedImage::from_bytes(
+            include_bytes!("../../jev-core/tests/fixtures/two-by-three.png").to_vec(),
+        )
+        .unwrap(),
+    )
+    .unwrap();
+    for media in ["images", "videos"] {
+        for template in [false, true] {
+            let api = MockApi::start(vec![Reply::ok(noul_body()); 3]);
+            let (command, _cwd) = serve_command(
+                &api.endpoint(),
+                &["--provider", "huggingface", "--max-input-bytes", "150"],
+            );
+            runtime().block_on(async {
+                let client = connect(command, ProtocolVersion::V_2025_11_25).await;
+                let entry = if media == "images" { image.clone() } else { json!({"frames":[image.clone()]}) };
+                let mut arguments = json!({"questions":[{"id":"q","type":"noul","instructions":"?"}],"records":[{"state":"x"},{"state":"x"},{"state":"x"}]});
+                if template {
+                    arguments[media] = json!([entry.clone()]);
+                    arguments["records"][0][media] = json!([entry]);
+                } else {
+                    for record in arguments["records"].as_array_mut().unwrap() { record[media] = json!([entry.clone()]); }
+                }
+                let error = tool_error(&call(&client,"map",arguments).await);
+                assert!(error["message"].as_str().unwrap().contains("input limit"), "{error}");
+                client.cancel().await.unwrap();
+            });
+            assert_eq!(api.hits(), 0);
+        }
+    }
 }

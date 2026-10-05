@@ -1,7 +1,7 @@
 # Install jev
 
 Download the archive for your operating system and CPU from the
-[v0.2.1 release](https://github.com/plurp911/jev-cli/releases/tag/v0.2.1).
+[v0.3.0 release](https://github.com/plurp911/jev-cli/releases/tag/v0.3.0).
 The release provides these builds:
 
 | System | Archive |
@@ -21,7 +21,7 @@ the aggregate checksum and build provenance checks.
 Replace `archive` with the name in the table above. On Linux, run:
 
 ```sh
-base=https://github.com/plurp911/jev-cli/releases/download/v0.2.1
+base=https://github.com/plurp911/jev-cli/releases/download/v0.3.0
 archive=jev-cli-x86_64-unknown-linux-gnu.tar.xz
 curl -fLO "$base/$archive" -fLO "$base/$archive.sha256"
 sha256sum --check "$archive.sha256"

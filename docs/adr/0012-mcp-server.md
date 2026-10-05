@@ -123,7 +123,7 @@ There is one binary. MCP support is not a feature flag; it ships in every build.
   `{"error": {"kind", "message"}}` body; the kinds are the CLI's exit-code classes. An
   unknown tool is a JSON-RPC `-32602`. A failed record in `map` is a row with `ok: false`,
   never an answer.
-* **Bounds.** State obeys `--max-input-bytes`, as it does from a file. `map` accepts up
+* **Bounds (original 2026-09-23 decision; see the current addendum below).** State obeys `--max-input-bytes`, as it does from a file. `map` accepts up
   to 100 records, with their states summing to at most `--max-input-bytes`, and an
   estimated result of at most 80 KiB, with at most 16 requests in flight per call and
   4 calls at once. A single protocol line is capped at eight times `--max-input-bytes`,
@@ -163,3 +163,24 @@ There is one binary. MCP support is not a feature flag; it ships in every build.
   is not an extension of this one.
 * `rmcp` gains a feature set that drops `chrono` or `tokio-util`, or the protocol's
   stateless revision makes a blocking implementation practical.
+
+
+## Addendum: provider and media bounds (2026-10-04)
+
+The original bounds above describe the text-only MCP decision. Explicit Clef
+providers and media extend it under [ADR-0015](0015-clef-providers-and-vision.md).
+Current MCP `map` totals serialized record-state bytes plus compressed image/video
+bytes after base64 decoding, counting template media once even when a record
+replaces it. That aggregate must fit `--max-input-bytes` before any request is sent.
+The 100-record and 80 KiB estimated-result limits remain in place.
+
+This aggregate differs from CLI `jev map`'s serialized JSONL or `--lines` input cap:
+embedded media remains base64 text there, while separately named `--image` and
+`--video-frame` files are outside the input-stream cap.
+
+State and explicitly supplied images/videos go to the configured endpoint:
+TypeSafe by default, Cloudflare when selected, or the selected local server.
+Loopback identifies the receiving server; fully local execution requires that it
+runs without cloud offload or proxy forwarding. Content and recipient approval
+must precede transmission. See the current [MCP guide](../mcp.md) and
+[threat model](../threat-model.md) for these active boundaries.

@@ -34,7 +34,7 @@
 
 use std::collections::BTreeMap;
 
-use jev_core::{Content, Question, QuestionId, State};
+use jev_core::{EmbeddedImage, Question, QuestionId, State};
 use serde_json::Value;
 
 use crate::digest::{self, fnv1a};
@@ -84,6 +84,8 @@ pub struct LabeledRow {
     pub id: String,
     /// The state that is sent. The only field that ever reaches the API.
     pub state: State,
+    /// Embedded media and request options; labels are never included.
+    pub(crate) features: crate::media::Features,
     /// The ground truth, keyed by question id. Never sent.
     pub labels: BTreeMap<String, Label>,
 }
@@ -129,6 +131,18 @@ pub fn parse(
     questions: &[(QuestionId, Question)],
     request_origin: &str,
 ) -> Result<Dataset> {
+    parse_for_provider(text, origin, questions, request_origin, "typesafe", &[])
+}
+
+/// Parses optional images using the explicitly selected provider's input format.
+pub(crate) fn parse_for_provider(
+    text: &str,
+    origin: &str,
+    questions: &[(QuestionId, Question)],
+    request_origin: &str,
+    provider: &str,
+    template_images: &[EmbeddedImage],
+) -> Result<Dataset> {
     let known: BTreeMap<&str, &Question> = questions
         .iter()
         .map(|(id, question)| (id.as_str(), question))
@@ -148,7 +162,15 @@ pub fn parse(
                  the run with --limit"
             )));
         }
-        let row = parse_row(line, origin, number, &known, request_origin)?;
+        let row = parse_row(
+            line,
+            origin,
+            number,
+            &known,
+            request_origin,
+            provider,
+            template_images,
+        )?;
         if let Some(first) = seen.insert(row.id.clone(), number) {
             return Err(CliError::usage(format!(
                 "{origin}: duplicate row id `{}` (line {first}, and again at line \
@@ -176,9 +198,11 @@ fn parse_row(
     number: usize,
     known: &BTreeMap<&str, &Question>,
     request_origin: &str,
+    provider: &str,
+    template_images: &[EmbeddedImage],
 ) -> Result<LabeledRow> {
     let where_ = format!("{origin} line {number}");
-    let value: Value = serde_json::from_str(line)
+    let value = crate::ordered::parse_unambiguous_value(line)
         .map_err(|error| CliError::usage(format!("{where_} is not valid JSON: {error}")))?;
     let Some(object) = value.as_object() else {
         return Err(CliError::usage(format!(
@@ -205,10 +229,10 @@ fn parse_row(
     }
 
     for key in object.keys() {
-        if !["schema", "id", "state", "labels"].contains(&key.as_str()) {
+        if !["schema", "id", "state", "labels", "images", "videos"].contains(&key.as_str()) {
             return Err(CliError::usage(format!(
                 "{where_}: unknown field `{}`; a dataset row has `schema`, `id`, \
-                 `state`, and `labels`",
+                 `state`, `labels`, `images`, and `videos`",
                 crate::output::Safe::new(key)
             )));
         }
@@ -235,9 +259,22 @@ fn parse_row(
     };
     // The same bounded, depth-checked conversion a request file's `state` goes through.
     // A dataset file is untrusted input like any other.
-    let state = Content::try_from(raw_state.clone())
-        .map(State::new)
-        .map_err(|error| CliError::usage(format!("{where_}: `state`: {error}")))?;
+    let images = crate::media::parse_image_field(line, "images", &where_, provider == "ollama")?;
+    let videos = crate::media::parse_video_field(line, "videos", &where_)?;
+    let state_images = if provider == "cloudflare" {
+        if images.is_empty() {
+            template_images
+        } else {
+            &images
+        }
+    } else {
+        &[][..]
+    };
+    let state = crate::request::ContentMode::for_provider(provider).state(
+        raw_state.clone(),
+        &where_,
+        state_images,
+    )?;
 
     let Some(Value::Object(raw_labels)) = object.get("labels") else {
         return Err(CliError::usage(format!(
@@ -268,7 +305,16 @@ fn parse_row(
         );
     }
 
-    Ok(LabeledRow { id, state, labels })
+    Ok(LabeledRow {
+        id,
+        state,
+        labels,
+        features: crate::media::Features {
+            images,
+            videos,
+            ..crate::media::Features::default()
+        },
+    })
 }
 
 /// Validates one ground-truth value against the question it labels.
@@ -367,6 +413,13 @@ pub fn fingerprint_of(rows: &[LabeledRow]) -> String {
         rendered.push_str(&row.id);
         rendered.push(digest::UNIT);
         rendered.push_str(&row.state.content().to_value().to_string());
+        if !row.features.images.is_empty() || !row.features.videos.is_empty() {
+            rendered.push(digest::UNIT);
+            rendered.push_str(
+                &serde_json::to_string(&(&row.features.images, &row.features.videos))
+                    .unwrap_or_default(),
+            );
+        }
         for (question, label) in &row.labels {
             rendered.push(digest::UNIT);
             rendered.push_str(question);
@@ -424,6 +477,7 @@ pub fn side(id: &str, seed: u64, test_fraction: f64) -> Side {
 #[cfg(test)]
 mod tests {
     use jev_core::ChoiceOption;
+    use jev_core::Content;
 
     use super::*;
 
@@ -467,6 +521,12 @@ mod tests {
         parse_all(text)
             .expect_err("this row should be refused")
             .to_string()
+    }
+
+    #[test]
+    fn labelled_rows_accept_explicit_embedded_media() {
+        let text = r#"{"schema":"jev.eval.row/v1","id":"one","state":"receipt","images":[],"labels":{"urgent":true}}"#;
+        assert!(parse_all(text).is_ok());
     }
 
     #[test]

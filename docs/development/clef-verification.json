@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "revision": "bcf6043e60d5fef3f5dadc78b41b67840ab379ed + uncommitted Clef working tree",
+  "run_id": "clef-practical-residuals-2026-10-04",
+  "surface": "CLI, MCP, hosted providers, local runtimes, Python media bridge, release source and documentation",
+  "fixture": "Original synthetic red-square/blue-circle images and moving-square frame arrays",
+  "result": "pass",
+  "verification": {
+    "command": "JEV_CLEF_PYTHON=target/clef-local/venv/bin/python JEV_MCP_INSPECTOR=1 scripts/verify.sh; explicit scripts/clef-live.py run matrices with bounded request budgets; Cursor CLI grok-4.7-xhigh source-only reviews",
+    "finish_condition": "Close the practical implementation, documentation, regression-test and verification gaps; demonstrate hosted Clef/Flash and supported Linux local paths, including Python Flash video/advanced controls; pass the full gate and independent final review; explicitly retain provider and hardware limits.",
+    "observed": [
+      "All six live integration matrices passed with no retries.",
+      "Full repository gate exited 0 with all selected checks passed.",
+      "No credential contents, accounts, endpoints or secret-file paths are present in these public reports.",
+      "Final packaging-only Grok review exited 0 and reported No findings. Independent documentation audit found two gaps; current-results index and derived memory lower bound were added and checked."
+    ]
+  },
+  "checks": [
+    {
+      "name": "cloudflare clef live matrix",
+      "status": "pass",
+      "detail": "21 cases passed; 26 conservative request reservations; retries 0"
+    },
+    {
+      "name": "cloudflare clef-flash live matrix",
+      "status": "pass",
+      "detail": "21 cases passed; 26 conservative request reservations; retries 0"
+    },
+    {
+      "name": "huggingface clef-flash live matrix",
+      "status": "pass",
+      "detail": "24 cases passed; 29 conservative request reservations; retries 0"
+    },
+    {
+      "name": "ollama clef:27b-q4_k_m live matrix",
+      "status": "pass",
+      "detail": "20 cases passed; 25 conservative request reservations; retries 0"
+    },
+    {
+      "name": "ollama clef-flash:9b-q8_0 live matrix",
+      "status": "pass",
+      "detail": "20 cases passed; 25 conservative request reservations; retries 0"
+    },
+    {
+      "name": "llamacpp clef-flash live matrix",
+      "status": "pass",
+      "detail": "15 cases passed; 20 conservative request reservations; retries 0"
+    },
+    {
+      "name": "full repository gate",
+      "status": "pass",
+      "command": "JEV_CLEF_PYTHON=target/clef-local/venv/bin/python JEV_MCP_INSPECTOR=1 scripts/verify.sh",
+      "detail": "All selected checks passed; 861 default-feature and 860 no-keychain tests; 11 TypeSafe network tests explicitly skipped in each. Real video processor, MCP Inspector, fuzz smoke and source release rehearsal passed."
+    },
+    {
+      "name": "latest source snapshot regressions",
+      "status": "pass",
+      "detail": "24 tests passed, including receipt-inclusive archive budgets, independent Git objects, raw CRLF and source outside Cargo cache."
+    },
+    {
+      "name": "independent source reviews",
+      "status": "pass",
+      "detail": "Cursor CLI grok-4.7-xhigh whole-change and follow-up reviews completed. Confirmed duplicate media options, MCP deadline and documentation issues were fixed. Final parser/source delta review reported no findings. Two Pillow claims were disproved with real decoder experiments."
+    },
+    {
+      "name": "final packaging delta review",
+      "status": "pass",
+      "detail": "Cursor CLI grok-4.7-xhigh reviewed the final snapshot maker/checker, regression tests, release rehearsal and release documentation; exited 0 and reported No findings."
+    },
+    {
+      "name": "model and runtime provenance",
+      "status": "pass",
+      "detail": "Both Ollama models/projectors and retained native Flash GGUF freshly verified by streaming SHA256 and size; exact 37-package installed inventory matches the Linux CPU version lock. HF Flash snapshot verification is explicitly historical after weight cleanup."
+    },
+    {
+      "name": "native Windows and macOS execution",
+      "status": "blocked",
+      "detail": "Core/configuration cross-checks passed. Whole-workspace checks require unavailable native compilers/SDKs; native execution and GPU inference were not tested."
+    },
+    {
+      "name": "unquantized Hugging Face Clef 27B inference",
+      "status": "blocked",
+      "detail": "Pinned configuration/meta-backbone dimensions checked; full publisher weights exceed available disk. Ollama quantized Clef 27B and hosted Clef passed actual inference."
+    },
+    {
+      "name": "hosted rejectIfBusy",
+      "status": "blocked",
+      "detail": "Both models returned HTTP422/code5012 for the documented option; empty stdout, no retry or fallback. Provider validator limitation remains."
+    },
+    {
+      "name": "shipped skill factual and routing correction",
+      "status": "pass",
+      "detail": "Recorded observed baseline/updated Grok behavior for credential namespace, selected-provider privacy, positive image trigger and negative near misses."
+    },
+    {
+      "name": "complete multi-runtime skill evaluation",
+      "status": "skipped",
+      "detail": "Manual Grok factual/routing checks and repository skill validation ran; no full Claude/Codex/Cursor behavior suite was claimed."
+    },
+    {
+      "name": "verification server cleanup",
+      "status": "pass",
+      "detail": "Task-owned Hugging Face, Ollama and llama.cpp processes stopped; three explicit loopback test ports refused connections. No executable under the task runtime directory remained running."
+    }
+  ],
+  "artifacts": [
+    {
+      "type": "live-report",
+      "ref": "docs/development/clef-live-results/cloudflare-clef-final.json"
+    },
+    {
+      "type": "live-report",
+      "ref": "docs/development/clef-live-results/cloudflare-clef-flash-final.json"
+    },
+    {
+      "type": "live-report",
+      "ref": "docs/development/clef-live-results/huggingface-flash-final.json"
+    },
+    {
+      "type": "live-report",
+      "ref": "docs/development/clef-live-results/ollama-clef-final.json"
+    },
+    {
+      "type": "live-report",
+      "ref": "docs/development/clef-live-results/ollama-flash-final.json"
+    },
+    {
+      "type": "live-report",
+      "ref": "docs/development/clef-live-results/llama-flash-final.json"
+    },
+    {
+      "type": "provenance",
+      "ref": "docs/development/clef-live-results/model-runtime-proof.json"
+    },
+    {
+      "type": "architecture-only",
+      "ref": "docs/development/clef-live-results/clef-architecture-check.json"
+    },
+    {
+      "type": "cross-platform",
+      "ref": "docs/development/clef-live-results/cross-platform-checks.json"
+    },
+    {
+      "type": "provider-limitation",
+      "ref": "docs/development/clef-live-results/cloudflare-capacity-recheck.json"
+    },
+    {
+      "type": "skill-evaluation",
+      "ref": "docs/development/clef-skill-verification.json"
+    },
+    {
+      "type": "release-source",
+      "ref": "target/distrib/source.tar.gz",
+      "description": "Local source archive with per-file provenance; final rehearsal will include this receipt."
+    },
+    {
+      "type": "local-runtime-notes",
+      "ref": "target/clef-local/README.md",
+      "description": "How to reuse the retained isolated CPU Ollama runtime and both verified model tags."
+    }
+  ],
+  "side_effects_checked": [
+    "Credential canary passed. Hosted calls used explicitly supplied credentials and synthetic fixtures only.",
+    "No billing/account changes, commits in the main repository, pushes, releases or publication.",
+    "MCP clean shutdown and unchanged resume output validated in live matrices.",
+    "Owned inference servers stopped. Both verified Ollama models, isolated runtimes, Python environment and evidence remain under target/clef-local; task-created unquantized HF Flash and separate native Flash test weights removed after verification."
+  ],
+  "unresolved_risks": [
+    "Cloudflare rejects rejectIfBusy for both Clef models.",
+    "GPU and native Windows/macOS inference have not been executed; full CLI cross-compilation needs native toolchains.",
+    "Unquantized HF 27B weights/inference and native llama.cpp 27B inference were not run on this host.",
+    "Synthetic integration checks do not establish production accuracy, calibration or every runtime/quantization combination.",
+    "The CPU dependency file locks versions, not wheel hashes, Python or system-library versions.",
+    "Manual Grok skill checks do not establish complete multi-runtime skill-evaluation results."
+  ],
+  "historical": true,
+  "coverage_stage": "Before the expanded structured-question matrix, wheel/runtime hash proof, GPU/native27 testing, and corrected GPT-only evaluations.",
+  "superseded_by": "clef-residuals-verification.json"
+}

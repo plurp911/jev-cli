@@ -1,0 +1,21 @@
+{
+  "_source": "https://ollama.com/library/clef, API cURL response example; transcribed 2026-10-03",
+  "model": "clef",
+  "answers": {
+    "team": {
+      "type": "choice",
+      "choice": "billing",
+      "probabilities": { "billing": 0.981, "technical": 0.013, "other": 0.006 },
+      "confidence": 0.924
+    },
+    "refund": { "type": "noul", "noul": 0.996 },
+    "urgency": {
+      "type": "score",
+      "score": 0.704,
+      "legend": { "0": "Routine", "1": "Soon", "2": "Urgent" },
+      "probabilities": { "0": 0.451, "1": 0.353, "2": 0.196 },
+      "confidence": 0.071
+    }
+  },
+  "usage": { "input_tokens": 1204, "output_tokens": 3 }
+}

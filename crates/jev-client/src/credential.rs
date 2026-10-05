@@ -28,6 +28,7 @@ use zeroize::Zeroizing;
 /// ```
 pub struct Credential {
     inner: Zeroizing<String>,
+    anonymous: bool,
 }
 
 impl Credential {
@@ -36,7 +37,23 @@ impl Credential {
     pub fn new(value: String) -> Self {
         Self {
             inner: Zeroizing::new(value),
+            anonymous: false,
         }
+    }
+
+    /// Explicitly selects a request with no authorization header.
+    #[must_use]
+    pub fn anonymous() -> Self {
+        Self {
+            inner: Zeroizing::new(String::new()),
+            anonymous: true,
+        }
+    }
+
+    /// Whether this call intentionally carries no credential.
+    #[must_use]
+    pub const fn is_anonymous(&self) -> bool {
+        self.anonymous
     }
 
     /// Returns the plaintext.
@@ -105,5 +122,11 @@ mod tests {
     fn bearer_header_has_the_documented_scheme() {
         let credential = Credential::new("abc".to_owned());
         assert_eq!(credential.bearer_header().as_str(), "Bearer abc");
+    }
+
+    #[test]
+    fn anonymous_is_explicit_and_not_an_empty_api_key() {
+        assert!(Credential::anonymous().is_anonymous());
+        assert!(!Credential::new(String::new()).is_anonymous());
     }
 }

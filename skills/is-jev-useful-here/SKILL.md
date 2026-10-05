@@ -2,17 +2,18 @@
 name: is-jev-useful-here
 description: >-
   Decide whether Jev, TypeSafe's judgment model, belongs in one place someone has
-  singled out -- a workflow, function or idea -- and where its boundary should sit. Use
-  when someone asks "would Jev help here", "could Jev replace this classifier or this
-  LLM call", "would moving this to Jev make it faster or cheaper", "where would Jev fit
-  in this step", and equally when they describe that one place and ask whether an AI
+  singled out -- a workflow, function or idea -- and where its AI boundary should sit.
+  Use for "would Jev help here", replacing a classifier or LLM call, or assessing
+  speed or cost. Also use when they describe one place and ask whether an AI
   judgment belongs in it, whether it is overkill, or whether their plan is sound on
   paper, without naming Jev. Produces a verdict of STRONG, CONDITIONAL, WEAK or NO, what
-  stays outside Jev and what to measure first, and will call Jev the wrong tool or
-  decline to invent a saving. One place, not a repository: a codebase search is
+  stays outside Jev and what to measure first, without inventing savings. One place,
+  not a repository: a codebase search is
   `jev-opportunity-audit`. Not for a `jev` command or a threshold, not for what a Noul
   or a Score means, not for Jev's prices or rate limits, not for running a trial, not
-  for whether a model should write or generate something; it never calls the API.
+  for generic LLM drafting or generation advice without a Jev proposal; it never calls the API.
+  Ordinary business-rule ownership or architecture placement is outside scope unless
+  the user asks whether an AI judgment belongs there.
 allowed-tools: Read Grep
 ---
 
@@ -76,6 +77,13 @@ says "yes" and hands back an implementation.
 **Assess one decision point at a time.** Real workflows have several. The verdict is
 about the boundary you name, not about the workflow as a whole; if a pipeline has one
 good candidate and eight steps that are ordinary code, say exactly that.
+
+Before choosing the verdict or answer budget for an extraction or generation workflow,
+separate the unbounded step from any useful bounded semantic decision. Assess that
+decision if one remains: extraction can be CONDITIONAL on ordinary code enumerating
+candidate values, because a value not offered cannot be selected; drafting stays
+generative while a useful selection or prioritisation may fit Jev. If no useful judgment
+remains, give the compact NO.
 
 Four gates. A failure at any one decides the verdict on its own.
 
@@ -155,8 +163,8 @@ them every time.**
 
 | Verdict | Include | Budget |
 | --- | --- | --- |
-| NO | Fit, Why, Keep outside Jev. Plus, if a genuine bounded decision is hiding elsewhere in the same workflow, one paragraph naming it. | a short paragraph |
-| WEAK | The same, plus the one thing that would change the verdict. | **four short paragraphs, and no more** |
+| NO | Verdict, one concrete reason, and the ordinary alternative. | a short paragraph |
+| WEAK | Verdict, one concrete reason, the incumbent alternative, and one observable change that would make it worthwhile. | a short paragraph or a few sentences |
 | CONDITIONAL, STRONG | All eight sections, each tight. | about a page |
 
 **On a WEAK or NO the budget is the answer, not a target to fill.** One reason, not
@@ -164,6 +172,12 @@ every reason you can see — the second-best objection makes the answer longer w
 making it more convincing, and a reader who has already been told it is not worth doing
 has stopped reading. Do not add a paragraph of context, a caveat about a related
 concern, or a sketch of the version that would work.
+The prototype, validation, primitive, and risks sections below belong only to STRONG
+or CONDITIONAL assessments. On NO or WEAK, write the compact recipe in the table and
+stop; sensitive-data disclosure fits inside that paragraph.
+For a rejected generative replacement, state NO for drafting first, then name one
+useful workflow-specific bounded decision, if any, in one sentence while keeping
+drafting generative. This assesses a separate boundary without designing an integration.
 
 Whatever the verdict, if adopting this would mean sending sensitive data out, **one
 sentence saying so is never omitted** — see the privacy rule below. On a WEAK or NO that
@@ -223,11 +237,14 @@ If a published figure matters to the decision, point at
 memory. The honest sentence is: this is the kind of change that can move
 cost and latency, and the prototype above is how you find out by how much.
 
-**Privacy is never omitted.** If adopting this would send customer data, personal data,
-user queries, internal documents, proprietary source, or anything under a data agreement
-to TypeSafe, say so explicitly — name TypeSafe as the recipient, say the content leaves
-the user's environment, and say that whoever owns that data has to agree to *this*
-content going, before a prototype rather than after. It is the item most often dropped,
+**Privacy is never omitted.** Name the actual recipient of the state and supplied
+media: TypeSafe by default, Cloudflare for `cloudflare`, or the selected server for a
+local provider. Explain what content that endpoint receives and whether it leaves the
+user's machine. Loopback reaches the local server; content stays on this machine only
+if that server runs locally without cloud offload or proxy forwarding. Confirm that
+condition when content must stay local. The data owner must agree to this content and
+recipient before any transmission, including a prototype. Consult the [provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md).
+It is the item most often dropped,
 and it is dropped most often on exactly the workflows where it matters. Add that the
 state a judgment needs is usually far smaller than the record the user was about to send.
 On a NO or WEAK verdict this is one sentence, not a section — but it is still there.

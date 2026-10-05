@@ -10,13 +10,13 @@
 //! * **Bounded.** Every read goes through a byte cap. Exceeding it is an error that
 //!   says so; input is never silently truncated, because a truncated state produces a
 //!   confident answer to a question the user did not ask.
-//! * **Validated before it costs anything.** Empty input, invalid UTF-8, binary
-//!   content, and malformed JSON are all rejected locally, before a request is built.
+//! * **Validated before it costs anything.** Empty input without supported media,
+//!   invalid UTF-8, binary content, and malformed JSON are rejected locally.
 
 use std::io::Read as _;
 use std::path::{Path, PathBuf};
 
-use jev_core::{Content, State};
+use jev_core::{Content, EmbeddedImage, State};
 use serde_json::Value;
 
 use crate::errors::{CliError, Result};
@@ -77,6 +77,13 @@ pub struct InputReader {
     pub stdin_is_terminal: bool,
 }
 
+#[derive(Clone, Copy)]
+enum TextRequirement {
+    Nonempty,
+    ImagesPresent,
+    Publisher,
+}
+
 impl InputReader {
     /// Resolves a [`StateSource`] into validated [`State`].
     ///
@@ -85,26 +92,67 @@ impl InputReader {
     /// Returns a usage-class [`CliError`] for missing, empty, oversized, non-UTF-8,
     /// binary, or malformed input.
     pub fn state(&self, source: &StateSource, stdin: &mut dyn std::io::Read) -> Result<State> {
+        self.read_state(source, stdin, TextRequirement::Nonempty)
+    }
+
+    /// Resolves explicitly supplied state that accompanies validated images.
+    ///
+    /// Cloudflare permits an empty string when the image carries the content. Other
+    /// providers must keep using [`Self::state`] if they require nonempty text.
+    /// Implicit stdin retains its text requirement so a missing source is not hidden.
+    ///
+    /// # Errors
+    ///
+    /// Enforces the same source, size, UTF-8, binary, and JSON checks as [`Self::state`].
+    pub(crate) fn state_with_images(
+        &self,
+        source: &StateSource,
+        stdin: &mut dyn std::io::Read,
+        images: &[EmbeddedImage],
+    ) -> Result<State> {
+        let requirement = if images.is_empty() {
+            TextRequirement::Nonempty
+        } else {
+            TextRequirement::ImagesPresent
+        };
+        self.read_state(source, stdin, requirement)
+    }
+
+    /// Reads explicitly supplied publisher JSON without changing strict state parsing.
+    pub(crate) fn publisher_state(
+        &self,
+        source: &StateSource,
+        stdin: &mut dyn std::io::Read,
+    ) -> Result<State> {
+        self.read_state(source, stdin, TextRequirement::Publisher)
+    }
+
+    fn read_state(
+        &self,
+        source: &StateSource,
+        stdin: &mut dyn std::io::Read,
+        requirement: TextRequirement,
+    ) -> Result<State> {
         match source {
             StateSource::Text(text) => {
                 let origin = Origin::Argument("state");
                 self.check_size(text.len() as u64, &origin)?;
-                text_state(text, &origin)
+                text_state(text, &origin, requirement)
             }
             StateSource::TextFile(path) => {
                 let (bytes, origin) = self.read(path, stdin)?;
                 let text = decode_utf8(&bytes, &origin)?;
-                text_state(&text, &origin)
+                text_state(&text, &origin, requirement)
             }
             StateSource::Json(raw) => {
                 let origin = Origin::Argument("state-json");
                 self.check_size(raw.len() as u64, &origin)?;
-                json_state(raw, &origin)
+                json_state(raw, &origin, requirement)
             }
             StateSource::JsonFile(path) => {
                 let (bytes, origin) = self.read(path, stdin)?;
                 let text = decode_utf8(&bytes, &origin)?;
-                json_state(&text, &origin)
+                json_state(&text, &origin, requirement)
             }
             StateSource::ImplicitStdin => {
                 if self.stdin_is_terminal {
@@ -116,7 +164,7 @@ impl InputReader {
                 }
                 let bytes = self.read_stream(stdin, &Origin::Stdin)?;
                 let text = decode_utf8(&bytes, &Origin::Stdin)?;
-                text_state(&text, &Origin::Stdin)
+                text_state(&text, &Origin::Stdin, TextRequirement::Nonempty)
             }
         }
     }
@@ -219,7 +267,7 @@ fn decode_utf8(bytes: &[u8], origin: &Origin) -> Result<String> {
     })
 }
 
-fn text_state(text: &str, origin: &Origin) -> Result<State> {
+fn text_state(text: &str, origin: &Origin, requirement: TextRequirement) -> Result<State> {
     // One trailing line terminator is removed, because a shell adds it and nobody
     // means it as part of the state. Nothing else is trimmed: leading whitespace can be
     // significant -- indented code, a quoted block -- and `jev` does not silently alter
@@ -227,6 +275,14 @@ fn text_state(text: &str, origin: &Origin) -> Result<State> {
     let text = text.strip_suffix('\n').map_or(text, |trimmed| {
         trimmed.strip_suffix('\r').unwrap_or(trimmed)
     });
+    if matches!(requirement, TextRequirement::Publisher) {
+        return Content::local_json(Value::String(text.to_owned()))
+            .map(State::new)
+            .map_err(|error| CliError::usage(format!("{origin}: {error}")));
+    }
+    if matches!(requirement, TextRequirement::ImagesPresent) {
+        return Ok(State::new(Content::Text(text.to_owned())));
+    }
     State::text(text).map_err(|_| {
         CliError::usage(format!(
             "{origin} is empty\n\n\
@@ -236,12 +292,22 @@ fn text_state(text: &str, origin: &Origin) -> Result<State> {
     })
 }
 
-fn json_state(raw: &str, origin: &Origin) -> Result<State> {
+fn json_state(raw: &str, origin: &Origin, requirement: TextRequirement) -> Result<State> {
     if raw.trim().is_empty() {
         return Err(CliError::usage(format!("{origin} is empty")));
     }
-    let value: Value = serde_json::from_str(raw)
+    let value = crate::ordered::parse_unambiguous_value(raw)
         .map_err(|error| CliError::usage(format!("{origin} is not valid JSON: {error}")))?;
+    if matches!(requirement, TextRequirement::Publisher) {
+        return Content::local_json(value)
+            .map(State::new)
+            .map_err(|error| CliError::usage(format!("{origin}: {error}")));
+    }
+    if matches!(requirement, TextRequirement::ImagesPresent)
+        && let Value::String(text) = &value
+    {
+        return Ok(State::new(Content::Text(text.clone())));
+    }
     let content = Content::try_from(value).map_err(|error| {
         CliError::usage(format!(
             "{origin}: {error}\n\n\

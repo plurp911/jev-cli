@@ -16,6 +16,125 @@ policy, use `AGENTS.md` and [ADR-0014](docs/adr/0014-manual-release-gate.md).
 
 ## [Unreleased]
 
+## 0.3.0 — 2026-10-05
+
+### Added
+
+- Automatic before/after CLI, smoke/quality helper, and helper-interpreter hashes in
+  future Clef live-test reports. `--provenance-manifest` fingerprints explicitly
+  named local model/runtime files, including runtime libraries; reports preserve
+  unknown server association and remote-runtime limits.
+- Clef and Clef Flash through explicit `--provider cloudflare`, `ollama`, and
+  `llamacpp` adapters, plus `huggingface` through a separately launched Python bridge. TypeSafe remains the default. Cloudflare account selection uses
+  `--cloudflare-account-id`, `CLOUDFLARE_ACCOUNT_ID`, or the nonsecret configuration
+  setting; tokens use the existing custom credential namespace. Loopback local
+  inference never resolves or sends credentials.
+- Explicit PNG/JPEG/WebP vision with repeated `--image`, embedded request and MCP
+  images, `map --images-field`, and optional evaluation-row images. Media is bounded
+  before network use and included in resume fingerprints. Ollama gets its native
+  raw-base64 representation; hosted Cloudflare gets its documented image objects.
+- Cloudflare image-only requests with an explicitly supplied empty string state,
+  across scalar commands, request files, batch mapping, evaluation, and MCP tools.
+  Empty state still requires validated images; other providers retain their
+  documented state requirements.
+- Prepared video-frame arrays through the local Python bridge, repeated
+  `--video-frame`, `map --videos-field`, evaluation rows, and MCP. The bridge uses
+  explicitly installed publisher weights with offline loader settings; bounded
+  `--max-length` and `--media-kwargs` expose native tokenization/processor controls.
+- Cloudflare `--reject-if-busy`, Ollama `--keep-alive`, provider-aware model discovery,
+  offline diagnostics with explicit provider/account metadata, and up to 26 Ollama Score levels. Existing JSON schemas and
+  exit codes remain; MCP structured instructions and criteria gain additive support.
+- Nonsecret `provider` and `cloudflare_account_id` configuration settings, and
+  [hosted/local setup, capabilities, and limitations](docs/clef.md).
+- Independent local state budgets with `--max-state-tokens`, source video cadence
+  with `--video-fps`, and bounded per-video metadata in native requests and MCP.
+- Publisher-compatible JSON scalars and blank state, instructions, and criterion
+  descriptions through `--provider huggingface`, including exact instruction-ID
+  fallback, explicit null Noul-side semantics, up to 255 Score levels, and scalar legends across
+  commands, batches, evaluation, and MCP. Other provider validation remains scoped
+  to its existing contract.
+- Opt-in, request-bounded synthetic Clef live checks, deterministic fixture generation,
+  pinned Python dependencies, and offline publisher-release integrity verification.
+- A separate 32-row original synthetic quality benchmark, structured-question live
+  coverage, hash-pinned Linux CPU wheel installation, and an offline Python runtime
+  fingerprint checker. Synthetic quality measurements remain scoped to their dataset.
+- GPT-6.1 Sol high skill evaluations through an instrumented Codex harness, including
+  baseline comparisons, repeated runs, independent grading and held-out routing.
+- `base64`, PNG/JPEG/WebP-only `imagesize`, and Unix-only `rustix` for bounded media
+  handling and safe image file opening;
+  justification is in [ADR-0015](docs/adr/0015-clef-providers-and-vision.md).
+
+### Fixed
+
+- Clef live-report creation refuses symlink parents and preserves existing files.
+  Malformed CLI/MCP output, including excessively nested JSON, retains sanitized
+  failure reports and provenance.
+- Inference-command skill advice requires applicable recipient, credential,
+  local-runtime, privacy, and CPU deadline/lifecycle explanations rather than
+  relying on background reminders. A fresh comparison retains the prior guide and
+  a common no-guide control alongside the changed guide.
+- MCP map advertises per-record video timing metadata, and all inference schemas
+  require positive source/sampling cadence and duration, matching runtime validation.
+  The schema compatibility guard accepts numeric `exclusiveMinimum` from JSON
+  Schema 2020-12 and continues to reject unknown keywords and invalid boolean bounds.
+- Planning, fit, and audit skills identify the selected recipient rather than always
+  naming TypeSafe; loopback-server forwarding and transmission consent remain explicit.
+- Legacy skill-eval filters refuse empty selections before any model call.
+- Switching providers no longer inherits an endpoint saved for a different
+  provider. An explicit endpoint flag still overrides the selected provider's base
+  URL, and existing TypeSafe endpoint configuration remains supported. A static
+  stderr notice identifies a skipped saved endpoint without revealing its URL.
+- Configuration accepts the existing `llama-cpp` CLI alias as well as `llamacpp`.
+- Developer diagnosis constructs the video processor without weights, detecting
+  missing lazy-loaded dependencies instead of treating the class import as sufficient.
+- MCP map input budgets now count decoded image/video bytes as well as state,
+  including template media. Inference-only media and processor flags are refused
+  on commands that do not consume them.
+- Diagnostics remain usable for a saved Cloudflare provider with no account ID,
+  reporting the configuration error without reading credentials or making requests.
+- Hugging Face preflight refuses animated WebP instead of sending input that its
+  single-frame decoder will reject; image-format errors retain their specific cause.
+- Request fuzzing now reaches raw PNG/JPEG/WebP headers directly and checks image
+  bounds and canonical base64 round trips, alongside the existing JSON parser.
+- Duplicate object keys are rejected in `--state-json`, `--state-json-file`,
+  request-document state and question content, and options/levels files, including
+  nested objects, before network use.
+- Local Python video pixel controls now use the publisher's whole-clip units and
+  separate image/video defaults. Preflight bounds include actual spatial-patch
+  rounding, temporal padding, and possible sampling allocations.
+- Malformed local image decoder input returns a content-free error, and disconnected
+  clients do not expose decoder, request-header, or response-writing tracebacks.
+- Synthetic live checks refuse semantically inconsistent Choice/Score answers and
+  Hugging Face confidence values; rounded valid distributions remain supported.
+- Processor options from `--media-kwargs` and request documents reject duplicate
+  object keys, including nested keys, before anything is sent.
+- Batch templates ignore their unused state semantically, including blank state;
+  actual row state and media still undergo their normal validation. JSON batch and
+  evaluation rows now reject duplicate fields at every nesting level, including labels.
+- Local video sampling with `num_frames` clears the processor's default FPS to avoid
+  a conflict between the two sampling alternatives.
+- Local release rehearsals compile from an isolated read-only snapshot of the
+  tracked working source and pair the binary with its exact captured archive,
+  recording file hashes and original provenance.
+- Source snapshots reject a tracked `.jev-source.json` before creating an archive,
+  preventing collision with generated provenance metadata.
+- Shipped agent guidance now uses the selected provider's credentials and privacy
+  boundary, including anonymous loopback inference and explicit Clef media.
+- Development guidance covers provider authority, uncommitted security review and
+  the approved manual release workflow; readiness detects protected runtime-copy
+  drift and guards the Clef and evaluation verification steps.
+- The credential-argument canary recognizes `--max-state-tokens` as a numeric budget
+  and checks its parser type; credential-shaped strings still fail locally.
+- The spelling dictionary recognizes Transformers' exact `video_grid_thw` output
+  identifier; ordinary spelling checks remain enabled.
+
+### Known limitations
+
+- Hosted Free-account checks on 2026-10-04 UTC found both Clef models reject
+  `--reject-if-busy` with HTTP 422, Cloudflare code 5012. The retained numeric-error
+  reports do not establish its precise cause. The CLI retains the documented native REST option
+  and reports the rejection without silently resending a request without it.
+
 ## 0.2.1 — 2026-09-24
 
 ### Added

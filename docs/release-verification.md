@@ -128,6 +128,21 @@ Stated plainly, because absent guarantees are the ones people assume:
 
 ## Building from source instead
 
+The local release rehearsal captures the Git-tracked working files, then compiles
+from an isolated read-only copy of those exact bytes. Its temporary local Git
+commit belongs only to that copy; the main working tree is never committed.
+Cargo and cargo-dist share the original `target/` cache and artifact directory.
+The temporary source tree lives outside that cache and has its own Git objects,
+so cache cleanup and pruning the original repository cannot remove its source or
+history. Build tools remain trusted: read-only permissions protect ordinary edits,
+but the same owner could deliberately change permissions and rewrite the copy.
+The source archive includes `.jev-source.json`, recording the original base revision,
+whether the working tree differed at capture, and each source file's hash.
+The captured build tree is checked against the archive. Newly added source and
+documentation must be staged first; untracked files are excluded. This avoids
+pairing a new local binary with cargo-dist's older HEAD source archive. An uncommitted rehearsal is
+still a local test artifact; published releases require the committed release source.
+
 The most direct verification is to build it yourself:
 
 ```sh

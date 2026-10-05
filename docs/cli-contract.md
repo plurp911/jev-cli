@@ -178,7 +178,7 @@ of a field you have not seen.
 - Environment variable names.
 - `CredentialSource` identifiers: `environment`, `environment-file`,
   `typesafe-environment`, `os-keychain`, `custom-endpoint-environment`,
-  `custom-endpoint-environment-file`.
+  `custom-endpoint-environment-file`, `anonymous` (explicit loopback local providers).
 - Configuration setting names.
 - For `jev mcp serve`: the server name `jev`, the tool names, and each tool's input and
   output schema, pinned in `crates/jev-cli/tests/snapshots/mcp-tools.json`. The same
@@ -199,6 +199,7 @@ never reads a file you did not name.
 
 | Variable | Effect |
 | --- | --- |
+| `CLOUDFLARE_ACCOUNT_ID` | Nonsecret account ID, consulted only with explicit Cloudflare provider selection. The account flag overrides it; it overrides configuration. It never selects a provider. |
 | `JEV_API_KEY` | TypeSafe API key. Highest precedence. |
 | `JEV_API_KEY_FILE` | Path to a file containing the key, for secret managers. |
 | `TYPESAFE_API_KEY` | The official SDK convention, honoured so `jev` works where the SDKs already do. |
@@ -218,6 +219,25 @@ Credential precedence is documented in
 [ADR-0008](adr/0008-credential-precedence-and-endpoint-isolation.md) and reported by
 `jev doctor`.
 
+## Additional providers and media
+
+`--provider` adds `cloudflare`, `ollama`, `llamacpp`, and `huggingface` alongside the existing
+`typesafe` default. The nonsecret configuration keys `provider` and
+`cloudflare_account_id`, `--cloudflare-account-id`, repeated `--image`, Cloudflare
+`--reject-if-busy`, Ollama `--keep-alive`, `map --images-field`, and the local
+Python bridge's `--video-frame`, `--video-fps`, `--max-length`, `--max-state-tokens`,
+`--media-kwargs`, and
+`map --videos-field` are additive
+surfaces. Existing exit codes and output schema identifiers apply to every provider.
+
+TypeSafe sources remain exclusive to its official endpoint. Cloudflare and explicit
+remote servers use the existing custom credential namespace. Local protocols on
+loopback use no credential and never consult credential files or secure storage.
+Doctor endpoint metadata and evaluation JSON add `provider` and
+`cloudflare_account_id` fields. MCP accepts embedded images and prepared video
+frames rather than filesystem paths. See [Clef](clef.md) for
+provider contracts, bounds, setup, and features not exposed by upstream endpoints.
+
 ## Configuration
 
 One file, in the user's configuration directory, never in the working directory:
@@ -231,12 +251,17 @@ One file, in the user's configuration directory, never in the working directory:
 `jev config path` prints it. `--no-config` ignores it.
 
 Settings: `color`, `endpoint`, `max_input_bytes`, `model`, `output`, `retries`,
-`timeout_seconds`. **A credential is not a setting.** A key whose name looks like one —
+`timeout_seconds`, `provider`, `cloudflare_account_id`. **A credential is not a setting.** A key whose name looks like one —
 at any nesting level — is a load error, not an accepted value.
 
-Precedence for every setting: command-line flag, then the configuration file, then the
+Account resolution additionally includes `CLOUDFLARE_ACCOUNT_ID` as described above.
+Precedence for other settings: command-line flag, then the configuration file, then the
 built-in default. `NO_COLOR` sits between the flag and the file, for colour only: it
 overrides `color = "always"` in the file, and `--color always` overrides it.
+The saved `endpoint` belongs to the saved `provider` (TypeSafe when absent).
+Selecting a different provider does not inherit it; that provider's default base
+URL applies unless `--endpoint` is supplied. Selecting the same provider explicitly
+preserves its saved endpoint.
 
 `timeout_seconds` is bounded at 3600. A flag beyond that is a usage error; a value
 beyond it in the configuration file is clamped, so a stale setting does not make every

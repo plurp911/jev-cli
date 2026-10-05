@@ -73,7 +73,18 @@ optional() {
 # Python modules need the same honest missing-tool treatment as executables.
 optional_module() {
   local name="$1" module="$2" hint="$3"; shift 3
-  if python3 -c 'import importlib.util, sys; sys.exit(importlib.util.find_spec(sys.argv[1]) is None)' "$module"; then
+  # Probe the actual media imports: a Transformers package alone is insufficient
+  # when its torch/torchvision/Pillow video-processing dependencies are absent.
+  if python3 -c 'import importlib, importlib.util, sys
+module = sys.argv[1]
+if module == "PIL":
+    importlib.import_module("PIL.Image")
+elif module == "transformers":
+    from transformers import Qwen3VLVideoProcessor
+    importlib.import_module("PIL.Image")
+    Qwen3VLVideoProcessor()
+else:
+    sys.exit(importlib.util.find_spec(module) is None)' "$module"; then
     run "$name" "$hint" "$@"
   else
     [ "$MODE" = "list" ] && printf '  %s (missing: %s)\n' "$name" "$hint"
@@ -160,8 +171,8 @@ else
   # A second, independent opinion on the shipped skills, from the client that loads
   # them. `validate-skills.py` enforces the open Agent Skills specification and this
   # repository's policy; this catches what a Claude Code release starts rejecting. The
-  # eval suite (scripts/skill-eval.sh) is deliberately NOT run here: it spends real
-  # money on a real credential, so it is a decision, not a gate.
+  # eval suite (scripts/skill-eval.sh) is deliberately NOT run here: it makes real
+  # model calls on the operator's account, so it is a decision, not a gate.
   if have claude; then
     run "shipped skill manifest" "" claude plugin validate --strict skills
   else
@@ -174,7 +185,25 @@ else
   run "workspace architecture" "" python3 scripts/check-architecture.py
   run "architecture guard tests" "" python3 scripts/test-check-architecture.py
   run "developer tooling tests" "" python3 scripts/test-dev-tools.py
+  run "Codex skill eval harness tests" "" python3 scripts/test-skill-eval-codex.py
+  run "Codex skill eval read-only tools" "" python3 scripts/test-skill-eval-tools.py
   run "benchmark harness tests" "" python3 scripts/test-benchmark.py
+  run "source snapshot tests" "" python3 scripts/test-source-snapshot.py
+  run "Clef live harness tests" "" python3 scripts/test-clef-live.py
+  run "Clef synthetic quality tests" "" python3 scripts/test-clef-quality.py
+  run "Clef execution provenance tests" "" python3 scripts/test-clef-provenance.py
+  run "Clef Python runtime profile tests" "" python3 scripts/test-clef-python-profile.py
+  run "Clef model integrity tests" "" python3 scripts/test-clef-model-manifest.py
+  run "local Clef bridge tests" "" python3 scripts/test-clef-server.py
+  if [ -n "${JEV_CLEF_PYTHON:-}" ]; then
+    run "Clef bridge real decoder" "" "$JEV_CLEF_PYTHON" scripts/test-clef-server.py --real-pillow
+    run "Clef real video processor" "" "$JEV_CLEF_PYTHON" scripts/test-clef-server.py --real-processor --real-pillow
+  else
+    optional_module "Clef bridge real decoder" PIL "see docs/development/clef-live-testing.md" \
+        python3 scripts/test-clef-server.py --real-pillow
+    optional_module "Clef real video processor" transformers "see docs/development/clef-live-testing.md" \
+        python3 scripts/test-clef-server.py --real-processor --real-pillow
+  fi
   run "agent readiness drift" "" python3 scripts/check-agent-readiness.py
 
   # Command, flag, and environment variable *names* are a compatibility promise

@@ -7,7 +7,7 @@
       "readOnlyHint": true,
       "title": "Jev Noul (yes/no)"
     },
-    "description": "Yes/no judgement: the probability (0-1) that the instructions hold for the given state. Returns answers.<id>.noul; there is no confidence field, and 0.5 means genuinely unsure. For semantic judgement of text or JSON -- not for generating text, and not for anything code can check exactly (arithmetic, string matching, parsing). Use `choice` to pick one of several named options, `score` to rate on ordered levels, `ask` for several questions about the same state. The state is sent to the configured TypeSafe endpoint.",
+    "description": "Yes/no judgement: the probability (0-1) that the instructions hold for the given state. Returns answers.<id>.noul; there is no confidence field, and 0.5 means genuinely unsure. For semantic judgement of text or JSON -- not for generating text, and not for anything code can check exactly (arithmetic, string matching, parsing). Use `choice` to pick one of several named options, `score` to rate on ordered levels, `ask` for several questions about the same state. The state is sent to the configured inference endpoint.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -16,12 +16,48 @@
           "description": "Optional: what yes and what no mean, when the boundary is subtle. Give at least one of the two.",
           "properties": {
             "false": {
-              "minLength": 1,
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                },
+                {
+                  "type": "array"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "true": {
-              "minLength": 1,
-              "type": "string"
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object"
+                },
+                {
+                  "type": "array"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
           "type": "object"
@@ -31,15 +67,135 @@
           "minLength": 1,
           "type": "string"
         },
+        "images": {
+          "description": "Explicit embedded images; data URLs or typed base64 objects. Cloudflare, Ollama, and the Python Hugging Face bridge only. No remote URLs or file paths.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "base64": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content_type",
+                  "base64"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "maxItems": 4,
+          "type": "array"
+        },
         "instructions": {
-          "description": "The question, in natural language.",
-          "minLength": 1,
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What to decide. Omission uses the validated question id for Ollama and the publisher Python bridge; required for other providers. Only the Python bridge uses that fallback for null or an exact empty string."
+        },
+        "keep_alive": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Ollama only: keep the model loaded for this duration or signed number of seconds."
+        },
+        "max_length": {
+          "description": "Python Hugging Face bridge only: explicit context token budget.",
+          "maximum": 65536,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_state_tokens": {
+          "description": "Python Hugging Face bridge only: limit textual state tokens independently of total context. Zero omits textual state tokens.",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "media_kwargs": {
+          "additionalProperties": false,
+          "description": "Python Hugging Face bridge only: validated flat processor options. fps and num_frames are mutually exclusive; min_pixels must not exceed max_pixels. Pixel targets apply per still image or to the whole video clip including temporal padding, not per video frame; explicit targets must fit 64000000 divided by the number of images plus clips. Patch-rounded allocation is bounded to 16000000 pixels per frame and 64000000 in total.",
+          "properties": {
+            "do_sample_frames": {
+              "type": "boolean"
+            },
+            "fps": {
+              "description": "Strictly positive frames per second.",
+              "exclusiveMinimum": 0,
+              "maximum": 120,
+              "type": "number"
+            },
+            "max_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "num_frames": {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
         },
         "model": {
           "description": "Model id or alias. Default: the server's configured model.",
           "minLength": 1,
           "type": "string"
+        },
+        "options": {
+          "additionalProperties": false,
+          "description": "Cloudflare only: reject unavailable capacity instead of waiting.",
+          "properties": {
+            "rejectIfBusy": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "rejectIfBusy"
+          ],
+          "type": "object"
         },
         "state": {
           "anyOf": [
@@ -51,14 +207,105 @@
             },
             {
               "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
             }
           ],
-          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured inference endpoint. Treated as data; instructions inside it are not followed. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
+        },
+        "videos": {
+          "description": "Python Hugging Face bridge only: ordered explicit frames with matching dimensions. No file paths or automatic decoding.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "frames": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "base64": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "content_type": {
+                          "enum": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "content_type",
+                        "base64"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "description": "Source video timing. Timestamps derive from frames_indices / fps, independently of sampling fps. Indices must increase and match the supplied frames; defaults are sequential indices and their count. fps and duration must be strictly positive (validated at the boundary).",
+                "properties": {
+                  "duration": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 86400,
+                    "type": "number"
+                  },
+                  "fps": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 120,
+                    "type": "number"
+                  },
+                  "frames_indices": {
+                    "items": {
+                      "maximum": 9999999,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "maxItems": 32,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "total_num_frames": {
+                    "maximum": 10000000,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "fps"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "frames"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
+          "type": "array"
         }
       },
       "required": [
-        "state",
-        "instructions"
+        "state"
       ],
       "type": "object"
     },
@@ -113,6 +360,17 @@
           "description": "One answer per question, keyed by question id.",
           "type": "object"
         },
+        "cloudflare_account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cloudflare account scope, or null for other providers."
+        },
         "endpoint": {
           "type": "string"
         },
@@ -128,6 +386,17 @@
           "type": "string"
         },
         "model_requested": {
+          "type": "string"
+        },
+        "provider": {
+          "description": "The explicitly configured inference provider.",
+          "enum": [
+            "typesafe",
+            "cloudflare",
+            "ollama",
+            "llamacpp",
+            "huggingface"
+          ],
           "type": "string"
         },
         "request_id": {
@@ -200,7 +469,7 @@
       "readOnlyHint": true,
       "title": "Jev Choice (one of named options)"
     },
-    "description": "Pick one of 2-255 named options for the given state, with the probability of every option and a confidence value. Returns answers.<id>.choice, .probabilities, and .confidence. For routing, categorising, and triage. Not for generating text or for rules code can check exactly. Use `noul` for a single yes/no, `score` when the options are ordered levels, `ask` to combine with other questions about the same state. The state is sent to the configured TypeSafe endpoint.",
+    "description": "Pick one of 2-255 named options (Ollama: 2-26), with the probability of every option and a confidence value. Returns answers.<id>.choice, .probabilities, and .confidence. For routing, categorising, and triage. Not for generating text or for rules code can check exactly. Use `noul` for a single yes/no, `score` when the options are ordered levels, `ask` to combine with other questions about the same state. The state is sent to the configured inference endpoint.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -209,10 +478,117 @@
           "minLength": 1,
           "type": "string"
         },
+        "images": {
+          "description": "Explicit embedded images; data URLs or typed base64 objects. Cloudflare, Ollama, and the Python Hugging Face bridge only. No remote URLs or file paths.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "base64": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content_type",
+                  "base64"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "maxItems": 4,
+          "type": "array"
+        },
         "instructions": {
-          "description": "The question, in natural language.",
-          "minLength": 1,
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What to decide. Omission uses the validated question id for Ollama and the publisher Python bridge; required for other providers. Only the Python bridge uses that fallback for null or an exact empty string."
+        },
+        "keep_alive": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Ollama only: keep the model loaded for this duration or signed number of seconds."
+        },
+        "max_length": {
+          "description": "Python Hugging Face bridge only: explicit context token budget.",
+          "maximum": 65536,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_state_tokens": {
+          "description": "Python Hugging Face bridge only: limit textual state tokens independently of total context. Zero omits textual state tokens.",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "media_kwargs": {
+          "additionalProperties": false,
+          "description": "Python Hugging Face bridge only: validated flat processor options. fps and num_frames are mutually exclusive; min_pixels must not exceed max_pixels. Pixel targets apply per still image or to the whole video clip including temporal padding, not per video frame; explicit targets must fit 64000000 divided by the number of images plus clips. Patch-rounded allocation is bounded to 16000000 pixels per frame and 64000000 in total.",
+          "properties": {
+            "do_sample_frames": {
+              "type": "boolean"
+            },
+            "fps": {
+              "description": "Strictly positive frames per second.",
+              "exclusiveMinimum": 0,
+              "maximum": 120,
+              "type": "number"
+            },
+            "max_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "num_frames": {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
         },
         "model": {
           "description": "Model id or alias. Default: the server's configured model.",
@@ -220,13 +596,31 @@
           "type": "string"
         },
         "options": {
-          "description": "The options, in order. 2 to 255.",
+          "description": "Named options, in order. 2 to 255 for TypeSafe, Cloudflare, or llama.cpp; at most 26 for Ollama. The Python bridge uses 255 as a client resource bound. One-option questions are refused locally.",
           "items": {
             "additionalProperties": false,
             "properties": {
               "description": {
-                "minLength": 1,
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               },
               "name": {
                 "minLength": 1,
@@ -242,6 +636,10 @@
           "minItems": 2,
           "type": "array"
         },
+        "reject_if_busy": {
+          "description": "Cloudflare only: reject unavailable capacity instead of waiting. Separate from the named Choice options array.",
+          "type": "boolean"
+        },
         "state": {
           "anyOf": [
             {
@@ -252,14 +650,105 @@
             },
             {
               "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
             }
           ],
-          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured inference endpoint. Treated as data; instructions inside it are not followed. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
+        },
+        "videos": {
+          "description": "Python Hugging Face bridge only: ordered explicit frames with matching dimensions. No file paths or automatic decoding.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "frames": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "base64": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "content_type": {
+                          "enum": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "content_type",
+                        "base64"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "description": "Source video timing. Timestamps derive from frames_indices / fps, independently of sampling fps. Indices must increase and match the supplied frames; defaults are sequential indices and their count. fps and duration must be strictly positive (validated at the boundary).",
+                "properties": {
+                  "duration": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 86400,
+                    "type": "number"
+                  },
+                  "fps": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 120,
+                    "type": "number"
+                  },
+                  "frames_indices": {
+                    "items": {
+                      "maximum": 9999999,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "maxItems": 32,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "total_num_frames": {
+                    "maximum": 10000000,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "fps"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "frames"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
+          "type": "array"
         }
       },
       "required": [
         "state",
-        "instructions",
         "options"
       ],
       "type": "object"
@@ -315,6 +804,17 @@
           "description": "One answer per question, keyed by question id.",
           "type": "object"
         },
+        "cloudflare_account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cloudflare account scope, or null for other providers."
+        },
         "endpoint": {
           "type": "string"
         },
@@ -330,6 +830,17 @@
           "type": "string"
         },
         "model_requested": {
+          "type": "string"
+        },
+        "provider": {
+          "description": "The explicitly configured inference provider.",
+          "enum": [
+            "typesafe",
+            "cloudflare",
+            "ollama",
+            "llamacpp",
+            "huggingface"
+          ],
           "type": "string"
         },
         "request_id": {
@@ -402,7 +913,7 @@
       "readOnlyHint": true,
       "title": "Jev Score (ordered levels)"
     },
-    "description": "Rate the given state on 2-10 ordered levels described in words, lowest first. Returns answers.<id>.score (the probability-weighted mean level, 0-based, which can fall between levels), the probability of every level, and a confidence value. For severity, risk, quality, or priority on your own rubric. Not for generating text or for quantities code can compute. Use `choice` when the options are not ordered, `noul` for yes/no. The state is sent to the configured TypeSafe endpoint.",
+    "description": "Rate the state on 2-10 ordered levels (Ollama: 2-26; Python Hugging Face bridge: 2-255), lowest first. Returns answers.<id>.score (the probability-weighted mean level, 0-based, which can fall between levels), the probability of every level, and a confidence value. For severity, risk, quality, or priority on your own rubric. Not for generating text or for quantities code can compute. Use `choice` when the options are not ordered, `noul` for yes/no. The state is sent to the configured inference endpoint.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -411,25 +922,163 @@
           "minLength": 1,
           "type": "string"
         },
+        "images": {
+          "description": "Explicit embedded images; data URLs or typed base64 objects. Cloudflare, Ollama, and the Python Hugging Face bridge only. No remote URLs or file paths.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "base64": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content_type",
+                  "base64"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "maxItems": 4,
+          "type": "array"
+        },
         "instructions": {
-          "description": "The question, in natural language.",
-          "minLength": 1,
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object"
+            },
+            {
+              "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "What to decide. Omission uses the validated question id for Ollama and the publisher Python bridge; required for other providers. Only the Python bridge uses that fallback for null or an exact empty string."
+        },
+        "keep_alive": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Ollama only: keep the model loaded for this duration or signed number of seconds."
         },
         "levels": {
-          "description": "Level descriptions, lowest first. 2 to 10.",
+          "description": "Ordered levels: at most 10 for TypeSafe, Cloudflare, or llama.cpp; at most 26 for Ollama; the publisher Python bridge has a 255-level client resource bound.",
           "items": {
-            "minLength": 1,
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
-          "maxItems": 10,
+          "maxItems": 255,
           "minItems": 2,
           "type": "array"
+        },
+        "max_length": {
+          "description": "Python Hugging Face bridge only: explicit context token budget.",
+          "maximum": 65536,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_state_tokens": {
+          "description": "Python Hugging Face bridge only: limit textual state tokens independently of total context. Zero omits textual state tokens.",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "media_kwargs": {
+          "additionalProperties": false,
+          "description": "Python Hugging Face bridge only: validated flat processor options. fps and num_frames are mutually exclusive; min_pixels must not exceed max_pixels. Pixel targets apply per still image or to the whole video clip including temporal padding, not per video frame; explicit targets must fit 64000000 divided by the number of images plus clips. Patch-rounded allocation is bounded to 16000000 pixels per frame and 64000000 in total.",
+          "properties": {
+            "do_sample_frames": {
+              "type": "boolean"
+            },
+            "fps": {
+              "description": "Strictly positive frames per second.",
+              "exclusiveMinimum": 0,
+              "maximum": 120,
+              "type": "number"
+            },
+            "max_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "num_frames": {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
         },
         "model": {
           "description": "Model id or alias. Default: the server's configured model.",
           "minLength": 1,
           "type": "string"
+        },
+        "options": {
+          "additionalProperties": false,
+          "description": "Cloudflare only: reject unavailable capacity instead of waiting.",
+          "properties": {
+            "rejectIfBusy": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "rejectIfBusy"
+          ],
+          "type": "object"
         },
         "state": {
           "anyOf": [
@@ -441,14 +1090,105 @@
             },
             {
               "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
             }
           ],
-          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured inference endpoint. Treated as data; instructions inside it are not followed. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
+        },
+        "videos": {
+          "description": "Python Hugging Face bridge only: ordered explicit frames with matching dimensions. No file paths or automatic decoding.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "frames": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "base64": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "content_type": {
+                          "enum": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "content_type",
+                        "base64"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "description": "Source video timing. Timestamps derive from frames_indices / fps, independently of sampling fps. Indices must increase and match the supplied frames; defaults are sequential indices and their count. fps and duration must be strictly positive (validated at the boundary).",
+                "properties": {
+                  "duration": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 86400,
+                    "type": "number"
+                  },
+                  "fps": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 120,
+                    "type": "number"
+                  },
+                  "frames_indices": {
+                    "items": {
+                      "maximum": 9999999,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "maxItems": 32,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "total_num_frames": {
+                    "maximum": 10000000,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "fps"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "frames"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
+          "type": "array"
         }
       },
       "required": [
         "state",
-        "instructions",
         "levels"
       ],
       "type": "object"
@@ -504,6 +1244,17 @@
           "description": "One answer per question, keyed by question id.",
           "type": "object"
         },
+        "cloudflare_account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cloudflare account scope, or null for other providers."
+        },
         "endpoint": {
           "type": "string"
         },
@@ -519,6 +1270,17 @@
           "type": "string"
         },
         "model_requested": {
+          "type": "string"
+        },
+        "provider": {
+          "description": "The explicitly configured inference provider.",
+          "enum": [
+            "typesafe",
+            "cloudflare",
+            "ollama",
+            "llamacpp",
+            "huggingface"
+          ],
           "type": "string"
         },
         "request_id": {
@@ -591,14 +1353,116 @@
       "readOnlyHint": true,
       "title": "Jev Ask (several questions, one state)"
     },
-    "description": "Several independent noul, choice, and score questions about ONE state, in a single request: much cheaper than, and about as fast as, one question each. Returns one answer per question id, each with its full probabilities. Use instead of calling noul, choice, or score repeatedly on the same state; use `map` to ask the same questions of many different states. The state is sent to the configured TypeSafe endpoint.",
+    "description": "Several independent noul, choice, and score questions about ONE state, in a single request. Questions share state and explicit images. Returns one answer per question id, each with its full probabilities. Use instead of calling noul, choice, or score repeatedly on the same state; use `map` to ask the same questions of many different states. The state is sent to the configured inference endpoint.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
+        "images": {
+          "description": "Explicit embedded images; data URLs or typed base64 objects. Cloudflare, Ollama, and the Python Hugging Face bridge only. No remote URLs or file paths.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "base64": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content_type",
+                  "base64"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "maxItems": 4,
+          "type": "array"
+        },
+        "keep_alive": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Ollama only: keep the model loaded for this duration or signed number of seconds."
+        },
+        "max_length": {
+          "description": "Python Hugging Face bridge only: explicit context token budget.",
+          "maximum": 65536,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_state_tokens": {
+          "description": "Python Hugging Face bridge only: limit textual state tokens independently of total context. Zero omits textual state tokens.",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "media_kwargs": {
+          "additionalProperties": false,
+          "description": "Python Hugging Face bridge only: validated flat processor options. fps and num_frames are mutually exclusive; min_pixels must not exceed max_pixels. Pixel targets apply per still image or to the whole video clip including temporal padding, not per video frame; explicit targets must fit 64000000 divided by the number of images plus clips. Patch-rounded allocation is bounded to 16000000 pixels per frame and 64000000 in total.",
+          "properties": {
+            "do_sample_frames": {
+              "type": "boolean"
+            },
+            "fps": {
+              "description": "Strictly positive frames per second.",
+              "exclusiveMinimum": 0,
+              "maximum": 120,
+              "type": "number"
+            },
+            "max_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "num_frames": {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
         "model": {
           "description": "Model id or alias. Default: the server's configured model.",
           "minLength": 1,
           "type": "string"
+        },
+        "options": {
+          "additionalProperties": false,
+          "description": "Cloudflare only: reject unavailable capacity instead of waiting.",
+          "properties": {
+            "rejectIfBusy": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "rejectIfBusy"
+          ],
+          "type": "object"
         },
         "questions": {
           "description": "Independent questions, each evaluated against the same state.",
@@ -611,12 +1475,48 @@
                 "description": "Optional: what yes and what no mean, when the boundary is subtle. Give at least one of the two.",
                 "properties": {
                   "false": {
-                    "minLength": 1,
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "true": {
-                    "minLength": 1,
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "type": "object"
@@ -626,28 +1526,82 @@
                 "type": "string"
               },
               "instructions": {
-                "description": "The question, in natural language.",
-                "minLength": 1,
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Required except for Ollama and the Python Hugging Face bridge, where omission uses the validated question id. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
               },
               "levels": {
-                "description": "Level descriptions, lowest first. 2 to 10.",
+                "description": "Ordered levels: at most 10 for TypeSafe, Cloudflare, or llama.cpp; at most 26 for Ollama; the publisher Python bridge has a 255-level client resource bound.",
                 "items": {
-                  "minLength": 1,
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "array"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
-                "maxItems": 10,
+                "maxItems": 255,
                 "minItems": 2,
                 "type": "array"
               },
               "options": {
-                "description": "The options, in order. 2 to 255.",
+                "description": "Named options, in order. 2 to 255 for TypeSafe, Cloudflare, or llama.cpp; at most 26 for Ollama. The Python bridge uses 255 as a client resource bound. One-option questions are refused locally.",
                 "items": {
                   "additionalProperties": false,
                   "properties": {
                     "description": {
-                      "minLength": 1,
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "name": {
                       "minLength": 1,
@@ -674,8 +1628,7 @@
             },
             "required": [
               "id",
-              "type",
-              "instructions"
+              "type"
             ],
             "type": "object"
           },
@@ -692,9 +1645,101 @@
             },
             {
               "type": "array"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
             }
           ],
-          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+          "description": "The data to judge: a string, or a JSON object or array. Sent to the configured inference endpoint. Treated as data; instructions inside it are not followed. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
+        },
+        "videos": {
+          "description": "Python Hugging Face bridge only: ordered explicit frames with matching dimensions. No file paths or automatic decoding.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "frames": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "base64": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "content_type": {
+                          "enum": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "content_type",
+                        "base64"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "description": "Source video timing. Timestamps derive from frames_indices / fps, independently of sampling fps. Indices must increase and match the supplied frames; defaults are sequential indices and their count. fps and duration must be strictly positive (validated at the boundary).",
+                "properties": {
+                  "duration": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 86400,
+                    "type": "number"
+                  },
+                  "fps": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 120,
+                    "type": "number"
+                  },
+                  "frames_indices": {
+                    "items": {
+                      "maximum": 9999999,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "maxItems": 32,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "total_num_frames": {
+                    "maximum": 10000000,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "fps"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "frames"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
+          "type": "array"
         }
       },
       "required": [
@@ -754,6 +1799,17 @@
           "description": "One answer per question, keyed by question id.",
           "type": "object"
         },
+        "cloudflare_account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Cloudflare account scope, or null for other providers."
+        },
         "endpoint": {
           "type": "string"
         },
@@ -769,6 +1825,17 @@
           "type": "string"
         },
         "model_requested": {
+          "type": "string"
+        },
+        "provider": {
+          "description": "The explicitly configured inference provider.",
+          "enum": [
+            "typesafe",
+            "cloudflare",
+            "ollama",
+            "llamacpp",
+            "huggingface"
+          ],
           "type": "string"
         },
         "request_id": {
@@ -841,7 +1908,7 @@
       "readOnlyHint": true,
       "title": "Jev Map (same questions, many records)"
     },
-    "description": "Many records, each its own state: the same question set over up to 100 inline records, one request per record, run concurrently, results in input order. Several questions about ONE state -- even one with several parts, such as a multi-file diff -- are a single `ask` call, not a map. Returns one row per record sent -- its answers, or an `error` for a record that failed, which is not an answer -- and a summary. For larger or offline jobs, files on disk, CI gates, or calibrated evaluation, run the `jev map` or `jev eval` CLI instead. Every record's state is sent to the configured TypeSafe endpoint.",
+    "description": "Many records, each its own state: the same question set over up to 100 inline records, one request per record, run concurrently, results in input order. Several questions about ONE state -- even one with several parts, such as a multi-file diff -- are a single `ask` call, not a map. Returns one row per record sent -- its answers, or an `error` for a record that failed, which is not an answer -- and a summary. For larger or offline jobs, files on disk, CI gates, or calibrated evaluation, run the `jev map` or `jev eval` CLI instead. Every record's state is sent to the configured inference endpoint.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -851,10 +1918,112 @@
           "minimum": 1,
           "type": "integer"
         },
+        "images": {
+          "description": "Explicit embedded images; data URLs or typed base64 objects. Cloudflare, Ollama, and the Python Hugging Face bridge only. No remote URLs or file paths.",
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "base64": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "content_type": {
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "content_type",
+                  "base64"
+                ],
+                "type": "object"
+              }
+            ]
+          },
+          "maxItems": 4,
+          "type": "array"
+        },
+        "keep_alive": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "description": "Ollama only: keep the model loaded for this duration or signed number of seconds."
+        },
+        "max_length": {
+          "description": "Python Hugging Face bridge only: explicit context token budget.",
+          "maximum": 65536,
+          "minimum": 1,
+          "type": "integer"
+        },
+        "max_state_tokens": {
+          "description": "Python Hugging Face bridge only: limit textual state tokens independently of total context. Zero omits textual state tokens.",
+          "maximum": 65536,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "media_kwargs": {
+          "additionalProperties": false,
+          "description": "Python Hugging Face bridge only: validated flat processor options. fps and num_frames are mutually exclusive; min_pixels must not exceed max_pixels. Pixel targets apply per still image or to the whole video clip including temporal padding, not per video frame; explicit targets must fit 64000000 divided by the number of images plus clips. Patch-rounded allocation is bounded to 16000000 pixels per frame and 64000000 in total.",
+          "properties": {
+            "do_sample_frames": {
+              "type": "boolean"
+            },
+            "fps": {
+              "description": "Strictly positive frames per second.",
+              "exclusiveMinimum": 0,
+              "maximum": 120,
+              "type": "number"
+            },
+            "max_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "min_pixels": {
+              "maximum": 16000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "num_frames": {
+              "maximum": 32,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
         "model": {
           "description": "Model id or alias. Default: the server's configured model.",
           "minLength": 1,
           "type": "string"
+        },
+        "options": {
+          "additionalProperties": false,
+          "description": "Cloudflare only: reject unavailable capacity instead of waiting.",
+          "properties": {
+            "rejectIfBusy": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "rejectIfBusy"
+          ],
+          "type": "object"
         },
         "questions": {
           "description": "The question set, asked of every record.",
@@ -867,12 +2036,48 @@
                 "description": "Optional: what yes and what no mean, when the boundary is subtle. Give at least one of the two.",
                 "properties": {
                   "false": {
-                    "minLength": 1,
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "true": {
-                    "minLength": 1,
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object"
+                      },
+                      {
+                        "type": "array"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "boolean"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "type": "object"
@@ -882,28 +2087,82 @@
                 "type": "string"
               },
               "instructions": {
-                "description": "The question, in natural language.",
-                "minLength": 1,
-                "type": "string"
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  },
+                  {
+                    "type": "array"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Required except for Ollama and the Python Hugging Face bridge, where omission uses the validated question id. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
               },
               "levels": {
-                "description": "Level descriptions, lowest first. 2 to 10.",
+                "description": "Ordered levels: at most 10 for TypeSafe, Cloudflare, or llama.cpp; at most 26 for Ollama; the publisher Python bridge has a 255-level client resource bound.",
                 "items": {
-                  "minLength": 1,
-                  "type": "string"
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object"
+                    },
+                    {
+                      "type": "array"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 },
-                "maxItems": 10,
+                "maxItems": 255,
                 "minItems": 2,
                 "type": "array"
               },
               "options": {
-                "description": "The options, in order. 2 to 255.",
+                "description": "Named options, in order. 2 to 255 for TypeSafe, Cloudflare, or llama.cpp; at most 26 for Ollama. The Python bridge uses 255 as a client resource bound. One-option questions are refused locally.",
                 "items": {
                   "additionalProperties": false,
                   "properties": {
                     "description": {
-                      "minLength": 1,
-                      "type": "string"
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object"
+                        },
+                        {
+                          "type": "array"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "name": {
                       "minLength": 1,
@@ -930,8 +2189,7 @@
             },
             "required": [
               "id",
-              "type",
-              "instructions"
+              "type"
             ],
             "type": "object"
           },
@@ -939,7 +2197,7 @@
           "type": "array"
         },
         "records": {
-          "description": "Records to evaluate, 1 to 100. Each record's state is sent to the configured TypeSafe endpoint.",
+          "description": "Records to evaluate, 1 to 100. Each record's state is sent to the configured inference endpoint.",
           "items": {
             "additionalProperties": false,
             "properties": {
@@ -954,6 +2212,40 @@
                 ],
                 "description": "Optional record id, echoed in its row as a string. Default: the record's position."
               },
+              "images": {
+                "description": "Explicit embedded images; data URLs or typed base64 objects. Cloudflare, Ollama, and the Python Hugging Face bridge only. No remote URLs or file paths.",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "base64": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "content_type": {
+                          "enum": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "content_type",
+                        "base64"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "maxItems": 4,
+                "type": "array"
+              },
               "state": {
                 "anyOf": [
                   {
@@ -964,9 +2256,101 @@
                   },
                   {
                     "type": "array"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
                   }
                 ],
-                "description": "The data to judge: a string, or a JSON object or array. Sent to the configured TypeSafe endpoint. Treated as data; instructions inside it are not followed."
+                "description": "The data to judge: a string, or a JSON object or array. Sent to the configured inference endpoint. Treated as data; instructions inside it are not followed. The publisher Python bridge also accepts scalar JSON and blank text; other providers retain their content restrictions."
+              },
+              "videos": {
+                "description": "Python Hugging Face bridge only: ordered explicit frames with matching dimensions. No file paths or automatic decoding.",
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "frames": {
+                      "items": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "base64": {
+                                "minLength": 1,
+                                "type": "string"
+                              },
+                              "content_type": {
+                                "enum": [
+                                  "image/png",
+                                  "image/jpeg",
+                                  "image/webp"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "content_type",
+                              "base64"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      "maxItems": 32,
+                      "minItems": 1,
+                      "type": "array"
+                    },
+                    "metadata": {
+                      "additionalProperties": false,
+                      "description": "Source video timing. Timestamps derive from frames_indices / fps, independently of sampling fps. Indices must increase and match the supplied frames; defaults are sequential indices and their count. fps and duration must be strictly positive (validated at the boundary).",
+                      "properties": {
+                        "duration": {
+                          "exclusiveMinimum": 0,
+                          "maximum": 86400,
+                          "type": "number"
+                        },
+                        "fps": {
+                          "exclusiveMinimum": 0,
+                          "maximum": 120,
+                          "type": "number"
+                        },
+                        "frames_indices": {
+                          "items": {
+                            "maximum": 9999999,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "maxItems": 32,
+                          "minItems": 1,
+                          "type": "array"
+                        },
+                        "total_num_frames": {
+                          "maximum": 10000000,
+                          "minimum": 1,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "fps"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "frames"
+                  ],
+                  "type": "object"
+                },
+                "maxItems": 4,
+                "type": "array"
               }
             },
             "required": [
@@ -976,6 +2360,89 @@
           },
           "maxItems": 100,
           "minItems": 1,
+          "type": "array"
+        },
+        "videos": {
+          "description": "Python Hugging Face bridge only: ordered explicit frames with matching dimensions. No file paths or automatic decoding.",
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "frames": {
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "additionalProperties": false,
+                      "properties": {
+                        "base64": {
+                          "minLength": 1,
+                          "type": "string"
+                        },
+                        "content_type": {
+                          "enum": [
+                            "image/png",
+                            "image/jpeg",
+                            "image/webp"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "content_type",
+                        "base64"
+                      ],
+                      "type": "object"
+                    }
+                  ]
+                },
+                "maxItems": 32,
+                "minItems": 1,
+                "type": "array"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "description": "Source video timing. Timestamps derive from frames_indices / fps, independently of sampling fps. Indices must increase and match the supplied frames; defaults are sequential indices and their count. fps and duration must be strictly positive (validated at the boundary).",
+                "properties": {
+                  "duration": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 86400,
+                    "type": "number"
+                  },
+                  "fps": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 120,
+                    "type": "number"
+                  },
+                  "frames_indices": {
+                    "items": {
+                      "maximum": 9999999,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "maxItems": 32,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "total_num_frames": {
+                    "maximum": 10000000,
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "fps"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "frames"
+            ],
+            "type": "object"
+          },
+          "maxItems": 4,
           "type": "array"
         }
       },

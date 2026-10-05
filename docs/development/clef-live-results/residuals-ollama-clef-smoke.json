@@ -1,0 +1,170 @@
+{
+  "schema": "jev.clef.smoke/v1",
+  "provider": "ollama",
+  "model": "clef:27b-q4_k_m",
+  "synthetic": true,
+  "retries": 0,
+  "max_requests": 26,
+  "planned_requests": 26,
+  "reserved_requests": 26,
+  "passed": true,
+  "skipped": [
+    {
+      "case": "ordered-video",
+      "reason": "requires Python bridge"
+    }
+  ],
+  "cases": [
+    {
+      "case": "noul",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "choice",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "score",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-text",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-object",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-array",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "ask-structured-questions",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "image-positive.png",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "image-negative.png",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "image-positive.jpg",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "image-positive.webp",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "two-images",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "map-images",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "eval-images",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "resume-first",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "resume-skip",
+      "requests_reserved": 2,
+      "passed": true
+    },
+    {
+      "case": "mcp-noul",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-choice",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-score",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-ask",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-map",
+      "requests_reserved": 2,
+      "passed": true
+    }
+  ],
+  "quality_observations": [
+    {
+      "case": "image-positive.png",
+      "expected": true,
+      "predicted": true,
+      "agreed": true
+    },
+    {
+      "case": "image-negative.png",
+      "expected": false,
+      "predicted": false,
+      "agreed": true
+    },
+    {
+      "case": "image-positive.jpg",
+      "expected": true,
+      "predicted": true,
+      "agreed": true
+    },
+    {
+      "case": "image-positive.webp",
+      "expected": true,
+      "predicted": true,
+      "agreed": true
+    }
+  ],
+  "quality_evaluation": {
+    "rows": 2,
+    "threshold_for_observation": 0.5,
+    "generalizable": false,
+    "observations": [
+      {
+        "expected": true,
+        "predicted": true,
+        "agreed": true
+      },
+      {
+        "expected": false,
+        "predicted": false,
+        "agreed": true
+      }
+    ]
+  },
+  "mcp": {
+    "clean_exit": true
+  }
+}

@@ -150,6 +150,8 @@ pub struct Credentials<'a> {
     store: &'a (dyn SecretStore + Send + Sync),
     /// `true` when the configured endpoint is the official TypeSafe API.
     official: bool,
+    /// An explicitly selected local protocol on loopback needs no secrets.
+    anonymous: bool,
     /// The configured endpoint, for error messages only.
     endpoint: String,
 }
@@ -170,7 +172,23 @@ impl<'a> Credentials<'a> {
             environment,
             store,
             official,
+            anonymous: false,
             endpoint: endpoint.into(),
+        }
+    }
+
+    /// Builds a resolver that consults no environment variable, key file, or store.
+    ///
+    /// Callers select this only for an explicitly chosen local protocol on loopback.
+    #[must_use]
+    pub fn anonymous(
+        environment: &'a dyn Environment,
+        store: &'a (dyn SecretStore + Send + Sync),
+        endpoint: impl Into<String>,
+    ) -> Self {
+        Self {
+            anonymous: true,
+            ..Self::new(environment, store, false, endpoint)
         }
     }
 
@@ -182,6 +200,12 @@ impl<'a> Credentials<'a> {
     /// source holds an empty value or one with a line break or control character in it,
     /// or when a named key file cannot be read.
     pub fn resolve(&self) -> Result<ResolvedCredential, CredentialSourceError> {
+        if self.anonymous {
+            return Ok(ResolvedCredential {
+                secret: Secret::new(String::new()),
+                source: CredentialSource::Anonymous,
+            });
+        }
         if self.official {
             self.resolve_official()
         } else {
@@ -279,6 +303,9 @@ impl<'a> Credentials<'a> {
     /// is willing to pay for the check should get the second one.
     #[must_use]
     pub fn sources_shape(&self) -> Vec<(CredentialSource, Option<bool>)> {
+        if self.anonymous {
+            return Vec::new();
+        }
         let set = |name: &str| {
             Some(
                 self.environment
@@ -320,6 +347,14 @@ impl<'a> Credentials<'a> {
     /// and `jev auth status`, whose job is to find out, and wrong for `--dry-run`.
     #[must_use]
     pub fn availability(&self) -> CredentialAvailability {
+        if self.anonymous {
+            return CredentialAvailability {
+                effective: Some(CredentialSource::Anonymous),
+                sources: Vec::new(),
+                keychain_error: None,
+                resolution_error: None,
+            };
+        }
         // Each source is judged by the resolver's own lookup, so `present` here cannot
         // drift from what `resolve` would accept. `set` is only "the variable is set":
         // a blank value is set, because resolution stops at it.

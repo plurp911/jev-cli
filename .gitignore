@@ -102,6 +102,13 @@ credentials.*
 # Local agent-ready-repo skill.
 /.claude/skills/agent-ready-repo/
 
+# Local ongoing agent skills installed from the source bundle.
+/.claude/skills/engineering-mode/
+/.claude/skills/maintain-agent-readiness/
+/.claude/skills/recall-current-state/
+/.claude/skills/repo-gardener/
+/.claude/skills/verify-change/
+
 # Staging tree that `scripts/skill-eval.sh` builds so `claude plugin eval` sees the
 # shipped skills as a plugin. Regenerated on every run; never edit it.
 /target/skill-evals/

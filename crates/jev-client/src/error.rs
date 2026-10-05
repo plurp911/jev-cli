@@ -70,7 +70,7 @@ pub enum ClientError {
         reason: String,
     },
     /// The API rejected the credential (HTTP 401), or denied access (HTTP 403).
-    #[error("the TypeSafe API rejected the credential (HTTP {status}){}", suffix(.message.as_ref()))]
+    #[error("the API rejected the credential (HTTP {status}){}", suffix(.message.as_ref()))]
     Unauthorized {
         /// The status observed: 401 or 403.
         status: u16,
@@ -78,7 +78,7 @@ pub enum ClientError {
         message: Option<String>,
     },
     /// The API rejected the request as invalid (HTTP 400 or 422).
-    #[error("the TypeSafe API rejected the request as invalid (HTTP {status}){}", suffix(.message.as_ref()))]
+    #[error("the API rejected the request as invalid (HTTP {status}){}", suffix(.message.as_ref()))]
     InvalidRequest {
         /// The status observed.
         status: u16,
@@ -91,14 +91,14 @@ pub enum ClientError {
     /// wrong service. An unknown model identifier is not a 404: the official API
     /// answers it with HTTP 400 "Unknown model: …", which is [`Self::InvalidRequest`]
     /// (observed live 2026-09-23).
-    #[error("the TypeSafe API reported that the resource does not exist (HTTP 404){}", suffix(.message.as_ref()))]
+    #[error("the API reported that the resource does not exist (HTTP 404){}", suffix(.message.as_ref()))]
     NotFound {
         /// The API's stated reason, truncated.
         message: Option<String>,
     },
     /// The API applied a rate limit (HTTP 429) or reported overload (HTTP 529), and the
     /// retry budget was exhausted.
-    #[error("the TypeSafe API is rate limiting or overloaded (HTTP {status}){}", suffix(.message.as_ref()))]
+    #[error("the API is rate limiting or overloaded (HTTP {status}){}", suffix(.message.as_ref()))]
     Throttled {
         /// The status observed.
         status: u16,
@@ -106,7 +106,7 @@ pub enum ClientError {
         message: Option<String>,
     },
     /// The API failed (HTTP 5xx) and the retry budget was exhausted.
-    #[error("the TypeSafe API failed (HTTP {status}){}", suffix(.message.as_ref()))]
+    #[error("the API failed (HTTP {status}){}", suffix(.message.as_ref()))]
     ServerError {
         /// The status observed.
         status: u16,
@@ -114,7 +114,7 @@ pub enum ClientError {
         message: Option<String>,
     },
     /// A status this client has no specific handling for.
-    #[error("the TypeSafe API returned an unexpected HTTP {status}{}", suffix(.message.as_ref()))]
+    #[error("the API returned an unexpected HTTP {status}{}", suffix(.message.as_ref()))]
     Unexpected {
         /// The status observed.
         status: u16,
@@ -169,7 +169,7 @@ impl ClientError {
         let message = message.map(|text| truncate(&text));
         match status {
             401 | 403 => Self::Unauthorized { status, message },
-            400 | 422 => Self::InvalidRequest { status, message },
+            400 | 413 | 422 => Self::InvalidRequest { status, message },
             404 => Self::NotFound { message },
             408 | 429 | 529 => Self::Throttled { status, message },
             // A redirect is a server-side routing decision, not a bad request. `jev`
@@ -271,7 +271,7 @@ mod tests {
         let error = ClientError::from_status(422, Some("state: Field required".to_owned()));
         assert_eq!(
             error.to_string(),
-            "the TypeSafe API rejected the request as invalid (HTTP 422): state: Field required"
+            "the API rejected the request as invalid (HTTP 422): state: Field required"
         );
     }
 

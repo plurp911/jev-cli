@@ -23,7 +23,10 @@ the API. Missing push-gate tools produce exit 1 and installation hints. Install
 Rust tools from outside the checkout so the development pin does not constrain them.
 Doctor checks the pinned dist version and the pinned Rust toolchain's configured
 components as well as executable availability. Python 3.11 or newer and `jsonschema`
-are development requirements.
+are development requirements. The full pre-push gate also requires Pillow and
+the Qwen3VL video processor with its runtime dependencies. Set `JEV_CLEF_PYTHON`
+to a prepared interpreter using the [pinned local setup](clef-live-testing.md);
+these checks use synthetic media without downloading or loading model weights.
 
 `jev doctor` diagnoses the installed product's configuration; it is a report whose
 exit code is 0. Use the developer doctor above to diagnose the checkout. Neither
@@ -35,7 +38,15 @@ Agents share the canonical development skills under `.claude/skills/`: read
 `verify`, `security-review`, `api-compat`, or `release-review` directly as applicable.
 The official `typesafe-ai` skill is pinned; do not edit it. Claude has its discovery
 adapter in [CLAUDE.md](../../CLAUDE.md); Codex reads AGENTS.md and the same skill paths.
-No runtime-specific copies need synchronization. The portable shipped skills and
+Generated runtime copies under `.agents/` or `.codex/` are environment-owned and may
+be stale; this checkout does not generate or synchronize them. If a discovered skill
+mentions a nonexistent `.Codex/` path or differs from its canonical source, read
+`.claude/skills/NAME/SKILL.md` directly before following its instructions. Run
+`python3 scripts/check-agent-readiness.py --check-adapters` for a read-only drift
+diagnostic; ask the environment owner to repair discovery. Bootstrap never rewrites
+those copies. Ordinary readiness reports their divergence as a warning so protected
+local copies do not block verification of the canonical checkout.
+The portable shipped skills and
 their real eval harness have a separate [authoring procedure](skill-authoring.md).
 
 ## Capability map
@@ -46,7 +57,7 @@ row). The complete suite also covers failure, hostile input, credential isolatio
 output documents, and side effects; a row is a navigation aid, not sufficient
 coverage for arbitrary changes. Tests launch the real binary against disposable
 loopback servers with test credentials and isolated configuration. They need local
-socket permission. They never call TypeSafe.
+socket permission. They never call an external inference provider.
 
 | Command | Source | Test file | Proof test | Consumer outcome |
 | --- | --- | --- | --- | --- |
@@ -56,7 +67,7 @@ socket permission. They never call TypeSafe.
 | `ask` | `crates/jev-cli/src/commands/ask.rs` | `crates/jev-cli/tests/cli.rs` | `a_mixed_request_asks_every_question_in_one_call` | Mixed questions use one request. |
 | `map` | `crates/jev-cli/src/commands/map.rs` | `crates/jev-cli/tests/cli.rs` | `map_limit_resumes_and_widens_without_re_evaluating_anything` | Sampling and resumption preserve completed rows. |
 | `eval` | `crates/jev-cli/src/commands/eval.rs` | `crates/jev-cli/tests/cli.rs` | `eval_computes_metrics_that_match_a_hand_computed_value` | Calibration metrics match independently calculated values. |
-| `models` | `crates/jev-cli/src/commands/models.rs` | `crates/jev-cli/tests/cli.rs` | `models_lists_what_the_api_returns_and_nothing_hard_coded` | Model list reflects the response. |
+| `models` | `crates/jev-cli/src/commands/models.rs` | `crates/jev-cli/tests/cli.rs` | `models_lists_what_the_api_returns_and_nothing_hard_coded` | TypeSafe model list reflects the response; Cloudflare's limited normalized catalog is documented in docs/clef.md. |
 | `doctor` | `crates/jev-cli/src/commands/doctor.rs` | `crates/jev-cli/tests/cli.rs` | `doctor_makes_no_request_by_default` | Configuration diagnosis performs no network request. |
 | `auth` | `crates/jev-cli/src/commands/auth.rs` | `crates/jev-cli/tests/cli.rs` | `auth_status_never_prints_the_credential` | Status preserves credential confidentiality. |
 | `config` | `crates/jev-cli/src/commands/config.rs` | `crates/jev-cli/tests/cli.rs` | `config_set_get_and_unset_round_trip` | Explicit configuration mutations round trip. |
@@ -65,6 +76,28 @@ socket permission. They never call TypeSafe.
 
 Other proof paths are part of full verification:
 
+- `cargo test -p jev-cli --test provider_cli --test media_cli --locked`: hosted and
+  local provider routes, isolated credentials, explicit images/video, and request previews.
+- `python3 scripts/test-clef-server.py`: independent local HTTP bridge contracts with
+  injected inference. `--real-pillow` additionally exercises actual hostile-image decoding;
+  full verification reports a skip if Pillow is unavailable. No weights are downloaded.
+- `python3 scripts/test-clef-server.py --real-processor --real-pillow`: the actual
+  processor's prepared-video behavior without model weights. Full verification uses
+  `JEV_CLEF_PYTHON` for both real-media checks when explicitly set, otherwise
+  Python's installed processor and decoder; unavailable dependencies are reported
+  as skipped in normal mode and fail the pre-push gate. Keep a skip distinct from
+  successful real processor coverage.
+- `python3 scripts/test-source-snapshot.py`, `python3 scripts/test-clef-live.py`, and
+  `python3 scripts/test-clef-model-manifest.py`: source receipt identity, bounded live
+  harness execution with fake inference, and pinned local model integrity. They do
+  not call a provider or load weights. The explicitly invoked real inference and
+  model-integrity procedure is in [Clef live testing](clef-live-testing.md).
+- `python3 scripts/test-clef-quality.py`: the synthetic quality benchmark's offline
+  plan, scoring, and bounded execution contract; actual inference remains opt-in.
+- `python3 scripts/test-clef-python-profile.py`: offline runtime-profile comparison,
+  including package and native-library identity. The explicitly selected runtime
+  profile is diagnostic evidence, alongside the wheel hashes and download lock;
+  it does not provision an interpreter, operating system, or model weights.
 - `cargo test -p jev-core --locked`: domain properties and validated deserialization.
 - `cargo test -p jev-client --test transport --locked`: real HTTP socket, retries,
   redirects refused, response limits; `--test compatibility`: official fixture corpus.
@@ -72,7 +105,14 @@ Other proof paths are part of full verification:
 - `python3 scripts/check-request-schema.py`: examples, valid boundaries, and malformed
   request rejection; exit 77 means the validator dependency is missing.
 - `python3 scripts/test-skill-scripts.py`: all provider fixtures, sidechains, redaction,
-  and per-provider usage. Paid agent evals remain an explicit spending decision.
+  and per-provider usage. Actual agent evals remain an explicit account-usage decision.
+- `python3 scripts/test-skill-eval-codex.py`: offline regressions for the Codex eval
+  adapter's isolated skill discovery, pinned GPT-6.1 Sol high configuration, grading,
+  and filesystem boundaries. Full verification runs these tests without model calls;
+  actual eval execution follows the separate [authoring procedure](skill-authoring.md).
+- `python3 scripts/test-skill-eval-tools.py`: ignored secret-file searches, explicitly
+  named reads, symlink boundaries, and references in loaded skill snapshots. These
+  offline tests use the actual synthetic secret scenario and its unchanged graders.
 - `scripts/fuzz-smoke.sh 10`: six hostile-byte targets with committed seeds. A longer
   campaign is useful before release. Preserve crash artifacts and regression seeds.
 - `scripts/release-dry-run.sh`: host archive, checksum, installers, licenses,
@@ -106,6 +146,27 @@ all five targets, while a local Linux run proves Linux only.
 <!-- readiness: scripts/test-check-architecture.py -->
 <!-- readiness: scripts/benchmark.py -->
 <!-- readiness: scripts/test-benchmark.py -->
+<!-- readiness: scripts/source-snapshot.py -->
+<!-- readiness: scripts/test-source-snapshot.py -->
+<!-- readiness: scripts/clef-live.py -->
+<!-- readiness: scripts/test-clef-live.py -->
+<!-- readiness: scripts/clef-quality.py -->
+<!-- readiness: scripts/test-clef-quality.py -->
+<!-- readiness: scripts/clef-python-profile.py -->
+<!-- readiness: scripts/test-clef-python-profile.py -->
+<!-- readiness: scripts/clef-model-manifest.py -->
+<!-- readiness: scripts/test-clef-model-manifest.py -->
+<!-- readiness: scripts/clef-server.py -->
+<!-- readiness: scripts/test-clef-server.py -->
+<!-- readiness: scripts/clef-local/clef-manifest.json -->
+<!-- readiness: scripts/clef-local/clef-flash-manifest.json -->
+<!-- readiness: scripts/clef-local/requirements.txt -->
+<!-- readiness: scripts/clef-local/requirements-linux-cpu.lock -->
+<!-- readiness: scripts/clef-local/requirements-linux-cpu.hashes.lock -->
+<!-- readiness: scripts/clef-local/requirements-linux-cpu.download.lock -->
+<!-- readiness: scripts/skill-eval-codex.py -->
+<!-- readiness: scripts/test-skill-eval-codex.py -->
+<!-- readiness: scripts/test-skill-eval-tools.py -->
 <!-- readiness: crates/jev-core/src/probability.rs -->
 <!-- readiness: crates/jev-client/src/transport.rs -->
 <!-- readiness: crates/jev-config/src/secret.rs -->
@@ -144,7 +205,11 @@ a mapped module/test, or changing setup/verification. Full verification runs it 
 It checks every top-level CLI command against this map, runnable test attributes,
 canonical skills, repository-contained exemplars, and explicit local gate invocations.
 Its negative tests prove missing/disabled proofs, external paths, commented-out gates,
-and unmapped-command detection. It reads files only and never repairs product code.
+and unmapped-command detection. Clef source snapshots, live harness tests, model
+manifests, pinned runtime files, and real decoder/processor invocations remain
+protected even if navigation markers are removed. The offline Codex eval harness
+and its test invocation have the same dependency protection. It reads files only and never
+repairs product code or environment-owned runtime skill copies.
 
 Then replay the affected real process tests. Classify the outcome as clean, changed
 (map/harness drift or a product regression), or blocked (missing tool/platform/access).

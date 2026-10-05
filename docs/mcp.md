@@ -10,16 +10,16 @@ concurrency, and they return the same JSON documents. See
 [ADR-0012](adr/0012-mcp-server.md) for the design.
 
 ```text
-MCP host ──stdio──▶ jev mcp serve ──▶ the jev core ──▶ TypeSafe API
+MCP host ──stdio──▶ jev mcp serve ──▶ the jev core ──▶ selected provider
                     (protocol only)    (same code as the CLI)
 ```
 
 There is no port, no daemon, and no background service. The host starts the process
-and stops it. There is nothing to install beyond `jev` itself: no Node or Python
-runtime, and no second package.
+and stops it. The MCP server itself needs only `jev`. Local model providers run
+separately; the Hugging Face bridge also needs its explicit Python environment and weights.
 
-**Every state passed to a tool is sent to TypeSafe**, exactly as it would be from the
-command line. The rules in [Where your data goes](../README.md#where-your-data-goes)
+**State and explicitly supplied images and videos are sent to the selected endpoint**,
+exactly as they would be from the command line. The rules in [Where your data goes](../README.md#where-your-data-goes)
 apply unchanged.
 
 ---
@@ -150,8 +150,8 @@ jev --model jev-1.13.0 mcp serve
 | Tool | Does | Returns |
 | --- | --- | --- |
 | `noul` | One yes/no judgement about a state | `answers.<id>.noul`, the probability of yes |
-| `choice` | One of 2–255 named options | `choice`, `confidence`, and the probability of every option |
-| `score` | A position on 2–10 ordered, described levels | `score` (the probability-weighted mean level), `confidence`, `legend`, and the full distribution |
+| `choice` | One of 2–255 named options (up to 26 with Ollama) | `choice`, `confidence`, and the probability of every option |
+| `score` | A position on 2–10 ordered, described levels (up to 26 with Ollama; up to 255 with the Python bridge) | `score` (the probability-weighted mean level), `confidence`, `legend`, and the full distribution |
 | `ask` | Several independent Noul, Choice, and Score questions about **one** state, in one request | One answer per question id |
 | `map` | One question set over up to 100 inline records | One row per record sent, in input order, and a summary |
 
@@ -175,9 +175,34 @@ All five tools:
 
 ### Arguments
 
-Instructions, option descriptions, and Score levels are strings here. The API also
-accepts structured JSON for them, and a CLI request file can use that form; `state`
-accepts a string, an object, or an array over MCP as well.
+Instructions, option descriptions, Score levels, and `state` accept strings,
+objects, or arrays. The `huggingface` publisher Python bridge also preserves JSON
+numbers, booleans, null, and blank strings. State must be supplied explicitly;
+omitting it is a usage error even for that bridge. Other providers reject numbers,
+booleans, and null as JSON state; Cloudflare permits blank text state with validated
+images, while TypeSafe, Ollama, and llama.cpp require nonempty text state.
+
+Instructions may be omitted with Ollama or the Python bridge, which then use the
+validated question ID. Only the Python bridge uses that fallback for explicit null
+or exactly `""`; it preserves whitespace strings. Other providers require supplied,
+nonempty instructions, and Ollama also rejects explicit null or blank instructions.
+
+Clef vision calls accept
+embedded PNG/JPEG/WebP images and, with `huggingface`, ordered video-frame
+arrays with optional source timing metadata, `max_length`, `max_state_tokens`, and
+constrained `media_kwargs`; they never open host
+filesystem paths. Provider and account
+are selected at server startup (`jev --provider ollama mcp serve`, for example),
+while a call can override the model. Score accepts 2–10 levels for TypeSafe,
+Cloudflare, or llama.cpp, 2–26 for Ollama, and 2–255 for the Python bridge as a client
+resource bound. Provider options and media use the same validation as the CLI.
+See [Clef capabilities and limits](clef.md).
+
+For Cloudflare capacity control, `noul`, `score`, `ask`, and `map` accept
+`"options":{"rejectIfBusy":true}`. The `choice` tool reserves its existing `options`
+array for alternatives and accepts `"reject_if_busy":true` instead. Both encode the
+same native Cloudflare request option. `--reject-if-busy` at server startup sets the
+default; a call can override it. Other providers reject this option.
 
 The field names follow the API's vocabulary: `state` and `instructions`, plus
 `criteria` for a Noul.
@@ -254,9 +279,14 @@ is exceeded:
 | Limit | Value | Why |
 | --- | --- | --- |
 | Records per call | 100 | More rows than an agent can use in one turn |
-| Total state across records | `--max-input-bytes` (1 MiB by default) | The same ceiling `jev map` applies to a whole input |
+| Aggregate state and media | `--max-input-bytes` (1 MiB by default) | Serialized record states plus compressed image/video bytes after base64 decoding; template media counted once |
 | Estimated result size | 80 KiB, about 20k–27k tokens | Near Claude Code's 25k-token default maximum for one result, above which it saves the result to disk instead |
 | Concurrency | 1–16, default 4 | The server also runs at most 4 tool calls at once, so it never has more than 64 requests outstanding: the CLI's ceiling for one batch |
+
+MCP counts template media once, even when a record replaces it. These units differ
+from CLI `jev map`, which caps the serialized input stream (JSONL or `--lines`) and
+therefore includes base64 text for embedded media. Separately named `--image` and
+`--video-frame` files are outside that CLI input-stream cap.
 
 Nothing is truncated or dropped. The refusal names the limit and recommends `jev map`
 from a shell, which streams JSONL to a file and keeps the output out of the agent's
@@ -309,8 +339,12 @@ evaluated by the model as part of the text to judge; the server cannot act on th
   `server/discover`. The server echoes an older client's version, and the tools behave
   the same at every revision.
 - **Capabilities.** Tools only.
-- **Server instructions.** One short paragraph: Jev judges and does not generate, state
-  goes to TypeSafe, and uncertainty should be kept. Claude Code and Codex surface it.
+- **Server instructions.** One short paragraph: Jev judges and does not generate,
+  supplied content goes to the configured endpoint, and uncertainty should be kept.
+  Claude Code and Codex surface it. State and explicitly supplied images and videos
+  follow the selected provider: TypeSafe by default, Cloudflare when selected, or the
+  configured local server. Loopback reaches that server; content stays on the machine
+  only if the server runs locally without cloud offload or proxy forwarding.
 - **Cancellation.** `notifications/cancelled` stops the call's retry wait and its `map`
   loop. An HTTP attempt already in flight ends at `--timeout` (10 s by default), and the
   call keeps its place among the four that may run at once until it does, so a very

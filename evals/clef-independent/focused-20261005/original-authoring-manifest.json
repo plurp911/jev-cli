@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "phase": "fresh-authoring-before-coordinator-admission-and-inference",
+  "evaluation_root": "evaluationroot",
+  "case_count": 4,
+  "runs_per_case": 5,
+  "max_turns_per_case": 12,
+  "files": [
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-cloudflare-scope/graders/response.md",
+      "sha256": "51c5394138fc7e11e9000cac2139718c7424da46c891068228c43b9e05fb5ab4",
+      "bytes": 1723
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-cloudflare-scope/graders/skill-use.md",
+      "sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+      "bytes": 215
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-cloudflare-scope/prompt.md",
+      "sha256": "b7a928ab6fc427a21876388555b71bf64585b9a59a878dbe7c82505d32d86b01",
+      "bytes": 942
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-cpu-runbook/graders/response.md",
+      "sha256": "b2a32dfac2d9c99b7de359a818c10ae4d608164fd5017dfd7628771b982e85e5",
+      "bytes": 2044
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-cpu-runbook/graders/skill-use.md",
+      "sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+      "bytes": 215
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-cpu-runbook/prompt.md",
+      "sha256": "bc13623460170d1447ac1511275202c0120efcc61d9fe7b0e1773e646f850415",
+      "bytes": 964
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-vision-boundaries/graders/response.md",
+      "sha256": "855e0439f4f2116a0c5832bd8712bdfe655a1bb1bf98370301303561e31d4677",
+      "bytes": 2235
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-vision-boundaries/graders/skill-use.md",
+      "sha256": "82fcbecc2f2e62f82f9a5e9888c53e148359c1a0bf8a585ae3a075530971a89b",
+      "bytes": 215
+    },
+    {
+      "path": "evaluationroot/jev/behaviour/fresh-clef-vision-boundaries/prompt.md",
+      "sha256": "9d4f05b137d0367fec2979b6e86b687ba1de83226037c025c65bf8b1d012df3f",
+      "bytes": 949
+    },
+    {
+      "path": "evaluationroot/jev/triggers/fresh-png-dimensions-no-inference/graders/response.md",
+      "sha256": "5a89202d43eb92de3e42d183382e7fb1df7e73ee09bb0424ca974cf941204c52",
+      "bytes": 1181
+    },
+    {
+      "path": "evaluationroot/jev/triggers/fresh-png-dimensions-no-inference/graders/skill-use.md",
+      "sha256": "4855c729b56a92cb3d71f8ea6839813289c039074089d8b7d4d4d53ffcdf9dd5",
+      "bytes": 336
+    },
+    {
+      "path": "evaluationroot/jev/triggers/fresh-png-dimensions-no-inference/prompt.md",
+      "sha256": "2dc06baa22087784a9587cc58466c4522a722bcce761758e176811d9d906b977",
+      "bytes": 617
+    }
+  ]
+}

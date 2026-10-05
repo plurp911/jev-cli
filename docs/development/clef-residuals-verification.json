@@ -1,0 +1,448 @@
+{
+  "schema": "jev.clef.practical-residuals-verification/v1",
+  "observed_at": "2026-10-05T01:27:00.660131+00:00",
+  "status": "practical_work_verified_with_documented_limits",
+  "finish_condition": "Complete all practical corrections and bounded actual tests; pass the full repository gate and independent Grok4.7xhigh review; retain explicit provider, hardware, model-quality and runtime-evaluation limits.",
+  "historical_receipt": "clef-verification.json",
+  "checks": [
+    {
+      "name": "cloudflare clef expanded synthetic matrix",
+      "status": "pass",
+      "cases": 22,
+      "reserved_requests": 27,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-cloudflare-clef-smoke.json"
+    },
+    {
+      "name": "cloudflare clef-flash expanded synthetic matrix",
+      "status": "pass",
+      "cases": 22,
+      "reserved_requests": 27,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-cloudflare-flash-smoke.json"
+    },
+    {
+      "name": "ollama clef:27b-q4_k_m expanded synthetic matrix",
+      "status": "pass",
+      "cases": 21,
+      "reserved_requests": 26,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-ollama-clef-smoke.json"
+    },
+    {
+      "name": "ollama clef-flash:9b-q8_0 expanded synthetic matrix",
+      "status": "pass",
+      "cases": 21,
+      "reserved_requests": 26,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-ollama-flash-smoke.json"
+    },
+    {
+      "name": "llamacpp clef expanded synthetic matrix",
+      "status": "pass",
+      "cases": 16,
+      "reserved_requests": 21,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-native-clef-smoke.json"
+    },
+    {
+      "name": "huggingface clef-flash expanded synthetic matrix",
+      "status": "pass",
+      "cases": 25,
+      "reserved_requests": 30,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-hf-smoke.json",
+      "scope": "Initial expanded matrix before publisher scalar/blank input compatibility addendum"
+    },
+    {
+      "name": "huggingface clef-flash original32-image synthetic benchmark",
+      "status": "pass",
+      "rows": 32,
+      "agreement_at_0_5": 1.0,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-hf-quality.json",
+      "phase_binding": "clef-live-results/residuals-hf-quality-phase.json",
+      "scope": "Original loaded bridge/binary before publisher input addendum; narrow original synthetic vision task, no production accuracy or calibration claim"
+    },
+    {
+      "name": "publisher input addendum original phase",
+      "status": "partial",
+      "passed_cases": 9,
+      "failed_cases": 1,
+      "unrun_cases": 9,
+      "evidence": "clef-live-results/residuals-hf-publisher-input-addendum.json",
+      "phase_binding": "clef-live-results/residuals-hf-publisher-input-failure-phase.json",
+      "failure": "5375-token numeric255-level Score exceeded600-second CPUdeadline; discarded ongoing owned computation stopped, no resend",
+      "compact_experiment": "Distinct3955-token null255-levelScore with3600-second deadline passed894.277s; full255legend, finite probabilities/distribution andscore range checked. Remaining coverage tracked separately."
+    },
+    {
+      "name": "llamacpp clef-flash expanded synthetic matrix and text sanity check",
+      "status": "pass",
+      "cases": 16,
+      "reserved_smoke_requests": 21,
+      "quality_rows": 32,
+      "agreement_at_0_5": 1.0,
+      "retries": 0,
+      "evidence": "clef-live-results/native-flash-cpu-proof.json",
+      "scope": "Literal text reading only; no vision or production calibration claim. Test-owned server stopped and GGUF removed after recording evidence."
+    },
+    {
+      "name": "publisher JSON input and255-level boundary assembledcoverage",
+      "status": "pass_with_preserved_original_failures",
+      "validated_cases": 19,
+      "successful_reserved_requests": 40,
+      "extra_original_failed_requests": 1,
+      "retries": 0,
+      "evidence": "clef-live-results/residuals-hf-publisher-input-final-phase.json",
+      "scope": "Three frozen phases and strict offline map capture reanalysis; not one fresh19-case run. Original5375-token numeric255600s deadline failure preserved; distinct3955-token null255 passed894.277s at3600s.",
+      "cleanup": "clef-live-results/residuals-hf-cleanup-settled.json"
+    }
+  ],
+  "additional_evidence": [
+    "clef-live-results/python-reproducibility-proof.json",
+    "clef-live-results/ollama-flash-gpu-partial.json",
+    "clef-live-results/native-clef-cpu-proof.json",
+    "clef-live-results/skill-discovery-alias-proof.json",
+    "clef-skill-verification.json",
+    "clef-publisher-input-compatibility.md",
+    "clef-live-results/residuals-hf-token-inspection.json",
+    "clef-live-results/residuals-hf-compact-token-inspection.json",
+    "clef-live-results/native-flash-cpu-proof.json",
+    "clef-live-results/residuals-hf-publisher-input-final.json",
+    "clef-live-results/residuals-hf-publisher-input-final-phase.json",
+    "clef-live-results/residuals-hf-cleanup-settled.json"
+  ],
+  "verification": {
+    "full_gate_exit": 0,
+    "full_gate_log": "/tmp/jev-clef-residuals-fifteenth-verify.txt",
+    "command": "JEV_CLEF_PYTHON=\"$PWD/target/clef-local/repro-venv/bin/python\" JEV_MCP_INSPECTOR=1 scripts/verify.sh",
+    "result": "All selected checks passed.",
+    "required_check_skips": [],
+    "distinct_TypeSafe_live_tests_ignored": 11,
+    "third_party_skill_format_skips": 5,
+    "valid_skills": 16,
+    "nextest_default_passed": 879,
+    "nextest_no_keychain_passed": 878,
+    "fuzz_targets_exercised": 6,
+    "real_Python_decoder_and_video_processor": true,
+    "MCP_Inspector": true,
+    "source_release_artifact_rehearsal": true,
+    "after_gate_mutation_scope": "Full fifteenth gate binds final890d pilot guide, fd22 calibration-target grader,3583 heldout-order grader, unchanged3946 adapter and corrected per-partition preflight test. Only final outcome receipts follow; their exact source/archive capture is recorded separately without changing evaluated source.",
+    "retained_gate_artifacts": "../../target/clef-local/full-fifteenth-gate-artifacts/retention-proof.json",
+    "previous_gate_results": [
+      {
+        "gate": "twelfth",
+        "exit": 1,
+        "log": "/tmp/jev-clef-residuals-twelfth-verify.txt",
+        "finding": "One stale heldout legacy-preflight expectation failed; all other checks passed. Original failure retained."
+      },
+      {
+        "gate": "thirteenth",
+        "exit": 0,
+        "log": "/tmp/jev-clef-residuals-thirteenth-verify.txt",
+        "retained_artifacts": "../../target/clef-local/full-thirteenth-gate-artifacts/retention-proof.json",
+        "subsequent_review_finding": "Grok U caught a vacuous supported training case selection; corrected before final gate15."
+      },
+      {
+        "gate": "fourteenth",
+        "exit": 0,
+        "log": "/tmp/jev-clef-residuals-fourteenth-verify.txt",
+        "retained_artifacts": "../../target/clef-local/full-fourteenth-gate-artifacts/retention-proof.json",
+        "subsequent_review_finding": "Grok Uv2 required proving partition membership of each supported control. Corrected test before final gate15."
+      }
+    ]
+  },
+  "pending": [],
+  "unresolved_external_limits": [
+    "Cloudflare tests returned HTTP422/code5012 for rejectIfBusy on both models; upstream behavior prevents successful use of that documented option.",
+    "Full unquantized HF27B pinned weights exceed available disk; actual quantized27B Ollama vision and native text paths were tested.",
+    "Actual Windows/macOS execution requires unavailable platforms/toolchains; recorded static/cross-target attempts do not establish execution coverage.",
+    "One partial GPU Flash configuration was tested; full GPU and HF CUDA execution remain unverified.",
+    "All fresh model evaluations used GPT6.1Solhigh via instrumentedCodex plus three representative native pairs. Cursor lacks that model; no all-runtime or hiddenbackend-weight attestation is claimed.",
+    "Synthetic fixtures do not establish production accuracy/calibration; skill evaluations retain one genuine explanation omission and two candidate response-limit errors."
+  ],
+  "separately_reviewed_spelling_exception": {
+    "observed_failure": "Spelling checker treated caf/ba inside exact hexadecimal FNV-1a digest values in the immutable map-validation evidence as words.",
+    "decision": "Preserve evidence bytes; exempt only JSON state_digest/request_digest fields with exactly16lowercasehex characters. No file/prose/check exclusion.",
+    "validation": "Original proof failed; same unchanged proof now passes. Synthetic JSON containing identical digest fields and intentionally misspelled surrounding prose still fails and reports that prose error.",
+    "config": "../../typos.toml"
+  },
+  "review_progress": {
+    "model": "CursorCLI grok-4.7-xhigh",
+    "broad_source_review": {
+      "exit": 0,
+      "log": "/tmp/jev-clef-final-corrections-grok-review.txt",
+      "findings": "All-type eval validation and nonblank answer guard corrected and final targeted guards review clean. MCP raw JSON decoding remains SDK-owned; no duplicate-key ingress promise."
+    },
+    "later_fit_discovery_docs_review": {
+      "exit": 0,
+      "log": "/tmp/jev-clef-closing-grok-review.txt",
+      "findings": "No actionable defect; exact source-only coverage and live-proof limits recorded."
+    },
+    "two_eval_contract_review": {
+      "exit": 0,
+      "log": "/tmp/jev-clef-eval-contract-grok-review.txt",
+      "findings": "Both minimum corrections sound; original failures preserved, no retroactive regrading."
+    },
+    "final_harness_guards_review": {
+      "status": "complete",
+      "log": "/tmp/jev-clef-harness-guards-grok-review.txt",
+      "exit": 0,
+      "findings": "Clean; all-type validator matches actual Rust renderer, blank answers fail before any grader, historical startup failures excluded and old frozen evidence not rebound."
+    },
+    "pilot_results_guidance_review": {
+      "exit": 0,
+      "log": "/tmp/jev-clef-pilot-guidance-grok-review.txt",
+      "findings": "Clean minimum results-entry guidance and computed-interval labeling; strict graders unchanged."
+    },
+    "video_reference_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-video-guidance-grok-review.txt",
+      "findings": "Clean; source cadence, spacing between supplied sparse frames and processor target sampling are correctly distinguished; unchanged video rubric preserved."
+    },
+    "standalone_summary_and_cost_refusal_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-summary-guidance-grok-review.txt",
+      "findings": "Clean minimum general reporting duties, unchanged prompts and graders. Original answers already rejected adoption and currency costs; the defects were explanation/standalone-summary gaps, not observed unsafe decisions."
+    },
+    "evaluation_selection_orchestration_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-selection-grok-review.txt",
+      "findings": "Clean exact31 unique audited body readers plus separately confirmed no-split priority case; unchanged adapter/model/effort/repeats/baselines/graders, actual admitted hashes verified before inference. Later discovered history reader confirmed in separately named intended run, not silently added to active selection."
+    },
+    "audience_contract_proposal_review": {
+      "status": "revision_required_before_application",
+      "exit": 0,
+      "log": "/tmp/jev-clef-audience-contract-grok-review.txt",
+      "findings": "Agrees original false fail, rejects broad generic process/learning permission. Narrow to existing evidenced rejection avoiding unsupported adoption, measured deficit and prominent incumbent advantage; effort spent is not benefit. Active rubric and original failed records remain unchanged."
+    },
+    "audience_contract_narrow_revision_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-audience-v2-grok-review.txt",
+      "findings": "Approve narrow evidenced rejection preventing unsupported adoption only, measured deficit/prominent incumbent required, effort spent no benefit; original FAILs unchanged. Original failed records preserved; corrected-criterion judging separately identified without measured replay."
+    },
+    "criterion_only_judge_orchestration_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-judge-delta-grok-review.txt",
+      "findings": "Clean6existing responses times3high judges, no measured replay/original mutation, other votes untouched, original SDK isolation/positiveusage guards, partial errors/finallysummary captured. Final wrapper differs only by independently approved v2 proposal pointer."
+    },
+    "pilot_planning_privacy_ordinal_proposal_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-pilot-ordinal-grok-review.txt",
+      "findings": "Approve minimum conditional count-planning deliverable, explicit data-owner approval, scientific ceiling/label-cause correction, retained metrics/originalFAILs/noadoption/no posthoc rescue, freshheldout afteradjudication orrevision evenretainedbar."
+    },
+    "final_missing_input_and_pilot_selector_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-final-pilot-delta-grok-review.txt",
+      "findings": "Approve8064guide as priorapprovedad44 plus one missing-input stop paragraph;20actualpilotbodyreaders including3directReads, unchangedhighmodel/3paired/guards, max8withinmainlimits. Realfreezehashes andlist/stagingmustmatchbeforeadmission."
+    },
+    "fresh_rows_operational_guidance_review": {
+      "status": "revision_required_before_application",
+      "log": "/tmp/jev-clef-fresh-rows-grok-review.txt",
+      "proposal_sha256": "0fb8b2740f2513297983458af27eb241ec84d9b65c45c17b614d93ca897091f7",
+      "scope": "Minimum paragraph-only guidance; original failure/graders preserved. Exact unchanged20 selector and unchanged-main30heldout admission wrapper reviewed alongside.",
+      "exit": 0,
+      "findings": "Wrappers clean. Require original-miss/no-adoption disposition explicitly for all adjudication/definition/bar-revision paths, including retained bar; minimum v2 pending, original proposal/review retained."
+    },
+    "retained_completed_review_logs": {
+      "proof": "../../target/clef-local/review-retention/retention-proof.json",
+      "logs": 25,
+      "scope": "Completed logs retained byte-for-byte with SHA256 and size, including rejected proposals and the original U test defect alongside approved corrections."
+    },
+    "fresh_rows_operational_guidance_v2_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-fresh-rows-v2-grok-review.txt",
+      "proposal_sha256": "890dcb9e6b3c10b6bb85959cab2ad40250e546f8cb52c7a850f2561e93cb097b",
+      "findings": "APPROVE narrow independent common disposition covering all adjudication/definition/bar-revision paths including retained bar: fresh unreported source, original remains miss and cannot justify adoption. Scientific ceiling distinction and single revision unchanged."
+    },
+    "calibration_target_verdict_grader_review": {
+      "status": "complete",
+      "log": "/tmp/jev-clef-calibration-verdict-grok-review.txt",
+      "proposal_sha256": "fd22db15bf3a37f33fb3507ba1f67684daba5fa63715e0d543770093775662b0",
+      "independent_finding": "Fixture0.90min-accuracy target selects confidence gating oncalibrationrows; all17-row accuracy0.765 is not the gated metric and no teamallrowadoptioncriterion is recorded. Candidate explicitlyrejects using stated retrospective matchincumbent review; original0.75 preserved.",
+      "scope": "Minimum factual grader correction, originalFAILsentence retained; existing6responses onecriterion-only3votes each, no measured replay or other vote change.",
+      "exit": 0,
+      "findings": "APPROVE corrected confidence-covered calibration target vs unrecorded all-row adoption criterion; explicitreject/noadoption/alloriginalFAILs/numbers preserved. Reviewed criterion-only6responses times3highjudges; original failure retained and no measured replay. New evaluation digest required forheldout admission."
+    },
+    "heldout_preexisting_order_contract_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-heldout-order-grok-review.txt",
+      "proposal_sha256": "3583183ed6b67a3c498a838b6401e073b1bd9e38f1e8d8a59c9a223fb9716ca5",
+      "findings": "APPROVE exactpreexistingpublishedpilot\u00a73 composition via existing skill_order rule; primary successfulpilotbeforeanyJev, otherpositive/nofitchecks preserved. Originalblind85/88+2errors and3strict2/3 failures remain unchanged; offlineinterpretation mustbe separatelyPOSTHOC/currentdigest, notblindpass."
+    },
+    "heldout_posthoc_runner_review": {
+      "status": "complete",
+      "log": "/tmp/jev-clef-heldout-posthoc-runner-grok-review.txt",
+      "runner_sha256": "379ace8732370dc32f3115a74d32e84ce53d168be346264a127f46385f0e7eea",
+      "exit": 0,
+      "findings": "APPROVE actualoffline379acehelper: pinnedexistingdeterministicfunction/exact6originalrecordidentity+hashchecks, activeapprovedsource, otherverdictsidentical, newseparatePOSTHOCoutput/originalblindscore+hashes retained. Zero SDK/model calls; no retries or budget edits."
+    },
+    "preflight_test_original_review": {
+      "status": "defect_corrected",
+      "exit": 0,
+      "log": "/tmp/jev-clef-preflight-expectation-grok-review.txt",
+      "findings": "Correctly found root test used nonexistent credentials case ID and was vacuous. Restore actual header name and assert all four selected case IDs exist; adapter unchanged."
+    },
+    "preflight_test_corrected_review": {
+      "status": "complete",
+      "exit": 0,
+      "log": "/tmp/jev-clef-preflight-expectation-v3-grok-review.txt",
+      "findings": "Approve exact real supported training case name, exactly one supported case in each selected training/heldout partition with no skill_order grader, unsupported default/exact heldout and supported exact controls, with no model calls or test weakening.",
+      "test_sha256": "4ad0c4008c7353783d38340a6edecd532514af33c377f0fd934fc06a2e5cc936",
+      "red_green": "Wrong-name existence assertion caught first defect; mocked wrong-partition discovery passes v2 but fails v3. Exact per-partition supported case checks pass on real corpus; all50 adapter tests and final full gate15 pass."
+    },
+    "preflight_test_partition_review": {
+      "status": "defect_corrected",
+      "exit": 0,
+      "log": "/tmp/jev-clef-preflight-expectation-v2-grok-review.txt",
+      "findings": "Union of training/heldout case IDs was insufficient to prove each supported control actually selected a case. Test now requires exactly one matching case in each correct partition and no unsupported ordering grader; adapter unchanged.",
+      "regression_proof": "/tmp/jev-clef-preflight-expectation-v3-review/partition-regression-proof.json"
+    }
+  },
+  "harness_validation_scope": {
+    "all_type_smoke_eval": "New bounded selected-dataset/type/label/order/prediction validation reproduced30 old-harness failing assertions;22harness+7quality tests now pass. Original live receipts retain old helper hashes and original scope, without retroactive rebinding. Existing Rust eval and provider answer-shape evidence remains applicable.",
+    "nonblank_skill_answers": "Final retained audit evals/skills/results/nonblank-answer-audit-20261004.json records zero invalid answers among2765 valid measured answers and36 separate criterion-only judge answers. Six historical native startup failures excluded; original frozen adapter hashes retained. The new guard independently reproduced4 old failures before fixing blank/whitespace/null/number admission.",
+    "skill_behavior_scope": "Isolated catalog contains five shipped skills. Globally installed skills are disabled, not behavior-tested; native proof covers three representative Jev requests, one baseline/candidate pair each. The 16 valid skills in full verification is format validation, not behavioral coverage.",
+    "model_attestation_scope": "Instrumented evaluations require acknowledged model/effort/provider and positive actual usage. Native SDK per-turn backend model telemetry is unavailable; proof records requested and effective configuration, actual skill reads and command isolation, without claiming hidden model-weight or all-runtime attestation."
+  },
+  "final_release_binary": {
+    "bytes": 6644216,
+    "sha256": "94fdfd4da588ef26c851c7e9d30b8429278d0f95ba4c04d590458f8c38a437b9",
+    "scope": "Unchanged Rust release binary verified again by full gate15 after final890dguide, reviewedfd22calibration-target/3583heldout-order graders and test-only preflight corrections. Actual inference reports retain original frozen runtime/binary bindings; cargo-dist package binary is independently identified in retained artifacts."
+  },
+  "completed_pilot_confirmation_before_fresh_rows_correction": {
+    "records": 120,
+    "execution_errors": 0,
+    "candidate_all_criteria_passes": 59,
+    "candidate_measured_records": 60,
+    "remaining_original_failure": "ordinal scale repetition2 scored0.60; two original failed criteria retained; independent review confirms bar-justification/fresh-source/unchanged-bar remeasurement omissions",
+    "artifact": "../../evals/skills/results/final-pilot-readers-20261004T233557Z",
+    "heldout30": "unstarted"
+  },
+  "known_skill_behavior_residuals": [
+    {
+      "case": "pilot-behaviour-too-few-labels-for-a-threshold",
+      "repetition": 2,
+      "score": 0.3333333333333333,
+      "artifact": "../../evals/skills/results/final-pilot-readers-20261005T001022Z/pilot-behaviour-too-few-labels-for-a-threshold-with-2/result.json",
+      "observation": "Safely refuses gate, gives valid conditional73error-freeheldout Wilson calculation and separate calibration, but omits per-class label counts and existing human-label sources.",
+      "independent_review": "Duties already explicit in guide and method; response actually read the method, dataset andREADME. Preserve genuine instruction-following failure, no new guidance/check change or same-case replay."
+    },
+    {
+      "scope": "Original heldout execution",
+      "cases": [
+        "heldout-codex-transcripts-folder repetition3",
+        "heldout-llm-calls-fixed-list repetition3"
+      ],
+      "observation": "Two original candidate responses exceeded declared response limit after correctly selecting the primary skill and repeated named/empty-path searches. All10originalheldouterrors independentlyaudited as genuine max+1 response boundaries; no SDK/tool exception or duplicated accounting. No same-case replay or budget change."
+    }
+  ],
+  "corrected_calibration_criterion_judging": {
+    "artifact": "../../evals/skills/results/calibration-verdict-criterion-rejudge-20261005T002830Z",
+    "original_responses": 6,
+    "independent_high_judge_calls": 18,
+    "execution_errors": 0,
+    "measured_replays": 0,
+    "candidate_corrected_scores": [
+      1,
+      1,
+      1
+    ],
+    "baseline_original_scores": [
+      0.75,
+      0.5,
+      0.75
+    ],
+    "baseline_corrected_scores": [
+      0.75,
+      0.25,
+      0.75
+    ],
+    "other_criterion_votes_unchanged": true,
+    "actual_judge_tokens": 110328,
+    "scope": "One corrected criterion on retained final890dguide responses; not new measured behavior. Original files/scores unchanged."
+  },
+  "heldout_original_blind_outcome": {
+    "artifact": "../../evals/skills/results/final-heldout-20261005T002830Z",
+    "cases": 30,
+    "measured_records": 180,
+    "valid_candidate_answers": 88,
+    "candidate_original_strict_passes": 85,
+    "candidate_budget_errors": 2,
+    "valid_baseline_answers": 82,
+    "baseline_original_passes": 15,
+    "baseline_budget_errors": 8,
+    "usable_paired_repetitions": 80,
+    "LLM_judge_calls": 0,
+    "scope": "Original untouched heldout routing/tool-use coverage, not comprehensive answer-quality validation; 68tool-usegraders. All180records retained,10answers incomplete.",
+    "candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+    "evaluation_sha256": "ee418a53f5bd386f57090dd702b7583277c0ac6c5a98fd3916320218a2044057",
+    "routing_failure_under_review": "Closed: original three strict2/3scores unchanged. Reviewed offline ordering interpretation is separately labeled POSTHOC; preexisting successful pilot-first syntax delegation is allowed, no source-guide tuning or model replay."
+  },
+  "independent_final_outcome_audit": {
+    "training_original_records": 618,
+    "candidate_original_strict_passes": 307,
+    "candidate_passes_after_reviewed_calibration_overlay": 308,
+    "candidate_valid": 309,
+    "baseline_valid": 294,
+    "baseline_errors": 15,
+    "original_blind_heldout_records": 180,
+    "candidate_strict_passes": 85,
+    "candidate_valid_heldout": 88,
+    "candidate_errors_heldout": 2,
+    "baseline_valid_heldout": 82,
+    "baseline_strict_passes_heldout": 15,
+    "baseline_errors_heldout": 8,
+    "heldout_usable_pairs": 80,
+    "heldout_LLM_judges": 0,
+    "scope": "Independent read-only review of all selected originalrecords and separately reviewed six-response criterion-onlyoverlay, not blanket currenthashattestation or perfectblind-passclaim.",
+    "root_hash_audit": "Root independently verified all618 selected training record digests and all6 original posthoc record digests; source-scoped summaries retained, no global executed-hash claim.",
+    "final_receipt_audit": "Read-only independent audit confirmed gate15 PASS, Uv3 APPROVE, all14 gate file hashes and25 retained review hashes, correct originalblind85/88 versus separateposthoc88/88, and honest current-versus-executed source/global-skill scope. Stale binary gate11 label corrected after checking identical current bytes/hash."
+  },
+  "heldout_separate_posthoc_interpretation": {
+    "artifact": "../../evals/skills/results/heldout-order-posthoc-20261005/posthoc-interpretation.json",
+    "artifact_sha256": "1af71f2c7ac3ba412e75ee8ee5024c3231dfd8ac2f4f08567cf53b1b83b642ba",
+    "valid_candidate_passes_after_posthoc": 88,
+    "valid_candidate_answers": 88,
+    "candidate_execution_errors_still_retained": 2,
+    "original_blind_strict_passes_unchanged": 85,
+    "existing_responses_interpreted": 6,
+    "model_calls": 0,
+    "SDK_sessions": 0,
+    "blind_pass_claimed": false,
+    "other_original_criteria_unchanged": true,
+    "runner_sha256": "379ace8732370dc32f3115a74d32e84ce53d168be346264a127f46385f0e7eea",
+    "scope": "Deterministic offline interpretation of six existing answers under the reviewed preexisting ordering rule; original blind scores/record hashes and both candidate errors remain unchanged."
+  },
+  "final_evaluated_source": {
+    "candidate_sha256": "a4a662e8bc0844ce4691ad38956489494fef38352e4abe7618771bebb1177589",
+    "current_public_evaluation_sha256": "61a0aa8947d096d0d43ee2010dc9d7284d4065df8c3aab592fa2c768f74c1aa2",
+    "original_blind_evaluation_sha256": "ee418a53f5bd386f57090dd702b7583277c0ac6c5a98fd3916320218a2044057",
+    "pilot_body_sha256": "890dcb9e6b3c10b6bb85959cab2ad40250e546f8cb52c7a850f2561e93cb097b",
+    "adapter_sha256": "3946a6adf2cbda729fad71b9877e95dcaeafe6e3b74635f832d5e43650f80c2b",
+    "scope": "Current catalog/evaluation hashes identify final public source; actual case-scoped consumed source and original blind evaluation are retained separately in the worker receipt."
+  },
+  "approved_skill_adapter_repair": {
+    "status": "complete",
+    "paths": [
+      ".agents/skills/api-compat/SKILL.md",
+      ".agents/skills/security-review/SKILL.md",
+      ".agents/skills/release-review/SKILL.md"
+    ],
+    "action": "Only the three specifically approved files replaced with symlinks to canonical .claude/skills counterparts; originals retained in target/clef-local/skill-adapter-repair.",
+    "readiness_warnings": 0
+  },
+  "final_outcome_capture": {
+    "proof": "../../target/clef-local/final-outcome-release-artifacts/retention-proof.json",
+    "scope": "Outcome receipt archive hashes and final rehearsal execution are recorded separately to avoid self-referential hashes. Final closure requires successful capture and byte-identical root/worker receipts; no publication."
+  }
+}

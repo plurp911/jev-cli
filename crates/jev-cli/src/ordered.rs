@@ -20,7 +20,7 @@
 use std::fmt;
 
 use serde::Deserialize;
-use serde::de::{Deserializer, MapAccess, Visitor};
+use serde::de::{Deserializer, MapAccess, SeqAccess, Visitor};
 use serde_json::Value;
 
 /// A JSON object as an ordered list of entries, duplicates included.
@@ -38,31 +38,43 @@ pub type OrderedObject = OrderedMap<Value>;
 /// A question body, or any object whose own keys must keep their order.
 ///
 /// [`Field::Object`] is tried first, so a nested object keeps its order and its
-/// duplicates; anything else is an ordinary [`Value`], which is enough because the only
-/// other ordered shape JSON has is an array, and arrays already keep their order.
+/// duplicates. Arrays recurse through [`Field`] so objects inside them keep duplicate
+/// keys too; only scalar values use an ordinary [`Value`].
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 #[serde(untagged)]
 pub enum Field {
     /// A nested object, order and duplicates intact.
     Object(OrderedMap<Field>),
-    /// A scalar or an array.
+    /// An array whose nested objects keep duplicates intact.
+    Array(Vec<Field>),
+    /// A scalar.
     Other(Value),
 }
 
 impl Field {
-    /// The plain JSON value, losing the order of any nested object's keys.
+    /// The plain JSON value, rejecting duplicates before collecting object entries.
     ///
     /// Used where the value is handed to `jev-core`, which takes `serde_json::Value`.
-    #[must_use]
-    pub fn to_value(&self) -> Value {
+    /// # Errors
+    /// Returns an error for a duplicate object key at any nesting level.
+    pub fn to_value(&self) -> Result<Value, serde_json::Error> {
         match self {
-            Self::Object(map) => Value::Object(
+            Self::Object(map) => {
+                if let Some(key) = map.first_duplicate() {
+                    return Err(duplicate_error(key));
+                }
                 map.entries()
                     .iter()
-                    .map(|(key, value)| (key.clone(), value.to_value()))
-                    .collect(),
-            ),
-            Self::Other(value) => value.clone(),
+                    .map(|(key, value)| value.to_value().map(|value| (key.clone(), value)))
+                    .collect::<Result<serde_json::Map<_, _>, _>>()
+                    .map(Value::Object)
+            }
+            Self::Array(values) => values
+                .iter()
+                .map(Self::to_value)
+                .collect::<Result<Vec<_>, _>>()
+                .map(Value::Array),
+            Self::Other(value) => Ok(value.clone()),
         }
     }
 
@@ -71,7 +83,7 @@ impl Field {
     pub const fn as_object(&self) -> Option<&OrderedMap<Self>> {
         match self {
             Self::Object(map) => Some(map),
-            Self::Other(_) => None,
+            Self::Array(_) | Self::Other(_) => None,
         }
     }
 }
@@ -151,6 +163,97 @@ pub fn parse_object(text: &str) -> Result<OrderedObject, serde_json::Error> {
     serde_json::from_str(text)
 }
 
+/// Parses JSON without silently overwriting duplicate keys at any nesting level.
+///
+/// Values have the same representation as ordinary `serde_json::Value` decoding,
+/// and the JSON deserializer keeps its normal nesting limit. Use [`Field`] when
+/// object order must also be preserved until validation.
+pub(crate) fn parse_unambiguous_value(text: &str) -> Result<Value, serde_json::Error> {
+    serde_json::from_str::<UnambiguousValue>(text).map(|value| value.0)
+}
+
+/// Checks a selected optional JSON field without changing how other fields decode.
+pub(crate) fn deserialize_optional_unambiguous_value<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<Value>, D::Error> {
+    Option::<UnambiguousValue>::deserialize(deserializer).map(|value| value.map(|value| value.0))
+}
+
+struct UnambiguousValue(Value);
+
+fn duplicate_error<E: serde::de::Error>(key: &str) -> E {
+    E::custom(format!(
+        "duplicate field `{}`; use each object key only once",
+        crate::output::Safe::new(key)
+    ))
+}
+
+impl<'de> Deserialize<'de> for UnambiguousValue {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Unambiguous;
+
+        impl<'de> Visitor<'de> for Unambiguous {
+            type Value = UnambiguousValue;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter.write_str("JSON with no duplicate object keys")
+            }
+
+            fn visit_bool<E: serde::de::Error>(self, value: bool) -> Result<Self::Value, E> {
+                Ok(UnambiguousValue(Value::Bool(value)))
+            }
+
+            fn visit_i64<E: serde::de::Error>(self, value: i64) -> Result<Self::Value, E> {
+                Ok(UnambiguousValue(Value::Number(value.into())))
+            }
+
+            fn visit_u64<E: serde::de::Error>(self, value: u64) -> Result<Self::Value, E> {
+                Ok(UnambiguousValue(Value::Number(value.into())))
+            }
+
+            fn visit_f64<E: serde::de::Error>(self, value: f64) -> Result<Self::Value, E> {
+                serde_json::Number::from_f64(value)
+                    .map(|number| UnambiguousValue(Value::Number(number)))
+                    .ok_or_else(|| E::custom("non-finite JSON number"))
+            }
+
+            fn visit_str<E: serde::de::Error>(self, value: &str) -> Result<Self::Value, E> {
+                self.visit_string(value.to_owned())
+            }
+
+            fn visit_string<E: serde::de::Error>(self, value: String) -> Result<Self::Value, E> {
+                Ok(UnambiguousValue(Value::String(value)))
+            }
+
+            fn visit_unit<E: serde::de::Error>(self) -> Result<Self::Value, E> {
+                Ok(UnambiguousValue(Value::Null))
+            }
+
+            fn visit_seq<A: SeqAccess<'de>>(self, mut access: A) -> Result<Self::Value, A::Error> {
+                let mut values = Vec::with_capacity(access.size_hint().unwrap_or(0).min(64));
+                while let Some(value) = access.next_element::<UnambiguousValue>()? {
+                    values.push(value.0);
+                }
+                Ok(UnambiguousValue(Value::Array(values)))
+            }
+
+            fn visit_map<M: MapAccess<'de>>(self, mut access: M) -> Result<Self::Value, M::Error> {
+                let mut values = serde_json::Map::new();
+                while let Some(key) = access.next_key::<String>()? {
+                    if values.contains_key(&key) {
+                        return Err(duplicate_error(&key));
+                    }
+                    let value = access.next_value::<UnambiguousValue>()?;
+                    values.insert(key, value.0);
+                }
+                Ok(UnambiguousValue(Value::Object(values)))
+            }
+        }
+
+        deserializer.deserialize_any(Unambiguous)
+    }
+}
+
 /// Looks a key up in an ordered object.
 #[must_use]
 pub fn get<'a, V>(object: &'a OrderedMap<V>, key: &str) -> Option<&'a V> {
@@ -218,5 +321,24 @@ mod tests {
         let object = parse_object("{}").unwrap();
         assert!(object.is_empty());
         assert_eq!(object.first_duplicate(), None);
+    }
+
+    #[test]
+    fn fields_reject_duplicates_inside_nested_arrays_before_conversion() {
+        for text in [
+            r#"{"flag":null,"flag":false}"#,
+            r#"[{"flag":null,"flag":false}]"#,
+            r#"{"nested":[[{"flag":null,"flag":false}]]}"#,
+        ] {
+            let field: Field = serde_json::from_str(text).unwrap();
+            let error = field.to_value().unwrap_err().to_string();
+            assert!(error.contains("duplicate field `flag`"), "{error}");
+        }
+        let text = r#"{"nested":[[null,false,-1,"",{"flag":42}]]}"#;
+        let field: Field = serde_json::from_str(text).unwrap();
+        assert_eq!(
+            field.to_value().unwrap(),
+            serde_json::from_str::<Value>(text).unwrap()
+        );
     }
 }

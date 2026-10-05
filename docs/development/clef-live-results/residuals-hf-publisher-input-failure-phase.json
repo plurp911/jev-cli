@@ -1,0 +1,65 @@
+{
+  "schema": "jev.clef.publisher-input-failure-phase/v1",
+  "synthetic": true,
+  "publisher_revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+  "manifest_verified_before_execution": true,
+  "device": "cpu",
+  "dtype": "bfloat16",
+  "threads": 8,
+  "loopback_only": true,
+  "implicit_authentication_disabled": true,
+  "attempts": 1,
+  "retries": 0,
+  "fallback": false,
+  "reserved_requests": 10,
+  "passed_cases": 9,
+  "failed_cases": 1,
+  "not_run_cases": 9,
+  "score255_numeric_cli_exit": 4,
+  "score255_numeric_stdout_empty": true,
+  "score255_numeric_request_timeout_seconds": 600,
+  "score255_numeric_observed_case_seconds": 600.707519393,
+  "failure_diagnosis": "CLI deadline observed while owned publisher CPU inference continued; no OOM or schema-cap error observed. Diagnostics were intentionally discarded by the bounded harness.",
+  "original_inference_was_not_resent": true,
+  "owned_process_observation": {
+    "state": "R",
+    "cpu_ticks_increase": 60827,
+    "elapsed_seconds": 94.18613579399243,
+    "peak_rss_kib": 15631460,
+    "swap_kib": 0,
+    "non_inference_readiness_timeout_seconds": 2
+  },
+  "artifacts": {
+    "jev_binary": {
+      "bytes": 6637400,
+      "sha256": "43c31555bcc58a841b50ab7d8b6343ff4d154c692b005e27fa090969ec0e3020"
+    },
+    "loaded_bridge_source_expected": {
+      "bytes": 21689,
+      "sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506"
+    },
+    "live_helper": {
+      "bytes": 33814,
+      "sha256": "78b39d87beb0d67e2f67ac62dba932c99a8b6c189cf14ab45548531df79a8a63"
+    },
+    "addendum_runner": {
+      "bytes": 9407,
+      "sha256": "1f6c269bde4fa8c039b2477418745a89fd1b9ad039d88bf860df68888bb4b9b9"
+    }
+  },
+  "observer": {
+    "bytes": 1736,
+    "sha256": "4839f9718ff5086e9bb2db19f72e871403f8ce885571c21ba1dd53b771b414ff"
+  },
+  "manifest_verification": {
+    "bytes": 223,
+    "sha256": "7a02f11503310e0054a2d141b398f0fe733b9d87ad33bf3592a278f008800d1c"
+  },
+  "python_profile": {
+    "bytes": 3415,
+    "sha256": "640a92a01ff1cb1b404de21a2cfdb2136652e1a5f8496ae52f90c3f89b80f99c"
+  },
+  "weights_retained_for_explicit_distinct_workload": true,
+  "cleanup_complete": false,
+  "quality_claim": false
+}

@@ -445,24 +445,5 @@ jobs:
             dist/*installer.sh dist/*.rb dist/source.tar.gz dist/jev.spdx.json
           gh release view "$TAG" --json url --jq .url
 
-  # ---------------------------------------------------------------------------
-  # Steps below are the reviewed shape of the eventual release. They are disabled,
-  # and the `guard` job above fails the run before any of them could execute.
-  # ---------------------------------------------------------------------------
-  #
-  # publish:
-  #   # `attest` must NOT appear here. It is `if: ${{ inputs.attest }}`, so on a real
-  #   # release run it is *skipped*, and a skipped dependency blocks the dependent job
-  #   # forever. The tempting repair — `if: always()` — would also decouple publish
-  #   # from `guard`, which is the one job that must never be bypassed. When the
-  #   # pipeline is armed, make attestation unconditional instead of conditional.
-  #   needs: [guard, build, global, smoke, sbom]
-  #   environment: release   # human approval gate, configured in repository settings
-  #   permissions:
-  #     contents: write      # create the GitHub release
-  #   steps:
-  #     - run: gh release create "$TAG" --verify-tag --notes-from-tag artifacts/*
-  #     - run: cargo publish --locked -p jev-cli
-  #
   # Package manifests are updated by a human after verifying the published artifacts,
   # not by this workflow. See packaging/README.md.

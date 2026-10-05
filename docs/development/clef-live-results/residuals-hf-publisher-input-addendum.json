@@ -1,0 +1,84 @@
+{
+  "schema": "jev.clef.publisher-input-addendum/v1",
+  "provider": "huggingface",
+  "model": "clef-flash",
+  "synthetic": true,
+  "planned_requests": 40,
+  "max_requests": 40,
+  "reserved_requests": 10,
+  "retries": 0,
+  "fallback": false,
+  "passed": false,
+  "cases": [
+    {
+      "case": "state-0",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-1",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-2",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-3",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-4",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-5",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-6",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "state-7",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mixed-json-descriptions",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "score255-levels",
+      "requests_reserved": 1,
+      "passed": false,
+      "failure": "input integration failed; stopped without retry"
+    }
+  ],
+  "artifacts": {
+    "jev_binary": {
+      "bytes": 6637400,
+      "sha256": "43c31555bcc58a841b50ab7d8b6343ff4d154c692b005e27fa090969ec0e3020"
+    },
+    "loaded_bridge_source_expected": {
+      "bytes": 21689,
+      "sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506"
+    },
+    "live_helper": {
+      "bytes": 33814,
+      "sha256": "78b39d87beb0d67e2f67ac62dba932c99a8b6c189cf14ab45548531df79a8a63"
+    },
+    "addendum_runner": {
+      "bytes": 9407,
+      "sha256": "1f6c269bde4fa8c039b2477418745a89fd1b9ad039d88bf860df68888bb4b9b9"
+    }
+  },
+  "quality_claim": false
+}

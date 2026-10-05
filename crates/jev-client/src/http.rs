@@ -104,19 +104,16 @@ impl Transport for HttpTransport {
     ) -> Result<Response, TransportError> {
         // The one and only place the plaintext key becomes a header. The buffer is
         // zeroized when this function returns.
-        let authorization = credential.bearer_header();
-        // Parsed on its own, before the builder, so that a key which cannot be a header
-        // value is reported as the credential problem it is. Folded into the builder,
-        // it surfaced as "could not reach the API endpoint" -- a transient failure,
-        // retried three times -- though nothing was ever sent. The parse error is
-        // discarded: it describes the value, and the value is the key.
-        let authorization = ureq::http::HeaderValue::from_str(authorization.as_str())
-            .map_err(|_| TransportError::InvalidCredential)?;
-
         let mut builder = ureq::http::Request::builder()
             .method(request.method)
-            .uri(request.url.as_str())
-            .header("authorization", authorization);
+            .uri(request.url.as_str());
+        if !credential.is_anonymous() {
+            // Discard parse errors: their text can disclose the header value.
+            let authorization = credential.bearer_header();
+            let authorization = ureq::http::HeaderValue::from_str(authorization.as_str())
+                .map_err(|_| TransportError::InvalidCredential)?;
+            builder = builder.header("authorization", authorization);
+        }
         for (name, value) in &request.headers {
             builder = builder.header(name.as_str(), value.as_str());
         }

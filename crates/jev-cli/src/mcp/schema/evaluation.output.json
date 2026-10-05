@@ -26,6 +26,28 @@
     "endpoint": {
       "type": "string"
     },
+    "provider": {
+      "type": "string",
+      "enum": [
+        "typesafe",
+        "cloudflare",
+        "ollama",
+        "llamacpp",
+        "huggingface"
+      ],
+      "description": "The explicitly configured inference provider."
+    },
+    "cloudflare_account_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Cloudflare account scope, or null for other providers."
+    },
     "answers": {
       "type": "object",
       "additionalProperties": {

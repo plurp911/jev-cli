@@ -1,0 +1,75 @@
+{
+  "schema": "opus-blind-clef-admission/v2",
+  "frozen_before_measured_answers": true,
+  "freeze_time_utc": "2026-10-05T02:27:22.194872+00:00",
+  "case_count": 6,
+  "case_files": {
+    "bounded-repo-opportunity-map/prompt.md": "de9fa64eab4cab2e08df7e72b117f3c493b659653dca44b1edee8937c149bc9e",
+    "bounded-repo-opportunity-map/graders/01-skill-trigger.md": "1d947d0963914473fb478d62034a8d7378b1ed89f9c26178374021d09e3a81fb",
+    "sparse-platform-frames/prompt.md": "8bce74428a15244195af662376b77c2463e1c39a964dc4c17dba29560dac9c3d",
+    "sparse-platform-frames/graders/01-skill-trigger.md": "cff4301ef7dfd58a1db1c0b437cd0640fd30f21d75180f5848826ae56f123c97",
+    "sparse-platform-frames/graders/02-independent-behavior.md": "5a7140c186541de354f1936922f39382dae3ffb5c3248baa6329a4c8e9094035",
+    "sprite-workflow-retro/prompt.md": "47847045e612f4fc0c5307dde6fea730fa0139981889d1e453e57990510c4340",
+    "sprite-workflow-retro/graders/01-skill-trigger.md": "bdb50f6624ab2e1313d46aa5bd08c3840b5274e638b90f9e66378ac779072cb0",
+    "sprite-workflow-retro/graders/02-independent-behavior.md": "f56b8fd4b7a8f58fc4e7754ca8d0d052cd3a4aea87fbe347d196c5fe4c1754a4",
+    "eligibility-plus-damage-fit/prompt.md": "e003a5b18336068e48ca99a21270ae0a954a0307aa7c72a6a192eb2b253f5b8c",
+    "eligibility-plus-damage-fit/graders/01-skill-trigger.md": "05029fdf75ec0a815f702af91f3d60edc58dd4de209181d8e61080f5431f87ef",
+    "job-event-vector-comparator/prompt.md": "517c30cc470308fca433662a4769fe006f528636254535b186c4b96f4d951590",
+    "job-event-vector-comparator/graders/04-no-jev-pilot.md": "ec1fd3bb80e75b68efaed3bf3d5b5ef0251028ed2ac110d527cc380581dfd172",
+    "job-event-vector-comparator/graders/02-no-is-jev-useful-here.md": "e27ceb238499dd493d38411f73e4ef7dabe643aeb7fe27b53ceea3b2547f426f",
+    "job-event-vector-comparator/graders/01-no-jev.md": "19941aeb63fdf8706adc225d39fea3ab73905db160e5c43fe8cf9de9d6e12f24",
+    "job-event-vector-comparator/graders/03-no-jev-opportunity-audit.md": "50bb2290ebbcd37131ae24834edf8c90a103590692b523f9f3d89517b23d0341",
+    "job-event-vector-comparator/graders/05-no-jev-workflow-retro.md": "199bafc41a2e2ea79b66ff2dd5fae94e01cfb76b0a9637da5c00c03808bad82e",
+    "parcel-photo-pilot/prompt.md": "1967ee85181afc1646480e469ad4b1b864ac9b6613f9471d92ab0dc73542957b",
+    "parcel-photo-pilot/graders/01-skill-trigger.md": "d19b054112de4caa5ef1f04322b034664df9cc757821143b979b25f2bf610951",
+    "parcel-photo-pilot/graders/02-independent-behavior.md": "1a459abb02415379855dbaa428d72f2da0d2895f50a84995db27e94ae980e928"
+  },
+  "cases": [
+    {
+      "directory": "sparse-platform-frames",
+      "name": "opus-blind-clef-sparse-platform-frames",
+      "kind": "behavior",
+      "expected_skill": "jev",
+      "admitted": true
+    },
+    {
+      "directory": "parcel-photo-pilot",
+      "name": "opus-blind-clef-parcel-photo-pilot",
+      "kind": "behavior",
+      "expected_skill": "jev-pilot",
+      "admitted": true
+    },
+    {
+      "directory": "sprite-workflow-retro",
+      "name": "opus-blind-clef-sprite-workflow-retro",
+      "kind": "behavior",
+      "expected_skill": "jev-workflow-retro",
+      "admitted": true
+    },
+    {
+      "directory": "eligibility-plus-damage-fit",
+      "name": "opus-blind-clef-eligibility-plus-damage-fit",
+      "kind": "trigger_positive",
+      "expected_skill": "is-jev-useful-here",
+      "admitted": true
+    },
+    {
+      "directory": "bounded-repo-opportunity-map",
+      "name": "opus-blind-clef-bounded-repo-opportunity-map",
+      "kind": "trigger_positive",
+      "expected_skill": "jev-opportunity-audit",
+      "admitted": true
+    },
+    {
+      "directory": "job-event-vector-comparator",
+      "name": "opus-blind-clef-job-event-vector-comparator",
+      "kind": "trigger_negative",
+      "expected_skill": null,
+      "admitted": true
+    }
+  ],
+  "admission_basis": "Before first measured answer: ten expected-skill fields converted mechanically to supported exact input_match; sparse input tokenization terminology corrected from publisher primary contract; all other criteria retained; five intended negative max-zero checks explicitly receive min-zero to satisfy the existing adapter contract",
+  "measurement_status": "not_started",
+  "original_authored_admission_sha256": "8c4aeb90312891e9637d0b42488cbf2f098c8f29f5b27b06e06179288577cd4f",
+  "original_author_note_sha256": "2bd5e59744a39e1a0dfabc6a67e0bcb37ccb475b3dfe23c62470c9399e6df30a"
+}

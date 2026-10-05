@@ -1,0 +1,79 @@
+{
+  "schema": "jev.clef.publisher-input-addendum/v1",
+  "provider": "huggingface",
+  "model": "clef-flash",
+  "synthetic": true,
+  "planned_requests": 20,
+  "max_requests": 20,
+  "reserved_requests": 20,
+  "retries": 0,
+  "fallback": false,
+  "passed": true,
+  "cases": [
+    {
+      "case": "eval-scalar-rows",
+      "requests_reserved": 8,
+      "passed": true,
+      "request_timeout_seconds": 600
+    },
+    {
+      "case": "mcp-noul",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-choice",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-score",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-ask",
+      "requests_reserved": 1,
+      "passed": true
+    },
+    {
+      "case": "mcp-map",
+      "requests_reserved": 8,
+      "passed": true
+    }
+  ],
+  "artifacts": {
+    "jev_binary": {
+      "bytes": 6637400,
+      "sha256": "43c31555bcc58a841b50ab7d8b6343ff4d154c692b005e27fa090969ec0e3020"
+    },
+    "loaded_bridge_source_expected": {
+      "bytes": 21689,
+      "sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506"
+    },
+    "live_helper": {
+      "bytes": 33814,
+      "sha256": "78b39d87beb0d67e2f67ac62dba932c99a8b6c189cf14ab45548531df79a8a63"
+    },
+    "addendum_runner": {
+      "bytes": 10212,
+      "sha256": "468d52f20c3730936b2a4f570fc4b5c40d91aaab93b38035c520a42f352da0fb"
+    }
+  },
+  "quality_claim": false,
+  "experiment": "remaining eval and MCP coverage only; no previously executed cases resent",
+  "prior_failed_report": {
+    "bytes": 1815,
+    "sha256": "eecefb8b2e291e7eb92dcd013a40501707d3e2ad8d2d11d5acc0b3f3c00049ee"
+  },
+  "map_capture_reanalysis": {
+    "bytes": 5195,
+    "sha256": "ca6b98cbaaa6b840be3fc037aed53b98d89be89af0f9cefafef3e3e2ef5e67f3"
+  },
+  "prior_valid_cases_reexecuted": false,
+  "numeric255_timeout_retried": false,
+  "compact255_and_map_reexecuted": false,
+  "mcp": {
+    "clean_exit": true
+  }
+}

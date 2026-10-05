@@ -1,9 +1,9 @@
-//! Compatibility tests against documents recorded from official TypeSafe sources.
+//! Compatibility tests against documents recorded from official provider sources.
 //!
 //! # Why these exist separately from the unit tests
 //!
 //! A unit test asserts that the code does what its author intended. These assert that
-//! what the author intended matches what TypeSafe published. When the API changes, a
+//! what the author intended matches what the provider published. When the API changes, a
 //! unit test written against the old shape keeps passing; one of these fails.
 //!
 //! Provenance for every fixture is in `tests/fixtures/README.md`, and each file names
@@ -22,6 +22,66 @@ use jev_core::{
     State,
 };
 use serde_json::{Value, json};
+
+#[test]
+fn documented_ollama_clef_response_preserves_each_primitive_and_confidence() {
+    let value = fixture("response-ollama-clef.json");
+    let response = jev_client::decode_evaluation(&serde_json::to_vec(&value).unwrap()).unwrap();
+    assert_eq!(response.model.as_str(), "clef");
+    assert_eq!(response.usage.input_tokens, Some(1204));
+    assert_eq!(response.usage.output_tokens, Some(3));
+    let team = response
+        .answers
+        .iter()
+        .find(|(id, _)| id.as_str() == "team")
+        .unwrap();
+    match &team.1 {
+        Answer::Choice {
+            choice,
+            confidence,
+            probabilities,
+        } => {
+            assert_eq!(choice, "billing");
+            assert_eq!(confidence.get().to_bits(), 0.924_f64.to_bits());
+            assert_eq!(
+                probabilities
+                    .iter()
+                    .find(|p| p.key == "billing")
+                    .unwrap()
+                    .probability
+                    .get()
+                    .to_bits(),
+                0.981_f64.to_bits()
+            );
+        }
+        other => panic!("unexpected answer {other:?}"),
+    }
+    assert!(
+        response
+            .answers
+            .iter()
+            .any(|(id, answer)| id.as_str() == "refund"
+                && matches!(answer,Answer::Noul { noul } if noul.get().to_bits()==0.996_f64.to_bits()))
+    );
+    let urgency = response
+        .answers
+        .iter()
+        .find(|(id, _)| id.as_str() == "urgency")
+        .unwrap();
+    match &urgency.1 {
+        Answer::Score {
+            score,
+            confidence,
+            legend,
+            ..
+        } => {
+            assert_eq!(score.to_bits(), 0.704_f64.to_bits());
+            assert_eq!(confidence.get().to_bits(), 0.071_f64.to_bits());
+            assert_eq!(legend.get(&0), Some(&text("Routine")));
+        }
+        other => panic!("unexpected answer {other:?}"),
+    }
+}
 
 /// Loads a fixture and strips the provenance field, which is ours and not the API's.
 fn fixture(name: &str) -> Value {

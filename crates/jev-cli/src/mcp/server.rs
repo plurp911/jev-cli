@@ -25,11 +25,11 @@ use crate::mcp::tools::{self, Deps};
 
 /// The server-level instructions, surfaced by hosts that read them (Claude Code and
 /// Codex both do). Deliberately short: the `jev-cli` Agent Skill carries the rest.
-pub(crate) const INSTRUCTIONS: &str = "Jev gives fast, bounded semantic judgements -- Noul \
-    (yes/no), Choice (one of named options), Score (ordered levels) -- with probabilities; \
-    it does not generate text. Everything passed as state is sent to TypeSafe. Prefer \
-    deterministic code for deterministic rules, and keep the returned uncertainty rather \
-    than rounding it away.";
+pub(crate) const INSTRUCTIONS: &str = "Bounded semantic judgements: Noul (yes/no), Choice \
+    (named options), and Score (ordered levels), with probabilities. State and explicitly \
+    supplied images and videos are sent to the configured inference endpoint: TypeSafe, Cloudflare, \
+    Ollama, llama.cpp, or the Python Hugging Face bridge. A local provider uses the configured local server. No generated \
+    text. Prefer deterministic code for deterministic rules; preserve returned uncertainty.";
 
 /// One tool's static definition.
 struct Definition {
@@ -54,33 +54,33 @@ const DEFINITIONS: [Definition; 5] = [
             for generating text, and not for anything code can check exactly (arithmetic, \
             string matching, parsing). Use `choice` to pick one of several named options, \
             `score` to rate on ordered levels, `ask` for several questions about the same \
-            state. The state is sent to the configured TypeSafe endpoint.",
+            state. The state is sent to the configured inference endpoint.",
         input: include_str!("schema/noul.input.json"),
         output: EVALUATION_OUTPUT,
     },
     Definition {
         name: "choice",
         title: "Jev Choice (one of named options)",
-        description: "Pick one of 2-255 named options for the given state, with the \
+        description: "Pick one of 2-255 named options (Ollama: 2-26), with the \
             probability of every option and a confidence value. Returns \
             answers.<id>.choice, .probabilities, and .confidence. For routing, \
             categorising, and triage. Not for generating text or for rules code can check \
             exactly. Use `noul` for a single yes/no, `score` when the options are ordered \
             levels, `ask` to combine with other questions about the same state. The state \
-            is sent to the configured TypeSafe endpoint.",
+            is sent to the configured inference endpoint.",
         input: include_str!("schema/choice.input.json"),
         output: EVALUATION_OUTPUT,
     },
     Definition {
         name: "score",
         title: "Jev Score (ordered levels)",
-        description: "Rate the given state on 2-10 ordered levels described in words, \
+        description: "Rate the state on 2-10 ordered levels (Ollama: 2-26; Python Hugging Face bridge: 2-255), \
             lowest first. Returns answers.<id>.score (the probability-weighted mean level, \
             0-based, which can fall between levels), the probability of every level, and \
             a confidence value. For severity, risk, quality, or \
             priority on your own rubric. Not for generating text or for quantities code \
             can compute. Use `choice` when the options are not ordered, `noul` for yes/no. \
-            The state is sent to the configured TypeSafe endpoint.",
+            The state is sent to the configured inference endpoint.",
         input: include_str!("schema/score.input.json"),
         output: EVALUATION_OUTPUT,
     },
@@ -88,11 +88,10 @@ const DEFINITIONS: [Definition; 5] = [
         name: "ask",
         title: "Jev Ask (several questions, one state)",
         description: "Several independent noul, choice, and score questions about ONE \
-            state, in a single request: much cheaper than, and about as fast as, one \
-            question each. Returns one answer per question id, each with its full \
+            state, in a single request. Questions share state and explicit images. Returns one answer per question id, each with its full \
             probabilities. Use instead of calling noul, choice, or score repeatedly on the \
             same state; use `map` to ask the same questions of many different states. The \
-            state is sent to the configured TypeSafe endpoint.",
+            state is sent to the configured inference endpoint.",
         input: include_str!("schema/ask.input.json"),
         output: EVALUATION_OUTPUT,
     },
@@ -106,7 +105,7 @@ const DEFINITIONS: [Definition; 5] = [
             record sent -- its answers, or an `error` for a record that failed, which is \
             not an answer -- and a summary. For larger or offline jobs, files on disk, CI gates, or \
             calibrated evaluation, run the `jev map` or `jev eval` CLI instead. Every \
-            record's state is sent to the configured TypeSafe endpoint.",
+            record's state is sent to the configured inference endpoint.",
         input: include_str!("schema/map.input.json"),
         output: include_str!("schema/map.output.json"),
     },
@@ -396,6 +395,8 @@ mod tests {
         "enum",
         "description",
         "minimum",
+        // JSON Schema 2020-12 uses a numeric bound for strictly positive inputs.
+        "exclusiveMinimum",
         "maximum",
         "minItems",
         "maxItems",
@@ -413,6 +414,9 @@ mod tests {
             if key == "type" && !value.is_string() {
                 found.push(format!("{path}.type is not a single string"));
             }
+            if key == "exclusiveMinimum" && !value.is_number() {
+                found.push(format!("{path}.exclusiveMinimum is not a number"));
+            }
             match key.as_str() {
                 "anyOf" => {
                     for branch in value.as_array().into_iter().flatten() {
@@ -428,6 +432,30 @@ mod tests {
                 _ => {}
             }
         }
+    }
+
+    #[test]
+    fn portable_keywords_require_numeric_exclusive_minimum_and_refuse_unknowns() {
+        let mut found = Vec::new();
+        keywords(
+            &serde_json::json!({"type":"number","exclusiveMinimum":0}),
+            "cadence",
+            &mut found,
+        );
+        assert!(found.is_empty());
+        keywords(
+            &serde_json::json!({"type":"number","exclusiveMinimum":true}),
+            "cadence",
+            &mut found,
+        );
+        assert_eq!(found, ["cadence.exclusiveMinimum is not a number"]);
+        found.clear();
+        keywords(
+            &serde_json::json!({"type":"number","unsupportedKeyword":0}),
+            "cadence",
+            &mut found,
+        );
+        assert_eq!(found, ["cadence.unsupportedKeyword"]);
     }
 
     #[test]
@@ -450,6 +478,33 @@ mod tests {
         assert_eq!(names, tools::NAMES);
     }
 
+    #[test]
+    fn discovery_describes_provider_score_limits_and_single_instruction_fallbacks() {
+        let tools = definitions().unwrap();
+        let score = tools.iter().find(|tool| tool.name == "score").unwrap();
+        let description = score.description.as_deref().unwrap();
+        for limit in ["2-10", "Ollama: 2-26", "Python Hugging Face bridge: 2-255"] {
+            assert!(
+                description.contains(limit),
+                "missing {limit}: {description}"
+            );
+        }
+        for tool in tools
+            .iter()
+            .filter(|tool| ["noul", "choice", "score"].contains(&tool.name.as_ref()))
+        {
+            let instructions = &tool.input_schema["properties"]["instructions"]["description"];
+            let description = instructions.as_str().unwrap();
+            assert!(description.contains(
+                "Omission uses the validated question id for Ollama and the publisher Python bridge"
+            ));
+            assert!(description.contains("required for other providers"));
+            assert!(description.contains(
+                "Only the Python bridge uses that fallback for null or an exact empty string"
+            ));
+        }
+    }
+
     /// A minimal argument set for each tool, built from the schema's `required` list.
     fn minimal(name: &str) -> Value {
         let question = json!([{"id": "q", "type": "noul", "instructions": "?"}]);
@@ -463,6 +518,56 @@ mod tests {
         }
     }
 
+    /// Checks structural schema compatibility recursively, including nested array
+    /// items. Deserialization alone cannot catch an advertised array becoming an object.
+    fn schema_accepts_value(schema: &Value, value: &Value) -> bool {
+        if let Some(variants) = schema["anyOf"].as_array() {
+            return variants
+                .iter()
+                .any(|schema| schema_accepts_value(schema, value));
+        }
+        let matches_type = match schema["type"].as_str() {
+            Some("object") => value.is_object(),
+            Some("array") => value.is_array(),
+            Some("string") => value.is_string(),
+            Some("boolean") => value.is_boolean(),
+            Some("integer") => value.is_i64() || value.is_u64(),
+            Some("number") => value.is_number(),
+            Some("null") => value.is_null(),
+            None => true,
+            _ => false,
+        };
+        if !matches_type {
+            return false;
+        }
+        if let Some(required) = schema["required"].as_array()
+            && required
+                .iter()
+                .any(|key| value.get(key.as_str().unwrap()).is_none())
+        {
+            return false;
+        }
+        if let Some(object) = value.as_object() {
+            for (key, value) in object {
+                if let Some(property) = schema["properties"].get(key) {
+                    if !schema_accepts_value(property, value) {
+                        return false;
+                    }
+                } else if schema["additionalProperties"] == false {
+                    return false;
+                }
+            }
+        }
+        if let Some(items) = value.as_array()
+            && let Some(item_schema) = schema.get("items")
+        {
+            return items
+                .iter()
+                .all(|value| schema_accepts_value(item_schema, value));
+        }
+        true
+    }
+
     #[test]
     fn the_input_schemas_and_the_argument_types_agree() {
         // Every property the schema declares is accepted, every required one is
@@ -471,6 +576,11 @@ mod tests {
         for definition in &DEFINITIONS {
             let schema: Value = serde_json::from_str(definition.input).unwrap();
             let base = minimal(definition.name);
+            assert!(
+                schema_accepts_value(&schema, &base),
+                "{}: the advertised schema refuses the existing minimal payload",
+                definition.name
+            );
             assert!(
                 tools::accepts(definition.name, base.clone()),
                 "{}: the minimal call is refused",
@@ -514,11 +624,22 @@ mod tests {
                 let value = match optional.as_str() {
                     "criteria" => json!({"true": "yes", "false": "no"}),
                     "concurrency" => json!(2),
+                    "images" | "videos" => json!([]),
+                    "options" => json!({"rejectIfBusy":true}),
+                    "reject_if_busy" => json!(true),
+                    "keep_alive" => json!("5m"),
+                    "max_length" | "max_state_tokens" => json!(4096),
+                    "media_kwargs" => json!({}),
                     _ => json!("x"),
                 };
                 with.as_object_mut()
                     .unwrap()
                     .insert(optional.clone(), value);
+                assert!(
+                    schema_accepts_value(&schema, &with),
+                    "{}: the advertised schema refuses optional `{optional}`",
+                    definition.name
+                );
                 assert!(
                     tools::accepts(definition.name, with),
                     "{}: optional `{optional}` is declared but refused",
@@ -534,7 +655,7 @@ mod tests {
             assert!(
                 definition
                     .description
-                    .contains("sent to the configured TypeSafe endpoint"),
+                    .contains("sent to the configured inference endpoint"),
                 "{}",
                 definition.name
             );

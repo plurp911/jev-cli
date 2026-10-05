@@ -1,5 +1,45 @@
 # Threat model
 
+## Clef provider and media additions
+
+The explicit Cloudflare adapter uses only custom credentials. Explicit local
+protocols on loopback consult no credential source and send no authorization header;
+remote deployments keep the existing HTTPS/custom-key boundary. Provider selection
+does not enable Gateway analytics, caching, model downloads, or background services.
+
+PNG/JPEG/WebP files and prepared video frames are explicitly named, bounded, and
+validated at the input boundary. Embedded media cannot name filesystem paths or
+remote URLs. Image opens reject symlinks in the path: Unix walks directory handles
+with no-follow and nonblocking opens, while Windows holds ancestor handles without
+delete sharing and rejects reparse points. Size limits apply to reads as well as
+metadata. Image-header parsing does not establish compressed-payload integrity;
+inference servers decode the images.
+Video source metadata is limited to positive bounded FPS, frame count, duration,
+and increasing frame indices; it cannot name a path or URL. The combined time
+horizon is at most one day. Sparse source indices cannot request processor
+resampling. Local state-token budgets are bounded independently of the total
+context limit, and changing media or source timing changes batch fingerprints.
+The only alias exception is macOS's root `/tmp`, `/var`, and `/etc`: their observed
+targets must exactly match the standard `/private` directories, and the resulting
+path still undergoes the same directory-handle no-follow walk. User-created parent
+and final-component symlinks remain refused.
+
+The optional Python bridge is a separately started loopback-only service, not a
+runtime inside the Rust CLI. It loads explicitly supplied local model code/weights
+once, with offline loading, and never downloads from a request. Model code is trusted
+executable input at server startup; obtain it from the publisher and review its
+provenance. HTTP input has body/depth/duplicate-key/media bounds and no path fields;
+browser origins and non-loopback Host headers are refused. Combined pixel and
+processor resize bounds prevent small compressed frame sets from requesting
+unbounded decoded arrays. Inference is serialized and errors never echo request
+content, model exceptions, or stack traces.
+
+Local processes that can reach the selected loopback server can request inference;
+this is the same local trust boundary as Ollama. The bridge is not a public inference
+service and must not be exposed by a reverse proxy without an independently designed
+authentication boundary. See [Clef](clef.md) and
+[ADR-0015](adr/0015-clef-providers-and-vision.md).
+
 Status: current as of the implemented command surface. Revise whenever the attack
 surface changes — a new input source, a new output sink, a new credential path, or a new
 release channel.
@@ -13,7 +53,7 @@ This document explains *what we are defending against*. The resulting rules are 
 | Asset | Why it matters |
 | --- | --- |
 | The user's TypeSafe API key | Direct financial loss and impersonation. The highest-value asset here. |
-| The user's content | Source code, customer records, and internal documents pass through `jev` as *state*. Anything sent leaves the machine. |
+| The user's content | State and supplied images/videos go to the selected endpoint. Hosted providers and explicit remote servers receive content off-machine; a loopback server can also forward or offload it. |
 | The integrity of `jev` itself | It runs on developer machines and may hold real credentials in the environment. A compromised `jev` is a compromised supply chain. |
 | The user's terminal and filesystem | `jev` renders remote content and may write files. |
 
@@ -378,8 +418,12 @@ flow back into a model's context, which transcripts and logs may keep.
    `tracing` subscriber is installed. A stray line would corrupt the session.
    `stdout_carries_only_protocol_messages_and_stderr_is_silent_by_default` asserts it.
 4. **Bounded input.** State obeys `--max-input-bytes`. `map` accepts at most 100
-   records, with their states summing to at most `--max-input-bytes` and an estimated
-   result of at most 80 KiB, and it refuses before sending anything. One protocol line
+   records. Their serialized states plus compressed image/video bytes after base64
+   decoding must total at most `--max-input-bytes`; template media counts once, even
+   when a record replaces it. This differs from the CLI map cap on serialized JSONL
+   or `--lines` input, which includes embedded base64 and excludes separately named
+   `--image` and `--video-frame` files. The estimated result is at most 80 KiB, and
+   oversized calls are refused before sending anything. One protocol line
    is capped at 8 × `--max-input-bytes`, never below 16 MiB or above 256 MiB, and a longer
    one ends the session. Record ids count toward the `map` result estimate, so a small
    state cannot smuggle a large result through its id.
@@ -391,9 +435,13 @@ flow back into a model's context, which transcripts and logs may keep.
 
 **Residual risk.**
 
-* Every state is transmitted to TypeSafe. That is the tool's purpose, and each tool
-  description says so. A host that lets a model call tools without approval can send
-  what the model has read.
+* State and explicitly supplied images and videos are transmitted to the configured
+  endpoint: TypeSafe by default, Cloudflare when selected, or the selected local
+  server. Loopback reaches the local server, whose cloud offload or proxy forwarding
+  can still send content off-machine. Confirm fully local execution when content
+  must stay on the machine. A host that lets a model call tools without approval
+  can send what the model has read; the owner must approve the content and actual
+  recipient before transmission.
 * A repeated call is a second billed request. `idempotentHint: false` tells the host,
   but a host may ignore it.
 * A host that logs tool results keeps the judgements, though not the state.

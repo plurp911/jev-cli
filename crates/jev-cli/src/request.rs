@@ -32,15 +32,97 @@ use serde_json::Value;
 use crate::errors::{CliError, Result};
 use crate::ordered::{self, Field, OrderedMap, OrderedObject};
 
+/// Validated question/model/media template shared by batch commands.
+pub(crate) struct Template {
+    pub(crate) questions: Vec<(QuestionId, Question)>,
+    pub(crate) model: ModelId,
+    pub(crate) features: crate::media::Features,
+}
+
 /// A parsed request document.
 #[derive(Debug)]
 pub struct RequestDocument {
     /// The state, when the document carried one.
     pub state: Option<State>,
+    /// Tracks an ignored template state without constructing a state that will not be sent.
+    pub(crate) supplied_state: bool,
     /// The model, when the document named one.
     pub model: Option<ModelId>,
     /// The questions, in document order.
     pub questions: Vec<(QuestionId, Question)>,
+    pub(crate) features: crate::media::Features,
+}
+
+/// Free-form content contract selected before parsing any supplied values.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ContentMode {
+    Strict,
+    Publisher,
+}
+
+impl ContentMode {
+    pub(crate) fn for_provider(provider: &str) -> Self {
+        if provider == "huggingface" {
+            Self::Publisher
+        } else {
+            Self::Strict
+        }
+    }
+
+    pub(crate) fn content(
+        self,
+        value: Value,
+    ) -> std::result::Result<Content, jev_core::ContentError> {
+        match self {
+            Self::Strict => Content::try_from(value),
+            Self::Publisher => Content::local_json(value),
+        }
+    }
+
+    pub(crate) fn instructions(
+        self,
+        value: Option<Value>,
+        id: &str,
+        optional: bool,
+    ) -> Result<Content> {
+        let fallback = || {
+            QuestionId::new(id)
+                .map(|id| Value::String(id.as_str().to_owned()))
+                .map_err(|error| CliError::usage(error.to_string()))
+        };
+        let value = match value {
+            None if optional => fallback()?,
+            Some(value)
+                if self == Self::Publisher
+                    && (value.is_null() || value == Value::String(String::new())) =>
+            {
+                fallback()?
+            }
+            Some(value) => value,
+            None => return Err(CliError::usage("instructions are required")),
+        };
+        self.content(value).map_err(|error| {
+            CliError::usage(match error {
+                jev_core::ContentError::Empty => "instructions must not be empty".to_owned(),
+                _ => format!("instructions: {error}"),
+            })
+        })
+    }
+
+    pub(crate) fn state(
+        self,
+        value: Value,
+        origin: &str,
+        images: &[jev_core::EmbeddedImage],
+    ) -> Result<State> {
+        if self == Self::Publisher {
+            self.content(value)
+                .map(State::new)
+                .map_err(|error| CliError::usage(format!("{origin}: `state`: {error}")))
+        } else {
+            state_from_value_with_images(value, origin, images)
+        }
+    }
 }
 
 /// Parses a full request document, or a bare questions map.
@@ -53,6 +135,53 @@ pub struct RequestDocument {
 ///
 /// Returns a usage-class [`CliError`] naming the offending question and field.
 pub fn parse_document(text: &str, origin: &str) -> Result<RequestDocument> {
+    parse_document_impl(text, origin, None, None, StateHandling::Validate)
+}
+
+/// Batch rows supply the state; only the document's questions/model/media are a template.
+pub(crate) fn parse_template_document_for_endpoint(
+    text: &str,
+    origin: &str,
+    endpoint: &jev_client::Endpoint,
+) -> Result<RequestDocument> {
+    parse_document_impl(text, origin, Some(endpoint), None, StateHandling::Ignore)
+}
+
+#[derive(Clone, Copy)]
+enum StateHandling {
+    Validate,
+    Ignore,
+}
+
+/// Accounts for explicitly named, validated images alongside a request file.
+pub(crate) fn parse_document_for_endpoint_with_images(
+    text: &str,
+    origin: &str,
+    endpoint: &jev_client::Endpoint,
+    images: &[jev_core::EmbeddedImage],
+) -> Result<RequestDocument> {
+    parse_document_impl(
+        text,
+        origin,
+        Some(endpoint),
+        endpoint.is_cloudflare().then_some(images),
+        StateHandling::Validate,
+    )
+}
+
+fn parse_document_impl(
+    text: &str,
+    origin: &str,
+    endpoint: Option<&jev_client::Endpoint>,
+    cloudflare_images: Option<&[jev_core::EmbeddedImage]>,
+    state_handling: StateHandling,
+) -> Result<RequestDocument> {
+    let score_max = endpoint.map_or(jev_core::limits::SCORE_MAX_LEVELS, crate::media::score_max);
+    let optional_instructions =
+        endpoint.is_some_and(|endpoint| matches!(endpoint.provider(), "ollama" | "huggingface"));
+    let content_mode = endpoint.map_or(ContentMode::Strict, |endpoint| {
+        ContentMode::for_provider(endpoint.provider())
+    });
     // Parsed order-preserving and duplicate-aware: a `serde_json::Map` would sort the
     // questions alphabetically and silently drop a repeated id. See `crate::ordered`.
     let object = ordered::parse_object(text)
@@ -88,9 +217,36 @@ pub fn parse_document(text: &str, origin: &str) -> Result<RequestDocument> {
                     "{origin}: duplicate top-level field {duplicate:?}"
                 )));
             }
-            let state = match ordered::get(&object, "state") {
-                Some(raw) => Some(state_from_value(raw.clone(), origin)?),
-                None => None,
+            let questions = parse_questions_map(
+                text,
+                "questions",
+                origin,
+                score_max,
+                optional_instructions,
+                content_mode,
+            )?;
+            // Ordered questions retain their specialized duplicate diagnostics. Read
+            // the state from a duplicate-checking decode before converting its content.
+            let unambiguous = ordered::parse_unambiguous_value(text)
+                .map_err(|error| CliError::usage(format!("{origin} is not valid JSON: {error}")))?;
+            let features = crate::media::document_features(
+                text,
+                origin,
+                endpoint.is_some_and(|endpoint| endpoint.provider() == "ollama"),
+            )?;
+            let state_images = cloudflare_images.map_or(&[][..], |images| {
+                if images.is_empty() {
+                    &features.images
+                } else {
+                    images
+                }
+            });
+            let supplied_state = ordered::get(&object, "state").is_some();
+            let state = match (state_handling, unambiguous.get("state")) {
+                (StateHandling::Validate, Some(raw)) => {
+                    Some(content_mode.state(raw.clone(), origin, state_images)?)
+                }
+                _ => None,
             };
             let model = match ordered::get(&object, "model") {
                 Some(Value::String(name)) => Some(
@@ -105,19 +261,28 @@ pub fn parse_document(text: &str, origin: &str) -> Result<RequestDocument> {
                 None => None,
             };
             reject_unknown_top_level_keys(&object, origin)?;
-            let questions = parse_questions_map(text, "questions", origin)?;
             return Ok(RequestDocument {
                 state,
+                supplied_state,
                 model,
                 questions,
+                features,
             });
         }
     }
 
     Ok(RequestDocument {
         state: None,
+        supplied_state: false,
         model: None,
-        questions: parse_bare_questions(text, origin)?,
+        questions: parse_bare_questions(
+            text,
+            origin,
+            score_max,
+            optional_instructions,
+            content_mode,
+        )?,
+        features: crate::media::Features::default(),
     })
 }
 
@@ -126,7 +291,18 @@ pub fn parse_document(text: &str, origin: &str) -> Result<RequestDocument> {
 /// A typo such as `"question"` or `"State"` would otherwise be silently ignored, and
 /// the user would be billed for a request that asked nothing they intended.
 fn reject_unknown_top_level_keys(object: &OrderedObject, origin: &str) -> Result<()> {
-    const KNOWN: &[&str] = &["state", "model", "questions"];
+    const KNOWN: &[&str] = &[
+        "state",
+        "model",
+        "questions",
+        "images",
+        "options",
+        "keep_alive",
+        "videos",
+        "max_length",
+        "max_state_tokens",
+        "media_kwargs",
+    ];
     for (key, _) in object.entries() {
         if !KNOWN.contains(&key.as_str()) {
             return Err(CliError::usage(format!(
@@ -147,6 +323,9 @@ fn parse_questions_map(
     text: &str,
     field: &str,
     origin: &str,
+    score_max: usize,
+    optional_instructions: bool,
+    content_mode: ContentMode,
 ) -> Result<Vec<(QuestionId, Question)>> {
     #[derive(serde::Deserialize)]
     struct Wrapper {
@@ -156,22 +335,43 @@ fn parse_questions_map(
     let wrapper: Wrapper = serde_json::from_str(text).map_err(|error| {
         CliError::usage(format!("{origin}: `{field}` is not an object: {error}"))
     })?;
-    entries_to_questions(&wrapper.questions, origin)
+    entries_to_questions(
+        &wrapper.questions,
+        origin,
+        score_max,
+        optional_instructions,
+        content_mode,
+    )
 }
 
 /// Parses a document that is itself the questions map.
-fn parse_bare_questions(text: &str, origin: &str) -> Result<Vec<(QuestionId, Question)>> {
+fn parse_bare_questions(
+    text: &str,
+    origin: &str,
+    score_max: usize,
+    optional_instructions: bool,
+    content_mode: ContentMode,
+) -> Result<Vec<(QuestionId, Question)>> {
     // Re-parsed for the same reason `parse_questions_map` re-parses: the already-decoded
     // form has lost the order and the duplicates *inside* each question body.
     let object: OrderedMap<Field> = serde_json::from_str(text)
         .map_err(|error| CliError::usage(format!("{origin} is not valid JSON object: {error}")))?;
-    entries_to_questions(&object, origin)
+    entries_to_questions(
+        &object,
+        origin,
+        score_max,
+        optional_instructions,
+        content_mode,
+    )
 }
 
 /// Shared validation for an ordered set of question entries.
 fn entries_to_questions(
     object: &OrderedMap<Field>,
     origin: &str,
+    score_max: usize,
+    optional_instructions: bool,
+    content_mode: ContentMode,
 ) -> Result<Vec<(QuestionId, Question)>> {
     if object.is_empty() {
         return Err(CliError::usage(format!(
@@ -194,13 +394,27 @@ fn entries_to_questions(
             let id = QuestionId::new(key.clone()).map_err(|error| {
                 CliError::usage(format!("{origin}: question id {key:?}: {error}"))
             })?;
-            let question = parse_question(raw, key, origin)?;
+            let question = parse_question(
+                raw,
+                id.as_str(),
+                origin,
+                score_max,
+                optional_instructions,
+                content_mode,
+            )?;
             Ok((id, question))
         })
         .collect()
 }
 
-fn parse_question(raw: &Field, id: &str, origin: &str) -> Result<Question> {
+fn parse_question(
+    raw: &Field,
+    id: &str,
+    origin: &str,
+    score_max: usize,
+    optional_instructions: bool,
+    content_mode: ContentMode,
+) -> Result<Question> {
     let where_ = format!("{origin}: question `{id}`");
     let object = raw
         .as_object()
@@ -224,30 +438,40 @@ fn parse_question(raw: &Field, id: &str, origin: &str) -> Result<Question> {
         }
     }
 
-    let kind = ordered::get(object, "type")
-        .map(Field::to_value)
+    let plain = |field: Option<&Field>| {
+        field
+            .map(Field::to_value)
+            .transpose()
+            .map_err(|error| CliError::usage(format!("{where_}: {error}")))
+    };
+    let kind = plain(ordered::get(object, "type"))?
         .and_then(|value| value.as_str().map(str::to_owned))
         .ok_or_else(|| CliError::usage(format!("{where_}: `type` is missing or not a string")))?;
 
-    let instructions = ordered::get(object, "instructions")
-        .map(Field::to_value)
-        .ok_or_else(|| CliError::usage(format!("{where_}: `instructions` is required")))?;
-    let instructions = Content::try_from(instructions)
-        .map_err(|error| CliError::usage(format!("{where_}: `instructions`: {error}")))?;
+    let instructions = content_mode
+        .instructions(
+            plain(ordered::get(object, "instructions"))?,
+            id,
+            optional_instructions,
+        )
+        .map_err(|error| CliError::usage(format!("{where_}: {error}")))?;
 
     let criteria = ordered::get(object, "criteria");
 
     match kind.as_str() {
         "noul" => parse_noul(
             instructions,
-            criteria.map(Field::to_value).as_ref(),
+            plain(criteria)?.as_ref(),
             &where_,
+            content_mode,
         ),
-        "choice" => parse_choice(instructions, criteria, &where_),
+        "choice" => parse_choice(instructions, criteria, &where_, content_mode),
         "score" => parse_score(
             instructions,
-            criteria.map(Field::to_value).as_ref(),
+            plain(criteria)?.as_ref(),
             &where_,
+            score_max,
+            content_mode,
         ),
         other => Err(CliError::usage(format!(
             "{where_}: unknown question type {other:?}; the API defines `noul`, `choice`, \
@@ -256,11 +480,21 @@ fn parse_question(raw: &Field, id: &str, origin: &str) -> Result<Question> {
     }
 }
 
-fn parse_noul(instructions: Content, criteria: Option<&Value>, where_: &str) -> Result<Question> {
+fn parse_noul(
+    instructions: Content,
+    criteria: Option<&Value>,
+    where_: &str,
+    content_mode: ContentMode,
+) -> Result<Question> {
     {
         {
             let criteria = match criteria {
                 None | Some(Value::Null) => None,
+                Some(Value::Object(map))
+                    if map.is_empty() && content_mode == ContentMode::Publisher =>
+                {
+                    None
+                }
                 Some(Value::Object(map)) => {
                     for key in map.keys() {
                         if !["true", "false"].contains(&key.as_str()) {
@@ -272,11 +506,17 @@ fn parse_noul(instructions: Content, criteria: Option<&Value>, where_: &str) -> 
                     }
                     let side = |name: &str| -> Result<Option<Content>> {
                         match map.get(name) {
-                            None | Some(Value::Null) => Ok(None),
+                            None => Ok(None),
+                            Some(Value::Null) if content_mode == ContentMode::Strict => Ok(None),
                             Some(value) => {
-                                Content::try_from(value.clone()).map(Some).map_err(|error| {
-                                    CliError::usage(format!("{where_}: `criteria.{name}`: {error}"))
-                                })
+                                content_mode
+                                    .content(value.clone())
+                                    .map(Some)
+                                    .map_err(|error| {
+                                        CliError::usage(format!(
+                                            "{where_}: `criteria.{name}`: {error}"
+                                        ))
+                                    })
                             }
                         }
                     };
@@ -305,7 +545,12 @@ fn parse_noul(instructions: Content, criteria: Option<&Value>, where_: &str) -> 
 /// written zebra, apple, mango went on the wire as apple, mango, zebra, which also broke
 /// `--dry-run`'s promise that the body can be compared against the file. A duplicate
 /// option name was silently last-one-wins for the same reason.
-fn parse_choice(instructions: Content, criteria: Option<&Field>, where_: &str) -> Result<Question> {
+fn parse_choice(
+    instructions: Content,
+    criteria: Option<&Field>,
+    where_: &str,
+    content_mode: ContentMode,
+) -> Result<Question> {
     let map = criteria.and_then(Field::as_object).ok_or_else(|| {
         CliError::usage(format!(
             "{where_}: a choice question needs `criteria`, an object mapping each \
@@ -317,25 +562,33 @@ fn parse_choice(instructions: Content, criteria: Option<&Field>, where_: &str) -
             "{where_}: duplicate option name {duplicate:?} in `criteria`"
         )));
     }
-    let options = map
-        .entries()
-        .iter()
-        .map(|(name, description)| {
-            let description = match description.to_value() {
-                Value::Null => None,
-                other => Some(Content::try_from(other).map_err(|error| {
+    let options =
+        map.entries()
+            .iter()
+            .map(|(name, description)| {
+                let description = match description.to_value().map_err(|error| {
                     CliError::usage(format!("{where_}: `criteria.{name}`: {error}"))
-                })?),
-            };
-            ChoiceOption::new(name.clone(), description)
-                .map_err(|error| CliError::usage(format!("{where_}: {error}")))
-        })
-        .collect::<Result<Vec<_>>>()?;
+                })? {
+                    Value::Null => None,
+                    other => Some(content_mode.content(other).map_err(|error| {
+                        CliError::usage(format!("{where_}: `criteria.{name}`: {error}"))
+                    })?),
+                };
+                ChoiceOption::new(name.clone(), description)
+                    .map_err(|error| CliError::usage(format!("{where_}: {error}")))
+            })
+            .collect::<Result<Vec<_>>>()?;
     Question::choice(instructions, options)
         .map_err(|error| CliError::usage(format!("{where_}: {error}")))
 }
 
-fn parse_score(instructions: Content, criteria: Option<&Value>, where_: &str) -> Result<Question> {
+fn parse_score(
+    instructions: Content,
+    criteria: Option<&Value>,
+    where_: &str,
+    score_max: usize,
+    content_mode: ContentMode,
+) -> Result<Question> {
     {
         {
             let list = criteria.and_then(Value::as_array).ok_or_else(|| {
@@ -348,18 +601,29 @@ fn parse_score(instructions: Content, criteria: Option<&Value>, where_: &str) ->
                 .iter()
                 .enumerate()
                 .map(|(index, level)| {
-                    Content::try_from(level.clone()).map_err(|error| {
+                    content_mode.content(level.clone()).map_err(|error| {
                         CliError::usage(format!("{where_}: `criteria[{index}]`: {error}"))
                     })
                 })
                 .collect::<Result<Vec<_>>>()?;
-            Question::score(instructions, levels)
+            Question::score_with_max(instructions, levels, score_max)
                 .map_err(|error| CliError::usage(format!("{where_}: {error}")))
         }
     }
 }
 
-fn state_from_value(value: Value, origin: &str) -> Result<State> {
+/// Validated images may carry all content for a Cloudflare request's string state.
+/// Callers for providers requiring nonempty text must pass an empty image slice.
+pub(crate) fn state_from_value_with_images(
+    value: Value,
+    origin: &str,
+    images: &[jev_core::EmbeddedImage],
+) -> Result<State> {
+    if !images.is_empty()
+        && let Value::String(text) = &value
+    {
+        return Ok(State::new(Content::Text(text.clone())));
+    }
     Content::try_from(value)
         .map(State::new)
         .map_err(|error| CliError::usage(format!("{origin}: `state`: {error}")))
@@ -373,14 +637,20 @@ fn state_from_value(value: Value, origin: &str) -> Result<State> {
 ///
 /// Returns a usage-class [`CliError`] for a blank name or a blank description.
 pub fn parse_option(raw: &str) -> Result<ChoiceOption> {
+    parse_option_with_mode(raw, ContentMode::Strict)
+}
+
+pub(crate) fn parse_option_with_mode(raw: &str, mode: ContentMode) -> Result<ChoiceOption> {
     let (name, description) = match raw.split_once('=') {
         Some((name, description)) => {
-            let description = Content::text(description).map_err(|_| {
-                CliError::usage(format!(
-                    "--option {raw:?}: the description after `=` is empty; write just \
+            let description = mode
+                .content(Value::String(description.to_owned()))
+                .map_err(|_| {
+                    CliError::usage(format!(
+                        "--option {raw:?}: the description after `=` is empty; write just \
                      `{name}` for an option with no description"
-                ))
-            })?;
+                    ))
+                })?;
             (name, Some(description))
         }
         None => (raw, None),
@@ -396,6 +666,14 @@ pub fn parse_option(raw: &str) -> Result<ChoiceOption> {
 /// Returns a usage-class [`CliError`] when the document is not an object of
 /// name-to-description entries.
 pub fn parse_options_file(text: &str, origin: &str) -> Result<Vec<ChoiceOption>> {
+    parse_options_file_with_mode(text, origin, ContentMode::Strict)
+}
+
+pub(crate) fn parse_options_file_with_mode(
+    text: &str,
+    origin: &str,
+    content_mode: ContentMode,
+) -> Result<Vec<ChoiceOption>> {
     // Parsed order-preserving and duplicate-aware, for the reason `parse_choice` is: a
     // `serde_json::Map` sent `{"zeta": …, "alpha": …}` as alpha, zeta and kept only the
     // last of a repeated name. The syntax check comes first so that malformed JSON and
@@ -417,10 +695,14 @@ pub fn parse_options_file(text: &str, origin: &str) -> Result<Vec<ChoiceOption>>
     map.entries()
         .iter()
         .map(|(name, description)| {
-            let description = match description.to_value() {
+            let description = match description
+                .to_value()
+                .map_err(|error| CliError::usage(format!("{origin}: {name}: {error}")))?
+            {
                 Value::Null => None,
                 other => Some(
-                    Content::try_from(other)
+                    content_mode
+                        .content(other)
                         .map_err(|error| CliError::usage(format!("{origin}: {name}: {error}")))?,
                 ),
             };
@@ -437,7 +719,15 @@ pub fn parse_options_file(text: &str, origin: &str) -> Result<Vec<ChoiceOption>>
 /// Returns a usage-class [`CliError`] when the document is not an array of level
 /// descriptions.
 pub fn parse_levels_file(text: &str, origin: &str) -> Result<Vec<Content>> {
-    let value: Value = serde_json::from_str(text)
+    parse_levels_file_with_mode(text, origin, ContentMode::Strict)
+}
+
+pub(crate) fn parse_levels_file_with_mode(
+    text: &str,
+    origin: &str,
+    content_mode: ContentMode,
+) -> Result<Vec<Content>> {
+    let value = ordered::parse_unambiguous_value(text)
         .map_err(|error| CliError::usage(format!("{origin} is not valid JSON: {error}")))?;
     let list = value.as_array().ok_or_else(|| {
         CliError::usage(format!(
@@ -447,7 +737,8 @@ pub fn parse_levels_file(text: &str, origin: &str) -> Result<Vec<Content>> {
     list.iter()
         .enumerate()
         .map(|(index, level)| {
-            Content::try_from(level.clone())
+            content_mode
+                .content(level.clone())
                 .map_err(|error| CliError::usage(format!("{origin}: level {index}: {error}")))
         })
         .collect()
@@ -761,5 +1052,33 @@ mod tests {
         let text = json!({"a\u{1b}[2J": {"type": "noul", "instructions": "?"}}).to_string();
         let error = parse_document(&text, ORIGIN).unwrap_err();
         assert!(!error.to_string().contains('\u{1b}'));
+    }
+}
+#[test]
+fn request_documents_accept_explicit_media_and_provider_options() {
+    let text = serde_json::json!({
+        "state": "a receipt", "images": [],
+        "options": {"rejectIfBusy": true}, "keep_alive": "5m",
+        "questions": {"readable": {"type": "noul", "instructions": "Readable?"}}
+    })
+    .to_string();
+    assert!(parse_document(&text, "request.json").is_ok());
+}
+
+#[cfg(test)]
+mod image_duplicate_regressions {
+    #[test]
+    fn repeated_fields_in_embedded_image_objects_are_rejected() {
+        let document = r#"{"state":"receipt","questions":{"visible":{"type":"noul","instructions":"Visible?"}},"images":[{"content_type":"image/jpeg","content_type":"image/png","base64":"iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6cS8AAAAASUVORK5CYII="}]}"#;
+        assert!(super::parse_document(document, "request.json").is_err());
+    }
+}
+
+#[cfg(test)]
+mod bridge_regressions {
+    #[test]
+    fn bridge_request_options_and_explicit_video_frames_are_accepted() {
+        let document = r#"{"state":"clip","questions":{"motion":{"type":"noul","instructions":"Motion?"}},"videos":[],"max_length":4096,"media_kwargs":{"fps":2}}"#;
+        assert!(super::parse_document(document, "request.json").is_ok());
     }
 }

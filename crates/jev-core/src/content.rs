@@ -1,5 +1,4 @@
-//! `Content` — the JSON shapes TypeSafe accepts wherever free-form text may also be
-//! structured.
+//! Validated free-form content with an explicit publisher JSON extension.
 
 use std::fmt;
 
@@ -32,8 +31,9 @@ pub enum ContentError {
 /// Text, or JSON structure standing in for text.
 ///
 /// The official API accepts `string | object | array` for `state`, for `instructions`,
-/// and for every entry of `criteria`. Modelling that as an enum rather than a bare
-/// [`Value`] means a number or a `null` cannot reach the wire encoder at all.
+/// and for every entry of `criteria`. The default constructors enforce those shapes;
+/// [`Content::local_json`] explicitly admits the local publisher's broader JSON
+/// contract. Provider adapters reject that extension unless supported.
 ///
 /// See <https://docs.typesafe.ai/primitives/advanced>.
 ///
@@ -45,7 +45,7 @@ pub enum ContentError {
 /// let text = Content::text("Is this urgent?")?;
 /// assert!(text.is_text());
 ///
-/// // A bare scalar is not valid here, and cannot be constructed.
+/// // Default conversion preserves the official API's scalar restriction.
 /// assert!(Content::try_from(serde_json::json!(42)).is_err());
 /// # Ok::<(), jev_core::ContentError>(())
 /// ```
@@ -57,9 +57,36 @@ pub enum Content {
     Object(Map<String, Value>),
     /// A JSON array, used for lists of examples or contrasts.
     Array(Vec<Value>),
+    /// Publisher Python content outside the strict System One shapes.
+    /// The selected provider must explicitly support this value before encoding it.
+    LocalJson(LocalJson),
 }
 
+/// Depth-checked publisher JSON. The private value prevents bypassing its constructor.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LocalJson(Value);
+
 impl Content {
+    /// Preserves any publisher JSON value, including scalar and blank text content.
+    ///
+    /// # Errors
+    /// Returns [`ContentError::TooDeep`] for excessive nesting.
+    pub fn local_json(value: Value) -> Result<Self, ContentError> {
+        check_json_depth(&value, MAX_JSON_DEPTH)?;
+        match Self::try_from(value.clone()) {
+            Ok(content) => Ok(content),
+            Err(ContentError::WrongKind { .. } | ContentError::Empty) => {
+                Ok(Self::LocalJson(LocalJson(value)))
+            }
+            Err(error) => Err(error),
+        }
+    }
+
+    /// Whether this value requires the publisher's broader JSON contract.
+    #[must_use]
+    pub const fn is_local_json(&self) -> bool {
+        matches!(self, Self::LocalJson(_))
+    }
     /// Wraps `text`, rejecting an empty or whitespace-only string.
     ///
     /// # Errors
@@ -73,18 +100,21 @@ impl Content {
         Ok(Self::Text(text))
     }
 
-    /// Returns `true` for the [`Content::Text`] variant.
+    /// Returns `true` when this value contains JSON text.
     #[must_use]
     pub const fn is_text(&self) -> bool {
-        matches!(self, Self::Text(_))
+        matches!(
+            self,
+            Self::Text(_) | Self::LocalJson(LocalJson(Value::String(_)))
+        )
     }
 
-    /// Returns the text of a [`Content::Text`], or `None` for a structured value.
+    /// Returns JSON text, or `None` for another JSON kind.
     #[must_use]
     pub fn as_text(&self) -> Option<&str> {
         match self {
-            Self::Text(text) => Some(text),
-            Self::Object(_) | Self::Array(_) => None,
+            Self::Text(text) | Self::LocalJson(LocalJson(Value::String(text))) => Some(text),
+            Self::LocalJson(_) | Self::Object(_) | Self::Array(_) => None,
         }
     }
 
@@ -95,6 +125,7 @@ impl Content {
             Self::Text(text) => Value::String(text.clone()),
             Self::Object(map) => Value::Object(map.clone()),
             Self::Array(items) => Value::Array(items.clone()),
+            Self::LocalJson(LocalJson(value)) => value.clone(),
         }
     }
 
@@ -105,6 +136,14 @@ impl Content {
             Self::Text(_) => "string",
             Self::Object(_) => "object",
             Self::Array(_) => "array",
+            Self::LocalJson(LocalJson(value)) => match value {
+                Value::Null => "null",
+                Value::Bool(_) => "boolean",
+                Value::Number(_) => "number",
+                Value::String(_) => "string",
+                Value::Object(_) => "object",
+                Value::Array(_) => "array",
+            },
         }
     }
 }
@@ -132,8 +171,8 @@ impl fmt::Display for Content {
     /// content can come from a file or an API response.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Text(text) => f.write_str(text),
-            Self::Object(_) | Self::Array(_) => {
+            Self::Text(text) | Self::LocalJson(LocalJson(Value::String(text))) => f.write_str(text),
+            Self::Object(_) | Self::Array(_) | Self::LocalJson(_) => {
                 // Serializing a `Value` cannot fail for any value that exists.
                 let rendered =
                     serde_json::to_string(&self.to_value()).unwrap_or_else(|_| "{}".to_owned());
@@ -149,6 +188,7 @@ impl Serialize for Content {
             Self::Text(text) => serializer.serialize_str(text),
             Self::Object(map) => map.serialize(serializer),
             Self::Array(items) => items.serialize(serializer),
+            Self::LocalJson(LocalJson(value)) => value.serialize(serializer),
         }
     }
 }
@@ -224,6 +264,42 @@ mod tests {
     fn rejects_blank_text() {
         assert_eq!(Content::try_from(json!("")), Err(ContentError::Empty));
         assert_eq!(Content::try_from(json!("  \n ")), Err(ContentError::Empty));
+    }
+
+    #[test]
+    fn publisher_content_preserves_scalars_and_blank_text_without_widening_default_conversion() {
+        for original in [
+            json!(null),
+            json!(false),
+            json!(1.5),
+            json!(""),
+            json!("   "),
+        ] {
+            let content = Content::local_json(original.clone()).unwrap();
+            assert!(content.is_local_json());
+            assert_eq!(content.to_value(), original);
+            assert_eq!(serde_json::to_value(&content).unwrap(), original);
+            assert!(Content::try_from(original.clone()).is_err());
+            assert!(serde_json::from_value::<Content>(original).is_err());
+        }
+        for original in [json!("text"), json!({"a":null}), json!([false])] {
+            let content = Content::local_json(original.clone()).unwrap();
+            assert!(!content.is_local_json());
+            assert_eq!(content.to_value(), original);
+        }
+    }
+
+    #[test]
+    fn publisher_content_keeps_the_json_depth_bound() {
+        let mut value = json!(null);
+        for _ in 0..MAX_JSON_DEPTH - 1 {
+            value = Value::Array(vec![value]);
+        }
+        assert!(Content::local_json(value.clone()).is_ok());
+        assert_eq!(
+            Content::local_json(Value::Array(vec![value])),
+            Err(ContentError::TooDeep)
+        );
     }
 
     #[test]

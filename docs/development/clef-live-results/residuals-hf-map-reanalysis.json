@@ -1,0 +1,228 @@
+{
+  "schema": "jev.clef.map-capture-reanalysis/v1",
+  "synthetic": true,
+  "provider": "huggingface",
+  "model": "clef-flash",
+  "original_helper_assertion_failed": true,
+  "failure_cause": "Helper expected state-i IDs despite command omitting --id-field; frozen CLI help specifies input-index IDs by default.",
+  "original_controller_failure_report_preserved": true,
+  "actual_cli_exit": 0,
+  "elapsed_seconds": 217.43599407200236,
+  "rows": 8,
+  "scalar_states": [
+    -1,
+    0,
+    1.5,
+    true,
+    false,
+    null,
+    "",
+    " \n\t"
+  ],
+  "default_ids_exact": true,
+  "row_order_exact": true,
+  "state_digests_exact": true,
+  "all_attempts_one": true,
+  "schemas_answers_and_summary_strictly_validated": true,
+  "input_state_digest_algorithm": "FNV-1a of compact JSON serialization, matching frozen CLI state_digest contract",
+  "passed": true,
+  "new_inference_requests": 0,
+  "provider_retry": false,
+  "quality_claim": false,
+  "original_capture_sha256": "0b4c551d3cbce5701dc66d3c037b5d6b212b1f48999ee5874c26da3d568003d8",
+  "returned_rows": [
+    {
+      "answers": {
+        "present": {
+          "noul": 0.0498,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "0",
+      "index": 0,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "07d00b07b497d12b",
+      "usage": {
+        "input_tokens": 143,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.01,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "1",
+      "index": 1,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "af63ad4c86019caf",
+      "usage": {
+        "input_tokens": 142,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.0586,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "2",
+      "index": 2,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "457d3818182e17b9",
+      "usage": {
+        "input_tokens": 144,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.9638,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "3",
+      "index": 3,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "5b5c98ef514dbfa5",
+      "usage": {
+        "input_tokens": 142,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.0633,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "4",
+      "index": 4,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "b5fae2c14238b978",
+      "usage": {
+        "input_tokens": 142,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.0103,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "5",
+      "index": 5,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "5b9bc4ba528108e4",
+      "usage": {
+        "input_tokens": 142,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.0126,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "6",
+      "index": 6,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "07cc7607b4949e25",
+      "usage": {
+        "input_tokens": 141,
+        "output_tokens": 0
+      }
+    },
+    {
+      "answers": {
+        "present": {
+          "noul": 0.012,
+          "type": "noul"
+        }
+      },
+      "attempts": 1,
+      "gate": null,
+      "id": "7",
+      "index": 7,
+      "model": "clef-flash",
+      "ok": true,
+      "request_digest": "edc9314e0afc94f0",
+      "request_id": null,
+      "schema": "jev.map.row/v1",
+      "state_digest": "ba930a73a5f0f5dd",
+      "usage": {
+        "input_tokens": 143,
+        "output_tokens": 0
+      }
+    }
+  ],
+  "returned_summary": {
+    "complete": 8,
+    "evaluated": 8,
+    "failed": 0,
+    "gate": null,
+    "interrupted": false,
+    "resumed": 0,
+    "schema": "jev.map.summary/v1",
+    "stopped_early": false,
+    "succeeded": 8,
+    "total": 8,
+    "usage": {
+      "input_tokens": 1139,
+      "output_tokens": 0,
+      "rows_without_usage": 0
+    }
+  }
+}

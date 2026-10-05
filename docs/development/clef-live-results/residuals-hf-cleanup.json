@@ -1,0 +1,40 @@
+{
+  "schema": "jev.clef.owned-runtime-cleanup/v1",
+  "owned_server_stopped": true,
+  "phase": "remaining",
+  "weights_removed": [
+    {
+      "file": "joint_head.safetensors",
+      "bytes": 243538016
+    },
+    {
+      "file": "model-00001-of-00004.safetensors",
+      "bytes": 4942706120
+    },
+    {
+      "file": "model-00002-of-00004.safetensors",
+      "bytes": 4987757928
+    },
+    {
+      "file": "model-00003-of-00004.safetensors",
+      "bytes": 4954810240
+    },
+    {
+      "file": "model-00004-of-00004.safetensors",
+      "bytes": 3934446832
+    }
+  ],
+  "weight_bytes_removed": 19063259136,
+  "only_new_task_weights_removed": true,
+  "publisher_metadata_retained": true,
+  "manifest_verification_retained": true,
+  "disk_available_before_bytes": 11164688384,
+  "disk_available_after_bytes": 11408232448,
+  "server_memory": {
+    "VmHWM": "14798592 kB",
+    "VmRSS": "14286972 kB",
+    "VmSwap": "0 kB",
+    "Threads": "16"
+  },
+  "remaining_model_metadata_bytes": 20118266
+}

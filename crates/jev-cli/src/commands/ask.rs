@@ -21,28 +21,29 @@ pub(crate) fn run(
     args: &AskArgs,
     transport: Option<&(dyn Transport + Send + Sync)>,
 ) -> Result<u8> {
+    let cli_features =
+        crate::media::Features::for_cli(&session.context, crate::media::Features::default())?;
     let state_args = &args.state;
     let state_given = state_args.state.is_some()
         || state_args.state_file.is_some()
         || state_args.state_json.is_some()
         || state_args.state_json_file.is_some();
 
-    let (document, origin) = match (&args.questions, &args.request) {
-        (Some(path), _) => {
-            let (text, origin) = read_text(session, path)?;
-            (request::parse_document(&text, &origin)?, origin)
-        }
-        (None, source) => {
-            // No `--questions`: the document is the whole request, from `--request` or
-            // from stdin. That makes `jev ask < request.json` work, which is the shape
-            // people reach for first.
-            let path = source
-                .clone()
-                .unwrap_or_else(|| std::path::PathBuf::from("-"));
-            let (text, origin) = read_text(session, &path)?;
-            (request::parse_document(&text, &origin)?, origin)
-        }
-    };
+    // Without a named document, stdin carries the whole request; this makes
+    // `jev ask < request.json` work without claiming stdin as a separate text state.
+    let path = args
+        .questions
+        .as_ref()
+        .or(args.request.as_ref())
+        .cloned()
+        .unwrap_or_else(|| std::path::PathBuf::from("-"));
+    let (text, origin) = read_text(session, &path)?;
+    let document = request::parse_document_for_endpoint_with_images(
+        &text,
+        &origin,
+        &session.context.endpoint.value,
+        &cli_features.images,
+    )?;
 
     if args.questions.is_some() && document.state.is_some() {
         return Err(CliError::usage(format!(
@@ -50,7 +51,23 @@ pub(crate) fn run(
              Use --request to send the whole document, or remove the `state` field."
         )));
     }
+    if args.questions.is_some()
+        && (!document.features.images.is_empty()
+            || document.features.options.is_some()
+            || document.features.keep_alive.is_some()
+            || !document.features.videos.is_empty()
+            || document.features.max_length.is_some()
+            || document.features.max_state_tokens.is_some()
+            || document.features.media_kwargs.is_some())
+    {
+        return Err(CliError::usage(format!(
+            "{origin} carries media or provider options, but --questions reads only the questions map.\n\n\
+             Use --request to send the whole document, or remove images, videos, options, \
+             keep_alive, max_length, max_state_tokens, and media_kwargs from the questions file."
+        )));
+    }
 
+    let features = cli_features.merge_cli(&session.context, document.features)?;
     let state = if let Some(state) = document.state {
         if state_given {
             return Err(CliError::usage(format!(
@@ -78,7 +95,18 @@ pub(crate) fn run(
                  with --questions, pipe the state into `jev` on standard input."
             )));
         }
-        session.reader().state(&source, session.stdin)?
+        let images = if session.context.endpoint.value.is_cloudflare() {
+            features.images.as_slice()
+        } else {
+            &[]
+        };
+        if session.context.endpoint.value.provider() == "huggingface" {
+            session.reader().publisher_state(&source, session.stdin)?
+        } else {
+            session
+                .reader()
+                .state_with_images(&source, session.stdin, images)?
+        }
     };
 
     // Precedence: an explicit --model beats the document, which beats the default. The
@@ -92,7 +120,7 @@ pub(crate) fn run(
             .unwrap_or_else(|| session.context.model.value.clone())
     };
 
-    let request = request::build(state, model, document.questions)?;
+    let request = features.apply(request::build(state, model, document.questions)?)?;
     session.note(&format!(
         "{} question(s) in one request",
         request.question_count()

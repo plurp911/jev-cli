@@ -110,7 +110,7 @@ impl ToolFailure {
 impl From<CliError> for ToolFailure {
     fn from(error: CliError) -> Self {
         let kind = match &error {
-            CliError::Usage(_) => "usage",
+            CliError::Usage(_) | CliError::IncompleteCloudflareConfiguration => "usage",
             CliError::Auth(_) => "auth",
             CliError::Unavailable(_) => "unavailable",
             CliError::Io(_) | CliError::Internal(_) => "internal",
@@ -129,6 +129,58 @@ type Outcome = Result<Value, ToolFailure>;
 
 /// The five tool names, in the order `tools/list` presents them.
 pub(crate) const NAMES: [&str; 5] = ["noul", "choice", "score", "ask", "map"];
+
+#[cfg(test)]
+mod media_regressions {
+    use super::*;
+
+    #[test]
+    fn local_question_instructions_can_be_omitted_at_argument_boundary() {
+        assert!(accepts(
+            "ask",
+            serde_json::json!({
+                "state": "receipt", "questions": [{"id": "readable", "type": "noul"}]
+            })
+        ));
+    }
+
+    #[test]
+    fn omitted_instructions_use_normalized_id_only_for_supported_local_providers() {
+        let args = || {
+            parse::<QuestionArgs>(serde_json::json!({
+                "id": "  readable  ", "type": "noul"
+            }))
+            .unwrap()
+        };
+        let (id, question) =
+            question(args(), 10, true, crate::request::ContentMode::Strict).unwrap();
+        assert_eq!(id.as_str(), "readable");
+        assert_eq!(
+            serde_json::to_value(question.instructions()).unwrap(),
+            "readable"
+        );
+        assert!(super::question(args(), 10, false, crate::request::ContentMode::Strict).is_err());
+    }
+
+    #[test]
+    fn mcp_accepts_structured_content_and_explicit_images() {
+        assert!(accepts(
+            "noul",
+            serde_json::json!({
+                "state": "receipt", "instructions": {"task": "Is it readable?"},
+                "criteria": {"true": ["Legible"]}, "images": []
+            })
+        ));
+        assert!(accepts(
+            "ask",
+            serde_json::json!({
+                "state": "receipt", "images": [], "questions": [{
+                    "id": "readable", "type": "noul", "instructions": ["Is it readable?"]
+                }]
+            })
+        ));
+    }
+}
 
 /// Runs one tool by name.
 ///
@@ -169,8 +221,12 @@ pub(crate) fn accepts(name: &str, arguments: Value) -> bool {
 
 /// Decodes arguments, turning a type mismatch into a message the model can act on.
 fn parse<T: for<'de> Deserialize<'de>>(arguments: Value) -> Result<T, ToolFailure> {
-    serde_json::from_value(arguments)
-        .map_err(|error| ToolFailure::usage(format!("invalid arguments: {error}")))
+    serde_json::from_value(arguments).map_err(|error| {
+        let message = error
+            .to_string()
+            .replace("expected non-empty text", "text must not be empty");
+        ToolFailure::usage(format!("invalid arguments: {message}"))
+    })
 }
 
 // --- Argument shapes. Mirrored by the input schemas in `mcp/schema/`. ------------------
@@ -179,34 +235,42 @@ fn parse<T: for<'de> Deserialize<'de>>(arguments: Value) -> Result<T, ToolFailur
 #[serde(deny_unknown_fields)]
 struct NoulArgs {
     state: Value,
-    instructions: String,
+    #[serde(default, deserialize_with = "present_value")]
+    instructions: Option<Value>,
     #[serde(default)]
     criteria: Option<NoulCriteriaArgs>,
     #[serde(default)]
     id: Option<String>,
     #[serde(default)]
     model: Option<String>,
+    #[serde(flatten)]
+    features: crate::media::Features,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct NoulCriteriaArgs {
-    #[serde(default, rename = "true")]
-    yes: Option<String>,
-    #[serde(default, rename = "false")]
-    no: Option<String>,
+    #[serde(default, rename = "true", deserialize_with = "present_value")]
+    yes: Option<Value>,
+    #[serde(default, rename = "false", deserialize_with = "present_value")]
+    no: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ChoiceArgs {
     state: Value,
-    instructions: String,
+    #[serde(default, deserialize_with = "present_value")]
+    instructions: Option<Value>,
     options: Vec<OptionArgs>,
+    #[serde(default)]
+    reject_if_busy: Option<bool>,
     #[serde(default)]
     id: Option<String>,
     #[serde(default)]
     model: Option<String>,
+    #[serde(flatten)]
+    features: crate::media::Features,
 }
 
 #[derive(Debug, Deserialize)]
@@ -214,19 +278,22 @@ struct ChoiceArgs {
 struct OptionArgs {
     name: String,
     #[serde(default)]
-    description: Option<String>,
+    description: Option<Value>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct ScoreArgs {
     state: Value,
-    instructions: String,
-    levels: Vec<String>,
+    #[serde(default, deserialize_with = "present_value")]
+    instructions: Option<Value>,
+    levels: Vec<Value>,
     #[serde(default)]
     id: Option<String>,
     #[serde(default)]
     model: Option<String>,
+    #[serde(flatten)]
+    features: crate::media::Features,
 }
 
 #[derive(Debug, Deserialize)]
@@ -236,6 +303,8 @@ struct AskArgs {
     questions: Vec<QuestionArgs>,
     #[serde(default)]
     model: Option<String>,
+    #[serde(flatten)]
+    features: crate::media::Features,
 }
 
 #[derive(Debug, Deserialize, Clone, Copy)]
@@ -257,13 +326,14 @@ struct QuestionArgs {
     id: String,
     #[serde(rename = "type")]
     kind: Kind,
-    instructions: String,
+    #[serde(default, deserialize_with = "present_value")]
+    instructions: Option<Value>,
     #[serde(default)]
     criteria: Option<NoulCriteriaArgs>,
     #[serde(default)]
     options: Option<Vec<OptionArgs>>,
     #[serde(default)]
-    levels: Option<Vec<String>>,
+    levels: Option<Vec<Value>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -275,6 +345,8 @@ struct MapArgs {
     model: Option<String>,
     #[serde(default)]
     concurrency: Option<usize>,
+    #[serde(flatten)]
+    features: crate::media::Features,
 }
 
 #[derive(Debug, Deserialize)]
@@ -283,39 +355,96 @@ struct RecordArgs {
     #[serde(default)]
     id: Option<Value>,
     state: Value,
+    #[serde(default)]
+    images: Vec<jev_core::EmbeddedImage>,
+    #[serde(default)]
+    videos: Vec<jev_core::EmbeddedVideo>,
+}
+
+fn present_value<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Option<Value>, D::Error> {
+    Value::deserialize(deserializer).map(Some)
+}
+
+fn content(
+    mode: crate::request::ContentMode,
+    value: Value,
+    what: &str,
+) -> Result<Content, ToolFailure> {
+    mode.content(value)
+        .map_err(|error| ToolFailure::usage(format!("{what}: {error}")))
+}
+
+fn level_content(
+    mode: crate::request::ContentMode,
+    values: Vec<Value>,
+    what: &str,
+) -> Result<Vec<Content>, ToolFailure> {
+    values
+        .into_iter()
+        .map(|value| content(mode, value, what))
+        .collect()
+}
+
+fn single_instructions(
+    deps: &Deps,
+    value: Option<Value>,
+    id: Option<&str>,
+) -> Result<Content, ToolFailure> {
+    let id = QuestionId::new(id.unwrap_or(DEFAULT_ID))
+        .map_err(|error| ToolFailure::usage(error.to_string()))?;
+    crate::request::ContentMode::for_provider(deps.context.endpoint.value.provider())
+        .instructions(
+            value,
+            id.as_str(),
+            matches!(
+                deps.context.endpoint.value.provider(),
+                "ollama" | "huggingface"
+            ),
+        )
+        .map_err(Into::into)
 }
 
 // --- Conversion into the core model. --------------------------------------------------
 
-fn text(value: String, what: &str) -> Result<Content, ToolFailure> {
-    Content::text(value).map_err(|_| ToolFailure::usage(format!("{what} must not be empty")))
-}
-
 fn noul_criteria(
     criteria: Option<NoulCriteriaArgs>,
     what: &str,
+    mode: crate::request::ContentMode,
 ) -> Result<Option<NoulCriteria>, ToolFailure> {
     let Some(criteria) = criteria else {
         return Ok(None);
     };
-    let side = |value: Option<String>, name: &str| {
-        value
-            .map(|text| self::text(text, &format!("{what}.criteria.{name}")))
-            .transpose()
+    let side = |value: Option<Value>| -> Result<Option<Content>, ToolFailure> {
+        match value {
+            None => Ok(None),
+            Some(Value::Null) if mode == crate::request::ContentMode::Strict => Ok(None),
+            Some(value) => content(mode, value, what).map(Some),
+        }
     };
-    NoulCriteria::new(side(criteria.yes, "true")?, side(criteria.no, "false")?)
+    let yes = side(criteria.yes)?;
+    let no = side(criteria.no)?;
+    if yes.is_none() && no.is_none() && mode == crate::request::ContentMode::Publisher {
+        return Ok(None);
+    }
+    NoulCriteria::new(yes, no)
         .map(Some)
         .map_err(|error| ToolFailure::usage(format!("{what}: {error}")))
 }
 
-fn options(options: Vec<OptionArgs>, what: &str) -> Result<Vec<ChoiceOption>, ToolFailure> {
+fn options(
+    options: Vec<OptionArgs>,
+    what: &str,
+    mode: crate::request::ContentMode,
+) -> Result<Vec<ChoiceOption>, ToolFailure> {
     // Duplicate names are refused by `Question::choice`, as they are for the CLI.
     options
         .into_iter()
         .map(|option| {
             let description = option
                 .description
-                .map(|text| self::text(text, &format!("{what}: an option description")))
+                .map(|value| content(mode, value, what))
                 .transpose()?;
             ChoiceOption::new(option.name, description)
                 .map_err(|error| ToolFailure::usage(format!("{what}: {error}")))
@@ -323,18 +452,18 @@ fn options(options: Vec<OptionArgs>, what: &str) -> Result<Vec<ChoiceOption>, To
         .collect()
 }
 
-fn levels(levels: Vec<String>, what: &str) -> Result<Vec<Content>, ToolFailure> {
-    levels
-        .into_iter()
-        .map(|level| text(level, &format!("{what}: a level")))
-        .collect()
-}
-
-fn question(args: QuestionArgs) -> Result<(QuestionId, Question), ToolFailure> {
+fn question(
+    args: QuestionArgs,
+    score_max: usize,
+    optional_instructions: bool,
+    mode: crate::request::ContentMode,
+) -> Result<(QuestionId, Question), ToolFailure> {
     let what = format!("question {:?}", crate::output::sanitize(&args.id));
     let id = QuestionId::new(args.id)
         .map_err(|error| ToolFailure::usage(format!("{what}: `id`: {error}")))?;
-    let instructions = text(args.instructions, &format!("{what}: `instructions`"))?;
+    let instructions = mode
+        .instructions(args.instructions, id.as_str(), optional_instructions)
+        .map_err(ToolFailure::from)?;
     // A field that belongs to another type is refused rather than ignored: an agent
     // that wrote `options` on a Score meant something, and billing it for a question
     // it did not ask is worse than saying so.
@@ -356,7 +485,7 @@ fn question(args: QuestionArgs) -> Result<(QuestionId, Question), ToolFailure> {
         Kind::Noul => {
             stray(args.options.is_some(), "options")?;
             stray(args.levels.is_some(), "levels")?;
-            Question::noul(instructions, noul_criteria(args.criteria, &what)?)
+            Question::noul(instructions, noul_criteria(args.criteria, &what, mode)?)
         }
         Kind::Choice => {
             stray(args.criteria.is_some(), "criteria")?;
@@ -364,7 +493,7 @@ fn question(args: QuestionArgs) -> Result<(QuestionId, Question), ToolFailure> {
             let list = args.options.ok_or_else(|| {
                 ToolFailure::usage(format!("{what}: a choice question needs `options`"))
             })?;
-            Question::choice(instructions, options(list, &what)?)
+            Question::choice(instructions, options(list, &what, mode)?)
         }
         Kind::Score => {
             stray(args.criteria.is_some(), "criteria")?;
@@ -372,7 +501,7 @@ fn question(args: QuestionArgs) -> Result<(QuestionId, Question), ToolFailure> {
             let list = args.levels.ok_or_else(|| {
                 ToolFailure::usage(format!("{what}: a score question needs `levels`"))
             })?;
-            Question::score(instructions, levels(list, &what)?)
+            Question::score_with_max(instructions, level_content(mode, list, &what)?, score_max)
         }
     }
     .map_err(|error| ToolFailure::usage(format!("{what}: {error}")))?;
@@ -381,16 +510,38 @@ fn question(args: QuestionArgs) -> Result<(QuestionId, Question), ToolFailure> {
 
 /// Converts a question list. Duplicate ids are refused by
 /// [`EvaluationRequest::new`], exactly as for a CLI request file.
-fn questions(list: Vec<QuestionArgs>) -> Result<Vec<(QuestionId, Question)>, ToolFailure> {
-    list.into_iter().map(question).collect()
+fn questions(
+    list: Vec<QuestionArgs>,
+    endpoint: &jev_client::Endpoint,
+) -> Result<Vec<(QuestionId, Question)>, ToolFailure> {
+    list.into_iter()
+        .map(|args| {
+            question(
+                args,
+                crate::media::score_max(endpoint),
+                matches!(endpoint.provider(), "ollama" | "huggingface"),
+                crate::request::ContentMode::for_provider(endpoint.provider()),
+            )
+        })
+        .collect()
 }
 
 /// Converts a state argument, applying the CLI's per-source byte ceiling.
-fn state(deps: &Deps, value: Value, what: &str) -> Result<State, ToolFailure> {
+fn state(
+    deps: &Deps,
+    value: Value,
+    what: &str,
+    images: &[jev_core::EmbeddedImage],
+) -> Result<State, ToolFailure> {
     check_size(deps, &value, what)?;
-    Content::try_from(value)
-        .map(State::new)
-        .map_err(|error| ToolFailure::usage(format!("{what}: {error}")))
+    let images = if deps.context.endpoint.value.is_cloudflare() {
+        images
+    } else {
+        &[]
+    };
+    crate::request::ContentMode::for_provider(deps.context.endpoint.value.provider())
+        .state(value, what, images)
+        .map_err(Into::into)
 }
 
 /// Refuses a value whose encoding exceeds `--max-input-bytes`.
@@ -445,20 +596,24 @@ fn single(
     id: Option<String>,
     question: Result<Question, jev_core::QuestionError>,
     model_name: Option<String>,
+    features: crate::media::Features,
 ) -> Outcome {
     let question = question.map_err(|error| ToolFailure::usage(error.to_string()))?;
     let id = QuestionId::new(id.unwrap_or_else(|| DEFAULT_ID.to_owned()))
         .map_err(|error| ToolFailure::usage(format!("`id`: {error}")))?;
-    let state = state(deps, state_value, "`state`")?;
+    let features = features.with_mcp_defaults(&deps.context)?;
+    let state = state(deps, state_value, "`state`", &features.images)?;
     let model = model(deps, model_name)?;
     let request = EvaluationRequest::new(state, model, vec![(id, question)])
         .map_err(|error| ToolFailure::usage(error.to_string()))?;
+    let request = features.apply(request)?;
     execute(deps, clock, &request)
 }
 
 fn noul(deps: &Deps, clock: &InterruptibleClock, args: NoulArgs) -> Outcome {
-    let instructions = text(args.instructions, "`instructions`")?;
-    let criteria = noul_criteria(args.criteria, "`criteria`")?;
+    let mode = crate::request::ContentMode::for_provider(deps.context.endpoint.value.provider());
+    let instructions = single_instructions(deps, args.instructions, args.id.as_deref())?;
+    let criteria = noul_criteria(args.criteria, "`criteria`", mode)?;
     single(
         deps,
         clock,
@@ -466,12 +621,18 @@ fn noul(deps: &Deps, clock: &InterruptibleClock, args: NoulArgs) -> Outcome {
         args.id,
         Question::noul(instructions, criteria),
         args.model,
+        args.features,
     )
 }
 
 fn choice(deps: &Deps, clock: &InterruptibleClock, args: ChoiceArgs) -> Outcome {
-    let instructions = text(args.instructions, "`instructions`")?;
-    let options = options(args.options, "`options`")?;
+    let mode = crate::request::ContentMode::for_provider(deps.context.endpoint.value.provider());
+    let instructions = single_instructions(deps, args.instructions, args.id.as_deref())?;
+    let options = options(args.options, "`options`", mode)?;
+    let mut features = args.features;
+    if let Some(reject_if_busy) = args.reject_if_busy {
+        features.options = Some(crate::media::CapacityOptions { reject_if_busy });
+    }
     single(
         deps,
         clock,
@@ -479,33 +640,43 @@ fn choice(deps: &Deps, clock: &InterruptibleClock, args: ChoiceArgs) -> Outcome 
         args.id,
         Question::choice(instructions, options),
         args.model,
+        features,
     )
 }
 
 fn score(deps: &Deps, clock: &InterruptibleClock, args: ScoreArgs) -> Outcome {
-    let instructions = text(args.instructions, "`instructions`")?;
-    let levels = levels(args.levels, "`levels`")?;
+    let mode = crate::request::ContentMode::for_provider(deps.context.endpoint.value.provider());
+    let instructions = single_instructions(deps, args.instructions, args.id.as_deref())?;
+    let levels = level_content(mode, args.levels, "`levels`")?;
     single(
         deps,
         clock,
         args.state,
         args.id,
-        Question::score(instructions, levels),
+        Question::score_with_max(
+            instructions,
+            levels,
+            crate::media::score_max(&deps.context.endpoint.value),
+        ),
         args.model,
+        args.features,
     )
 }
 
 fn ask(deps: &Deps, clock: &InterruptibleClock, args: AskArgs) -> Outcome {
-    let questions = questions(args.questions)?;
-    let state = state(deps, args.state, "`state`")?;
+    let questions = questions(args.questions, &deps.context.endpoint.value)?;
+    let features = args.features.with_mcp_defaults(&deps.context)?;
+    let state = state(deps, args.state, "`state`", &features.images)?;
     let model = model(deps, args.model)?;
     let request = EvaluationRequest::new(state, model, questions)
         .map_err(|error| ToolFailure::usage(error.to_string()))?;
+    let request = features.apply(request)?;
     execute(deps, clock, &request)
 }
 
 /// Sends one request and renders it as `jev.evaluation/v1`, exactly as the CLI does.
 fn execute(deps: &Deps, clock: &InterruptibleClock, request: &EvaluationRequest) -> Outcome {
+    crate::media::preflight(&deps.context.endpoint.value, request)?;
     let credential = credential(deps)?;
     let (result, stats) = evaluate::send(
         &deps.context,
@@ -518,14 +689,16 @@ fn execute(deps: &Deps, clock: &InterruptibleClock, request: &EvaluationRequest)
         return Err(CliError::Interrupted.into());
     }
     let response = result?;
-    Ok(render_json::evaluation(
+    let mut document = render_json::evaluation(
         &response,
         request.model().as_str(),
         &deps.context.endpoint.value.to_string(),
         None,
         stats.request_id.as_deref(),
         &response.missing(request.questions().iter().map(|(id, _)| id)),
-    ))
+    );
+    evaluate::add_provider_metadata(&mut document, &deps.context);
+    Ok(document)
 }
 
 fn map_tool(deps: &Deps, clock: &InterruptibleClock, args: MapArgs) -> Outcome {
@@ -550,7 +723,7 @@ fn map_tool(deps: &Deps, clock: &InterruptibleClock, args: MapArgs) -> Outcome {
             args.records.len()
         )));
     }
-    let questions = questions(args.questions)?;
+    let questions = questions(args.questions, &deps.context.endpoint.value)?;
     let model = model(deps, args.model)?;
 
     // Each row echoes its record's id, so the ids count against the budget too: a tiny
@@ -573,18 +746,25 @@ fn map_tool(deps: &Deps, clock: &InterruptibleClock, args: MapArgs) -> Outcome {
         )));
     }
 
-    let records = records(deps, args.records)?;
-
-    // Every record gets the same question set, so validate it once, against the first
-    // record, before anything is sent. Left to `evaluate_all`, a duplicate id would
-    // come back as one failed row per record.
-    if let Some(first) = records.first() {
-        EvaluationRequest::new(first.state.clone(), model.clone(), questions.clone())
-            .map_err(|error| ToolFailure::usage(error.to_string()))?;
-    }
+    let template = args.features.with_mcp_defaults(&deps.context)?;
+    let records = records(deps, args.records, &template)?;
+    let records = records
+        .into_iter()
+        .map(|record| {
+            let features = template.merge(record.features.clone())?;
+            let mut record = record;
+            record.features = features;
+            crate::media::preflight(
+                &deps.context.endpoint.value,
+                &record.request(&questions, &model)?,
+            )?;
+            Ok(record)
+        })
+        .collect::<crate::errors::Result<Vec<_>>>()?;
 
     let credential = credential(deps)?;
-    let fingerprint = map::request_fingerprint(&questions, &model);
+    let fingerprint =
+        map::provider_fingerprint(&questions, &model, &template, &deps.context.endpoint.value);
     let (outcomes, stopped_early, write_error) = map::evaluate_all(
         &deps.context,
         clock,
@@ -636,13 +816,29 @@ fn map_tool(deps: &Deps, clock: &InterruptibleClock, args: MapArgs) -> Outcome {
     }))
 }
 
-/// Converts inline records, applying the CLI's whole-input byte ceiling to all of them.
-fn records(deps: &Deps, list: Vec<RecordArgs>) -> Result<Vec<map::Record>, ToolFailure> {
-    // The CLI applies `--max-input-bytes` to a whole `jev map` input; so does this.
-    let mut total = 0usize;
+/// Converts inline records within the MCP aggregate state and media byte ceiling.
+fn records(
+    deps: &Deps,
+    list: Vec<RecordArgs>,
+    template: &crate::media::Features,
+) -> Result<Vec<map::Record>, ToolFailure> {
+    // MCP counts serialized states plus compressed media bytes after base64 decoding,
+    // including template media once even when a row replaces it. CLI map's JSONL mode caps
+    // serialized JSONL input, whose media remains base64, and excludes --image files.
+    // Counting decoded file bytes avoids rebuilding base64 just to check this cap.
+    let media_bytes = |images: &[jev_core::EmbeddedImage], videos: &[jev_core::EmbeddedVideo]| {
+        images
+            .iter()
+            .map(jev_core::EmbeddedImage::byte_len)
+            .chain(videos.iter().map(jev_core::EmbeddedVideo::byte_len))
+            .fold(0usize, usize::saturating_add)
+    };
+    let mut total = media_bytes(&template.images, &template.videos);
     let mut records = Vec::with_capacity(list.len());
     for (index, record) in list.into_iter().enumerate() {
-        total = total.saturating_add(check_size(deps, &record.state, &format!("record {index}"))?);
+        total = total
+            .saturating_add(check_size(deps, &record.state, &format!("record {index}"))?)
+            .saturating_add(media_bytes(&record.images, &record.videos));
         if u64::try_from(total).unwrap_or(u64::MAX) > deps.context.max_input_bytes.value {
             return Err(too_big(&format!(
                 "the records total more than the {} byte input limit",
@@ -661,10 +857,19 @@ fn records(deps: &Deps, list: Vec<RecordArgs>) -> Result<Vec<map::Record>, ToolF
                 )));
             }
         };
-        let state = Content::try_from(record.state)
-            .map(State::new)
-            .map_err(|error| ToolFailure::usage(format!("record {index}: {error}")))?;
-        records.push(map::Record::new(index, id, state));
+        let images = if record.images.is_empty() {
+            &template.images
+        } else {
+            &record.images
+        };
+        let state = state(deps, record.state, &format!("record {index}"), images)?;
+        records.push(
+            map::Record::new(index, id, state).with_features(crate::media::Features {
+                images: record.images,
+                videos: record.videos,
+                ..crate::media::Features::default()
+            }),
+        );
     }
 
     Ok(records)

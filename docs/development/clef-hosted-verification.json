@@ -1,0 +1,44 @@
+{
+  "schema": "jev.clef.historical-verification/v1",
+  "observed_at": "2026-10-04",
+  "provider": "cloudflare",
+  "synthetic": true,
+  "scope": "Earlier hosted implementation worktree, before subsequent local-controls and harness changes",
+  "successful_inferences": 115,
+  "expected_provider_rejections": 3,
+  "models": {
+    "clef": {"captured_successful_inferences": 55, "captured_input_tokens": 50953},
+    "clef-flash": {"captured_successful_inferences": 60, "captured_input_tokens": 53300}
+  },
+  "tokens_complete": false,
+  "tokens_note": "Two scalar-output requests did not expose token counts. This is not an exact billing measurement.",
+  "quota_refusal_observed": false,
+  "coverage": [
+    "Noul, Choice, Score, mixed questions; text/object/array state and structured questions",
+    "64 questions, 255 Choice options, 10 Score levels and question-ID boundaries",
+    "PNG/JPEG/WebP, data URLs and typed embedded images; multiple images",
+    "Cloudflare explicit empty-string state with images across scalar/ask/map/eval/MCP",
+    "Text/image map and eval, concurrent rows, resume skipping, JSON/JSONL and exit codes",
+    "All five MCP tools, ordinary and image-only calls, text/structured output equality"
+  ],
+  "mcp": {"successful_tool_calls": 20, "probability_values_validated": 84, "clean_process_exits": true},
+  "quality_scope": "Three-row synthetic text/image datasets per model; agreement is an observation, not a benchmark",
+  "capacity_control": {
+    "field": "options.rejectIfBusy",
+    "models_rejected": ["clef", "clef-flash"],
+    "http_status": 422,
+    "cloudflare_code": 5012,
+    "fallback_sent": false,
+    "documentation": "https://developers.cloudflare.com/workers-ai/features/reject-if-busy/"
+  },
+  "not_verified": ["Local loaded Ollama/llama.cpp/Hugging Face models", "Local video inference", "Current worktree"],
+  "provenance": [
+    "Earlier LIVE-TEST-REPORT.md",
+    "hosted-usage-ledger.json",
+    "offline-response-validation.json",
+    "evaluation-summary.json",
+    "mcp-responses/summary.json",
+    "mcp-image-only-responses/summary.json"
+  ],
+  "redaction": "Summary only; no account ID, endpoints, token paths, tokens, raw responses, or supplied content retained"
+}

@@ -5,6 +5,11 @@
 # README beside them is still checked.
 extend-exclude = ["Cargo.lock", "target/", "*.snap", "evals/skills/heldout/*/prompt.md"]
 
+[default]
+# Exact FNV-1a digest fields in machine-readable verification evidence are hex,
+# not prose. Keep the evidence bytes and check every surrounding JSON field.
+extend-ignore-re = ['"(?:state_digest|request_digest)"\s*:\s*"[0-9a-f]{16}"']
+
 [default.extend-words]
 # Noul is a TypeSafe System One primitive, not a typo.
 noul = "noul"
@@ -15,3 +20,11 @@ Noul = "Noul"
 # point and correcting it would delete the test's meaning.
 modle = "modle"
 questons = "questons"
+
+[default.extend-identifiers]
+# Official Transformers output: temporal, height, width grid dimensions.
+video_grid_thw = "video_grid_thw"
+# Official Python distribution identifier in the pinned wheel inventory.
+certifi = "certifi"
+# Exact abbreviated bridge hash quoted in the immutable independent review.
+91ba413e = "91ba413e"

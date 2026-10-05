@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that `schema/request.schema.json` agrees with the committed examples.
+"""Check request-file examples and the advertised MCP media schema contracts.
 
 The request-file format is the official TypeSafe API request body, not an invention of
 this CLI, so it carries no `version` field: adding one would make the file invalid as an
@@ -9,6 +9,9 @@ something keeps it true. This is that something.
 
 Every file in `examples/requests/` must validate. The negative cases below must not:
 a schema that accepts everything would pass the first check and tell nobody anything.
+The MCP checks also validate per-call and map record-level video metadata, with
+positive source FPS/duration and processor sampling FPS, against the five advertised
+input schemas. Valid controls must pass before zero-value counterexamples are tested.
 
 Without `jsonschema`, exit 77 reports that validation did not run. The repository
 verifier records a skip locally and refuses a push until the module is installed.
@@ -17,6 +20,8 @@ verifier records a skip locally and refuses a push until the module is installed
 from __future__ import annotations
 
 import json
+import copy
+import base64
 import pathlib
 import sys
 
@@ -78,6 +83,54 @@ ACCEPTED: list[tuple[str, dict]] = [
 ]
 
 
+def check_mcp_media_contract(jsonschema) -> int:
+    """Check the advertised timing contract, including map's record-level media."""
+    encoded = base64.b64encode(
+        (ROOT / "crates/jev-core/tests/fixtures/two-by-three.png").read_bytes()
+    ).decode("ascii")
+    frame = {"content_type": "image/png", "base64": encoded}
+    video = {"frames": [frame, frame], "metadata": {
+        "fps": 30, "total_num_frames": 90, "frames_indices": [0, 60], "duration": 3}}
+    question = {"id": "q", "type": "noul", "instructions": "Motion?"}
+    cases = {
+        "noul": {"state": "clip", "instructions": "Motion?"},
+        "choice": {"state": "clip", "instructions": "Direction?", "options": [
+            {"name": "left"}, {"name": "right"}]},
+        "score": {"state": "clip", "instructions": "Motion?", "levels": ["still", "moving"]},
+        "ask": {"state": "clip", "questions": [question]},
+        "map": {"questions": [question], "records": [{"state": "clip"}]},
+    }
+    failures = 0
+    for tool, base in cases.items():
+        schema = json.loads((ROOT / "crates/jev-cli/src/mcp/schema" / (tool + ".input.json")).read_text())
+        validator_type = jsonschema.validators.validator_for(schema)
+        validator_type.check_schema(schema)
+        validator = validator_type(schema)
+        for record_level in ([False, True] if tool == "map" else [False]):
+            arguments = copy.deepcopy(base)
+            media = arguments["records"][0] if record_level else arguments
+            media["videos"] = [copy.deepcopy(video)]
+            location = "record" if record_level else "template"
+            if not validator.is_valid(arguments):
+                failures += 1
+                print(f"FAIL  MCP {tool} schema rejects valid {location} video timing")
+            for field in ("fps", "duration"):
+                invalid = copy.deepcopy(arguments)
+                target = invalid["records"][0] if record_level else invalid
+                target["videos"][0]["metadata"][field] = 0
+                if validator.is_valid(invalid):
+                    failures += 1
+                    print(f"FAIL  MCP {tool} schema accepts zero {location} video {field}")
+            invalid = copy.deepcopy(arguments)
+            invalid["media_kwargs"] = {"fps": 0}
+            if validator.is_valid(invalid):
+                failures += 1
+                print(f"FAIL  MCP {tool} schema accepts zero sampling fps")
+    if not failures:
+        print("ok    all five MCP schemas accept video timing and reject zero cadence/duration")
+    return failures
+
+
 def main() -> int:
     try:
         import jsonschema
@@ -90,7 +143,7 @@ def main() -> int:
     validator_for.check_schema(schema)
     validator = validator_for(schema)
 
-    failures = 0
+    failures = check_mcp_media_contract(jsonschema)
 
     examples = sorted(EXAMPLES.glob("*.json"))
     if not examples:

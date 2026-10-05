@@ -1,69 +1,72 @@
 #!/usr/bin/env bash
 # Run the shipped skills' evaluation suite.
 #
-# `claude plugin eval` is the harness. It runs each case twice -- once with the skills
-# loaded and once with no plugin at all -- and reports the delta. That second arm is the
-# point: it is the RED baseline, measured rather than assumed, and a case whose delta is
-# zero is a case the skill did not change. See docs/development/skill-authoring.md.
+# Default: the instrumented Codex app-server catalog, GPT-6.1 Sol at high effort
+# for both measured answers and independent rubric judges. It uses the existing
+# ChatGPT login, removes API-key environment sources, and refuses API-key auth.
+# Reports include token usage; subscription dollar billing is unavailable.
+# This evaluates the supplied portable Skill/Read/Glob/Grep catalog, rather than
+# native discovery in Claude, Cursor, or Codex. Separate native Codex trials are
+# documented in docs/development/clef-skill-verification.json.
 #
-# The harness resolves skills from a plugin directory, and a plugin manifest may not
-# reference a path outside its own root. Rather than put a Claude-specific manifest into
-# `skills/`, which has to stay a portable Agent Skills tree, this stages a copy under
-# `target/` and evaluates that. The staging tree is regenerated every run.
+# Every confirmation case has a no-skill baseline and a skill arm, with its
+# declared three repeats. The baseline measures the observed failure and the
+# report records the delta. Errors are separate from behavioral scores.
+# See docs/development/skill-authoring.md for evidence and held-out procedure.
 #
-# Usage:
-#   scripts/skill-eval.sh                      # every case, on the confirm model
-#   scripts/skill-eval.sh --iterate            # one run, no baseline arm -- see below
-#   scripts/skill-eval.sh --case 'jev-*'       # one case, or a glob
-#   scripts/skill-eval.sh --tag trigger        # one tag
-#   scripts/skill-eval.sh --list               # stage and list the cases, run nothing
-#   scripts/skill-eval.sh --heldout            # the held-out routing set, alone; never under --iterate
-#   scripts/skill-eval.sh -- --runs 5 --model claude-opus-5-5
+# Usage (default Codex adapter):
+#   scripts/skill-eval.sh                       # every training/routing case
+#   scripts/skill-eval.sh --iterate             # one skill-arm development run
+#   scripts/skill-eval.sh --case 'jev-*'         # exact case name or glob
+#   scripts/skill-eval.sh --tag trigger          # tags select their union
+#   scripts/skill-eval.sh --list                 # list cases; no model calls
+#   scripts/skill-eval.sh --heldout              # final held-out set; no --iterate
+#   scripts/skill-eval.sh -- --concurrency 8     # bounded parallel sessions
 #
-# Everything after `--` is passed to `claude plugin eval` unchanged, and anything you
-# pass yourself wins over the defaults this script sets.
+# For Codex, `--` is an optional separator: arguments reach the Python adapter.
+# Model and effort are fixed explicitly to the requested GPT-6.1 Sol high;
+# Claude model/effort flags and environment overrides do not affect this path.
 #
-# This costs money. Every run and every LLM grader is a real model call on your own
-# credential, and the harness spawns a whole Claude session per run -- so a full suite
-# is by far the largest thing in this repository's development budget.
+# `--iterate` retains that model but runs one pass without a baseline. It helps
+# check a small edit; it cannot establish a delta or repeatability. Never report
+# an iterate run as confirmation. Keep held-out prompts untouched until the
+# candidate is fixed, and inspect failed transcripts before changing skills.
 #
-# ## One model, two depths
+# Historical Claude adapter (explicit opt-in only):
+#   scripts/skill-eval.sh --list               # list the complete corpus on Codex
+#   JEV_SKILL_EVAL_RUNTIME=claude scripts/skill-eval.sh --case jev-clef-behaviour-credentials -- --model claude-opus-5-5
 #
-# `--iterate` runs one pass with no baseline arm, on the same model the results are
-# quoted from. With `--runs 1 --ablation none` it is roughly a sixth of a full default
-# pass. Use it for the red-green loop, where you are asking "did my edit change
-# anything", not "is this good".
+# Selected skill_order cases are refused before Claude startup, including legacy
+# --list on the whole corpus. Default Codex --list covers the complete corpus.
+# That path uses the pinned `claude plugin eval` harness, stages a plugin copy
+# under a unique target/ directory, and charges the operator's model credential.
+# Its historical defaults are Claude Opus 5.5 low for measured and judge calls.
+# Only on that path does everything after `--` pass through to the Claude
+# harness, and JEV_SKILL_EVAL_MODEL / JEV_SKILL_EVAL_EFFORT can override defaults.
+# An existing CLAUDE_CODE_EFFORT_LEVEL wins there. The legacy cheaper-model
+# experiments showed different routing behavior; they are historical evidence,
+# not measurements under the current GPT-6.1 Sol high policy.
 #
-# It deliberately does **not** drop to a smaller model, and that is measured. A full
-# 84-case pass on Haiku scored 0.00 on every single trigger case, because a small model
-# rarely reaches for a skill at all; and the `jev` skill's over-triggering on the
-# plain-grep near miss reproduced only on Opus, with Haiku and Sonnet both behaving
-# correctly. A cheaper model does not give a noisier version of the same signal. It gives
-# a different signal, and tuning against it means tuning for a model nobody runs.
+# Do not invoke the historical adapter when the requested evaluation model is
+# GPT-6.1 Sol high. No substitute model supplies evidence for that requirement.
 #
-# **Do not report an iterate run as a result.** One run is noise-dominated, and with no
-# baseline arm there is no delta.
-#
-# ## Why an explicit --model and effort at all
-#
-# Without them, each child session inherits whatever the *calling* Claude Code is
-# configured with -- including a 1M-context variant and whatever reasoning effort the
-# operator happens to be on. These runs need neither: they are short, single-file, and
-# the judgment they exercise is the skill's, not the harness's. Inheritance also makes a
-# report unreproducible, because "whatever was configured that day" is not a model.
-#
-# So this pins `--model claude-opus-5-5` (a full id: not the `opus` alias, which moves,
-# and not `opus[1m]`) and `CLAUDE_CODE_EFFORT_LEVEL=low`.
-# Measured on one identical case at one run: the same score, cost within noise, and wall
-# clock halved, 58s to 29s. Effort is the smaller of the two levers -- the model tier is
-# where the money is -- but it is free.
-#
-# Override with JEV_SKILL_EVAL_MODEL / JEV_SKILL_EVAL_EFFORT, or `-- --model ...`. If
-# CLAUDE_CODE_EFFORT_LEVEL is already set in the environment, that wins and nothing here
-# touches it.
 set -Eeuo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
+
+# The portable suite defaults to the instrumented Codex catalog. A historical
+# Claude harness remains explicitly selectable; it is never started by default.
+case "${JEV_SKILL_EVAL_RUNTIME:-codex}" in
+  codex)
+    CODEX_ARGUMENTS=()
+    for argument in "$@"; do
+      [ "$argument" = -- ] || CODEX_ARGUMENTS+=("$argument")
+    done
+    exec python3 scripts/skill-eval-codex.py ${CODEX_ARGUMENTS[@]+"${CODEX_ARGUMENTS[@]}"}
+    ;;
+  claude) ;;
+  *) printf 'JEV_SKILL_EVAL_RUNTIME must be codex or claude\n' >&2; exit 2 ;;
+esac
 
 SRC_SKILLS="skills"
 SRC_EVALS="evals/skills"
@@ -154,6 +157,14 @@ else
   printf 'measuring on %s at effort %s, graded by %s\n' \
     "$MODEL" "$CLAUDE_CODE_EFFORT_LEVEL" "$JUDGE_MODEL" >&2
 fi
+
+# Refuse selected custom graders that the historical adapter cannot implement,
+# before starting Claude validation or billed sessions.
+LEGACY_PREFLIGHT=()
+[ "$HELDOUT" = 0 ] || LEGACY_PREFLIGHT+=(--heldout)
+python3 scripts/skill-eval-codex.py --legacy-preflight \
+  ${LEGACY_PREFLIGHT[@]+"${LEGACY_PREFLIGHT[@]}"} \
+  ${PASSTHROUGH[@]+"${PASSTHROUGH[@]}"}
 
 if ! command -v claude >/dev/null 2>&1; then
   printf 'claude is not on PATH; install Claude Code to run skill evals\n' >&2

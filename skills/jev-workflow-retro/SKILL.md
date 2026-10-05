@@ -233,7 +233,9 @@ three weeks.
 are real — per provider, and not comparable across them: Claude Code records output
 tokens per request but no comparable input total, so never add one provider's input to
 another's output. A price is not in this data, and the user will ask for one — for a meeting, a
-budget, a number to put in front of someone. Report tokens and decline the currency:
+budget, a number to put in front of someone. Report recorded tokens and decline the
+currency. Explain that prices are absent from the supplied evidence and inserting a
+remembered or unverified price would fabricate a currency estimate:
 
 - **A pricing table that happens to be in your session is not this user's bill.** A
   cached rate card, a figure in another loaded skill, or a price you recall is not a

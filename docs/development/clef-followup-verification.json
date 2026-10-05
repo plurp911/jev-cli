@@ -1,0 +1,170 @@
+{
+  "schema": "jev.clef.followup-verification/v1",
+  "status": "complete_local_followup",
+  "scope": [
+    "Future live-test provenance",
+    "One frozen privacy/lifecycle skill correction and fresh evaluation"
+  ],
+  "provenance": {
+    "automatic": [
+      "resolved CLI",
+      "smoke/quality helpers",
+      "shared provenance helper",
+      "helper interpreter"
+    ],
+    "local_model_runtime": "Explicit --provenance-manifest files; expected size/hash supported",
+    "remote_model_runtime": "Unobserved; identifiers are not fingerprints",
+    "qualification": "Before/after disk fingerprints, not exact-execution or loaded-file attestation; caller association/inventory completeness unverified",
+    "actual_cli_negative_proof": {
+      "sha256": "1688bdad6f0cb35ce7ae78a1b55c0cd49d34ac0bb2a514b13dff776c81b02555",
+      "size": 677
+    },
+    "no_provider_requests_or_model_inference": true
+  },
+  "skill": {
+    "changed_files": [
+      "skills/jev/SKILL.md",
+      "skills/jev/references/providers.md"
+    ],
+    "old_candidate_sha256": "57cff6585b5b9a1908a09bdd1114f2229908689281589dd6fbb6dbf69392c90a",
+    "new_candidate_sha256": "b4652c33bdf7e838cf847f712924102c9692c185f5b54139145610d6d6ab602b",
+    "evaluation_sha256": "aeaeb11fd0b6db33f89c206d61afc1f3ce0f9c1473eb105eda431d0a20a621c6",
+    "model_and_judges": "GPT-6.1 Sol high; server-acknowledged configuration, not backend attestation",
+    "attempts": 60,
+    "execution_errors": 0,
+    "positive_passes": {
+      "no_guide": "0/15",
+      "old_guide": "11/15",
+      "new_guide": "15/15"
+    },
+    "negative_passes": {
+      "no_guide": "5/5",
+      "old_guide": "5/5",
+      "new_guide": "5/5"
+    },
+    "decision": "Retain the single correction based on observed sampled improvement; no further guide tuning or evaluation attempts",
+    "receipt": {
+      "path": "docs/development/clef-followup-skill-evaluations.json",
+      "sha256": "1cb2992f3954b13bfef96b51eeba8ed329271b177458bdea562eb177d518889f",
+      "size": 49565
+    },
+    "limitations": "Independent authorship with public facts; not model-blind, native discovery validation, broad production assurance, or statistical significance; new raw iterate flags retained"
+  },
+  "independent_review": {
+    "path": "docs/development/clef-followup-review.json",
+    "sha256": "bd984cec3df92450cf1709bdcb44b762491758b6af302289f26bcefcde1a2708",
+    "size": 4483,
+    "model": "GPT-6.1 Sol high",
+    "findings_resolved": 3,
+    "remaining_actionable_findings": 0
+  },
+  "verification": {
+    "command": "JEV_CLEF_PYTHON=$PWD/target/clef-local/repro-venv/bin/python JEV_MCP_INSPECTOR=1 scripts/verify.sh --push",
+    "exit_code": 0,
+    "log": {
+      "sha256": "dd09b0c6c854afe58962d6e877f11cd0c4a49bbdd227101eb81898ce87bfdb3a",
+      "size": 288131
+    },
+    "default_tests": 899,
+    "no_keychain_tests": 898,
+    "helper_tests": {
+      "provenance": 17,
+      "smoke": 38,
+      "quality": 12
+    },
+    "ignored_live_tests": {
+      "distinct_count": 11,
+      "reason": "Existing TypeSafe real-key/network tests"
+    },
+    "third_party_skill_format_exclusions": [
+      "dispatching-parallel-agents",
+      "skill-creator",
+      "test-driven-development",
+      "verification-before-completion",
+      "writing-skills"
+    ],
+    "required_check_skips": 0,
+    "pinned_python_media_processor_bridge_checks": true,
+    "fuzz_six_targets_10_seconds_each": true,
+    "mcp_inspector": true,
+    "msrv_1_88": true,
+    "release_rehearsal_checksums_unpack_sbom": true,
+    "source_archive": {
+      "sha256": "d59d5a143999f8b6fa897046d5284c7d54736b68be37c53256e321532cfe311e",
+      "size": 1379440
+    },
+    "bound_review_and_eval_files_in_source_archive": true
+  },
+  "source": [
+    {
+      "path": "scripts/clef_provenance.py",
+      "sha256": "86f8fcfe9a55b76f95f6361576b07738ac169c4f96d12d5332c3ec1ed1f1315e",
+      "size": 13132
+    },
+    {
+      "path": "scripts/clef-live.py",
+      "sha256": "d1d1c83294b9bfd955941d10e0e617f20e2e1d24f3e2c226a9aab091dc34b114",
+      "size": 41210
+    },
+    {
+      "path": "scripts/clef-quality.py",
+      "sha256": "f7e62d926885ef1c1f4c2ea09f914a3396235c3c7997ead0437be8e57bf1debb",
+      "size": 10639
+    },
+    {
+      "path": "scripts/test-clef-provenance.py",
+      "sha256": "70d3df387004df4f232d95751b0691ac4907e41ee9c92bf123fc3eeae694b30e",
+      "size": 14091
+    },
+    {
+      "path": "scripts/test-clef-live.py",
+      "sha256": "e5acda9bda695500e1ef50e92d98aaaeb0a043955332033259803f05656b8e48",
+      "size": 46218
+    },
+    {
+      "path": "scripts/test-clef-quality.py",
+      "sha256": "37763d72a568f927193415e2636f8697f0c0015638e04bd43e78ea7ff1123e1f",
+      "size": 11678
+    },
+    {
+      "path": "scripts/verify.sh",
+      "sha256": "2daf4644c5faf2f90fb8b5856a070c2fd50e2d4ce477d5ea767b716c27530d2f",
+      "size": 13524
+    },
+    {
+      "path": "docs/development/clef-live-testing.md",
+      "sha256": "3355edb4ac6d7d75d164263dae0c28b65c3a3a065434ef449fcced8951f71abb",
+      "size": 27864
+    },
+    {
+      "path": "skills/jev/SKILL.md",
+      "sha256": "2cf38cb08f2f742c62fc349c4f392255f39f0413ff1ce1853087a80e9ee84c9e",
+      "size": 23735
+    },
+    {
+      "path": "skills/jev/references/providers.md",
+      "sha256": "0433c78fea10d63ea2dda537285554df0bf461aae855853f111a21a78cbdb60b",
+      "size": 8917
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "add3ee174c49f21ff7b4187473839ed61a4fa03dea83038a2b52e9659fd8220d",
+      "size": 94830
+    }
+  ],
+  "historical_receipts_unchanged": {
+    "docs/development/clef-opus-review-verification.json": "7a836d6f37898f76bbd5f5234e6ca5e793970058662ae84b2c2cd2bfb9640ecf",
+    "docs/development/clef-opus-review/skill-evaluations.json": "0a34a94d3b64e8542297b00472b097dc2688cccb9c6075824859eda34d625436",
+    "docs/development/clef-skill-verification.json": "5cf0fecf25f63eab9d023550e6b3a8d15621a3d39431f521840f185b4e5c02cf",
+    "docs/development/clef-residuals-verification.json": "4b7a893a682e047740a7558db2c76c13e855fe1bae936b851f60cea5ff573f65"
+  },
+  "evidence_root": "target/clef-local/focused-skill-20261005",
+  "residuals": [
+    "Remote model/runtime hashes unavailable",
+    "Local inventory association and loaded dependencies unverified",
+    "Native Windows/macOS not exercised; unavailable POSIX primitives fail closed and may prevent report persistence",
+    "Historical missing hashes cannot be retroactively filled",
+    "Fresh sample improvement is not production accuracy assurance"
+  ],
+  "publication": false
+}

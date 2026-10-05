@@ -19,13 +19,29 @@ use std::io::{BufRead as _, BufReader, Read as _, Write as _};
 use std::net::TcpListener;
 use std::time::Duration;
 
-use jev_client::{Credential, HttpTransport, Request, Transport, TransportError};
+use jev_client::{
+    Client, Credential, Endpoint, HttpTransport, Request, RetryPolicy, Transport, TransportError,
+};
 
 /// Serves one canned response and returns the request line and headers it saw.
 fn serve_once(
     status: u16,
     extra_headers: &[(&str, &str)],
     body: &[u8],
+) -> (u16, BTreeMap<String, String>) {
+    serve_with_credential(
+        status,
+        extra_headers,
+        body,
+        &Credential::new("sk-transport-canary".to_owned()),
+    )
+}
+
+fn serve_with_credential(
+    status: u16,
+    extra_headers: &[(&str, &str)],
+    body: &[u8],
+    credential: &Credential,
 ) -> (u16, BTreeMap<String, String>) {
     let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
     let port = listener.local_addr().unwrap().port();
@@ -89,7 +105,7 @@ fn serve_once(
         body: b"{}".to_vec(),
     };
     let response = transport
-        .execute(&request, &Credential::new("sk-transport-canary".to_owned()))
+        .execute(&request, credential)
         .expect("the transport should return a response");
     handle.join().unwrap();
 
@@ -122,6 +138,17 @@ fn the_authorization_header_is_sent_and_nothing_else_carries_the_key() {
             );
         }
     }
+}
+
+#[test]
+fn anonymous_transport_omits_authorization_while_empty_keys_remain_explicit() {
+    let (_, anonymous) = serve_with_credential(200, &[], b"{}", &Credential::anonymous());
+    assert!(!anonymous.contains_key("authorization"));
+    let (_, empty) = serve_with_credential(200, &[], b"{}", &Credential::new(String::new()));
+    assert_eq!(
+        empty.get("authorization").map(String::as_str),
+        Some("Bearer")
+    );
 }
 
 #[test]
@@ -346,4 +373,90 @@ fn a_connection_closed_mid_response_is_transient_and_retryable() {
         !error.to_string().contains("sk-x"),
         "the credential reached the error message"
     );
+}
+
+/// Captures complete request bytes at the actual HTTP boundary, without any external
+/// network. Model response values here are hand-authored schema test cases.
+fn provider_round_trip(cloudflare: bool) {
+    use jev_core::{Content, EvaluationRequest, ModelId, Question, QuestionId, State};
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let port = listener.local_addr().unwrap().port();
+    let handle = std::thread::spawn(move || {
+        let (mut stream, _) = listener.accept().unwrap();
+        let mut reader = BufReader::new(stream.try_clone().unwrap());
+        let mut request_line = String::new();
+        reader.read_line(&mut request_line).unwrap();
+        let mut headers = BTreeMap::new();
+        loop {
+            let mut line = String::new();
+            reader.read_line(&mut line).unwrap();
+            if line.trim().is_empty() {
+                break;
+            }
+            let (name, value) = line.trim().split_once(':').unwrap();
+            headers.insert(name.to_ascii_lowercase(), value.trim().to_owned());
+        }
+        let length: usize = headers["content-length"].parse().unwrap();
+        let mut body = vec![0; length];
+        reader.read_exact(&mut body).unwrap();
+        let body: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(body["model"], "clef");
+        assert_eq!(body["questions"]["q"]["type"], "noul");
+        if cloudflare {
+            assert_eq!(
+                request_line,
+                "POST /client/v4/accounts/0123456789abcdef0123456789abcdef/ai/run/@cf/cloudflare/clef HTTP/1.1\r\n"
+            );
+            assert_eq!(headers["authorization"], "Bearer sk-local-transport-canary");
+        } else {
+            assert_eq!(request_line, "POST /v1/systemone HTTP/1.1\r\n");
+            assert!(!headers.contains_key("authorization"));
+        }
+        let inner = serde_json::json!({"model":"clef","answers":{"q":{"type":"noul","noul":0.75}},"usage":{"input_tokens":5,"output_tokens":0}});
+        let response = if cloudflare {
+            serde_json::json!({"success":true,"result":inner,"errors":[],"messages":[]})
+        } else {
+            inner
+        }
+        .to_string();
+        write!(stream,"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nCf-Ray: test-ray\r\nConnection: close\r\n\r\n{response}",response.len()).unwrap();
+    });
+    let base = Endpoint::parse(&format!("http://127.0.0.1:{port}")).unwrap();
+    let endpoint = if cloudflare {
+        base.with_cloudflare_account("0123456789abcdef0123456789abcdef")
+            .unwrap()
+    } else {
+        base.with_ollama()
+    };
+    let client = Client::new(HttpTransport::new(Duration::from_secs(5)), endpoint)
+        .with_retry(RetryPolicy::none());
+    let request = EvaluationRequest::new(
+        State::text("s").unwrap(),
+        ModelId::new("clef").unwrap(),
+        vec![(
+            QuestionId::new("q").unwrap(),
+            Question::noul(Content::text("Is it?").unwrap(), None).unwrap(),
+        )],
+    )
+    .unwrap();
+    let (response, stats) = client.evaluate(
+        &request,
+        &Credential::new("sk-local-transport-canary".to_owned()),
+    );
+    assert_eq!(response.unwrap().model.as_str(), "clef");
+    if cloudflare {
+        assert_eq!(stats.request_id.as_deref(), Some("test-ray"));
+    }
+    assert_eq!(stats.attempts, 1);
+    handle.join().unwrap();
+}
+
+#[test]
+fn workers_ai_round_trip_uses_actual_routing_and_authorization() {
+    provider_round_trip(true);
+}
+
+#[test]
+fn ollama_round_trip_never_transmits_supplied_credentials() {
+    provider_round_trip(false);
 }

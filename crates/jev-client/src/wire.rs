@@ -35,6 +35,19 @@ use crate::error::{ClientError, truncate};
 /// Returns [`ClientError::MalformedResponse`] naming the offending field.
 pub fn decode_evaluation(body: &[u8]) -> Result<EvaluationResponse, ClientError> {
     let root = parse_json(body)?;
+    decode_evaluation_root(&root, false)
+}
+
+/// Preserves the publisher's scalar and blank Score descriptions.
+pub(crate) fn decode_publisher_evaluation(body: &[u8]) -> Result<EvaluationResponse, ClientError> {
+    let root = parse_json(body)?;
+    decode_evaluation_root(&root, true)
+}
+
+fn decode_evaluation_root(
+    root: &Value,
+    publisher: bool,
+) -> Result<EvaluationResponse, ClientError> {
     let object = root
         .as_object()
         .ok_or_else(|| malformed("the response body is not a JSON object"))?;
@@ -54,7 +67,7 @@ pub fn decode_evaluation(body: &[u8]) -> Result<EvaluationResponse, ClientError>
     for (id, raw) in answers_object {
         let id = QuestionId::new(id.clone())
             .map_err(|error| malformed(&format!("answer key {id:?}: {error}")))?;
-        let answer = decode_answer(id.as_str(), raw)?;
+        let answer = decode_answer(id.as_str(), raw, publisher)?;
         answers.push((id, answer));
     }
 
@@ -73,6 +86,104 @@ pub fn decode_evaluation(body: &[u8]) -> Result<EvaluationResponse, ClientError>
         answers,
         usage,
     })
+}
+
+/// Decodes the Workers AI envelope and its required System One result fields.
+pub(crate) fn decode_cloudflare_evaluation(body: &[u8]) -> Result<EvaluationResponse, ClientError> {
+    let root = parse_json(body)?;
+    let result = cloudflare_result(&root)?;
+    let answers = result
+        .get("answers")
+        .and_then(Value::as_object)
+        .ok_or_else(|| malformed("Cloudflare result.answers is missing or invalid"))?;
+    if answers.is_empty() {
+        return Err(malformed("Cloudflare result.answers is empty"));
+    }
+    let usage = result
+        .get("usage")
+        .and_then(Value::as_object)
+        .ok_or_else(|| malformed("Cloudflare result.usage is missing or invalid"))?;
+    if ["input_tokens", "output_tokens"]
+        .iter()
+        .any(|name| usage.get(*name).and_then(Value::as_u64).is_none())
+    {
+        return Err(malformed("Cloudflare usage counts are missing or invalid"));
+    }
+    decode_evaluation_root(result, false)
+}
+
+fn cloudflare_result(root: &Value) -> Result<&Value, ClientError> {
+    match root.get("success").and_then(Value::as_bool) {
+        Some(true) => root
+            .get("result")
+            .ok_or_else(|| malformed("Cloudflare result is missing")),
+        Some(false) => Err(ClientError::from_status(
+            400,
+            Some("Cloudflare rejected the request".to_owned()),
+        )),
+        None => Err(malformed("Cloudflare success is missing or not a boolean")),
+    }
+}
+
+/// The search API intentionally leaves model entries untyped. Expose only the two
+/// supported models documented by Cloudflare, without inventing release dates.
+pub(crate) fn decode_cloudflare_models(body: &[u8]) -> Result<Vec<ModelCard>, ClientError> {
+    let root = parse_json(body)?;
+    cloudflare_result(&root)?
+        .as_array()
+        .ok_or_else(|| malformed("Cloudflare model result is not an array"))?;
+    Ok(vec![
+        ModelCard {
+            name: "clef".to_owned(),
+            description: "Cloudflare Clef 27B multimodal decision model".to_owned(),
+            release_date: String::new(),
+        },
+        ModelCard {
+            name: "clef-flash".to_owned(),
+            description: "Cloudflare Clef Flash 9B multimodal decision model".to_owned(),
+            release_date: String::new(),
+        },
+    ])
+}
+
+/// Normalizes the documented local model list without treating modification or
+/// creation timestamps as release dates.
+pub(crate) fn decode_local_models(
+    body: &[u8],
+    ollama: bool,
+) -> Result<Vec<ModelCard>, ClientError> {
+    let root = parse_json(body)?;
+    let (list_key, id_key, description) = if ollama {
+        ("models", "name", "Installed Ollama model")
+    } else {
+        ("data", "id", "Loaded llama.cpp model")
+    };
+    let list = root
+        .get(list_key)
+        .and_then(Value::as_array)
+        .ok_or_else(|| malformed("local model list is missing or invalid"))?;
+    list.iter()
+        .map(|entry| {
+            let name = entry
+                .get(id_key)
+                .and_then(Value::as_str)
+                .ok_or_else(|| malformed("local model id is missing or invalid"))?;
+            Ok(ModelCard {
+                name: clip(name),
+                description: description.to_owned(),
+                release_date: String::new(),
+            })
+        })
+        .collect()
+}
+
+pub(crate) fn cloudflare_error_code(body: &[u8]) -> Option<u64> {
+    let root = parse_json(body).ok()?;
+    root.get("errors")?
+        .as_array()?
+        .first()?
+        .get("code")?
+        .as_u64()
 }
 
 /// Decodes a `GET /v1/models` body.
@@ -252,7 +363,7 @@ fn malformed(reason: &str) -> ClientError {
     }
 }
 
-fn decode_answer(id: &str, raw: &Value) -> Result<Answer, ClientError> {
+fn decode_answer(id: &str, raw: &Value, publisher: bool) -> Result<Answer, ClientError> {
     let object = raw
         .as_object()
         .ok_or_else(|| malformed(&format!("answers.{id} is not an object")))?;
@@ -297,7 +408,7 @@ fn decode_answer(id: &str, raw: &Value) -> Result<Answer, ClientError> {
             if !score.is_finite() {
                 return Err(malformed(&format!("answers.{id}.score is not finite")));
             }
-            let legend = decode_legend(id, object)?;
+            let legend = decode_legend(id, object, publisher)?;
             let probabilities = decode_level_distribution(id, object)?;
             // A score is the probability-weighted mean of the level numbers, so it
             // cannot fall outside the range those numbers span. Both ends matter, and
@@ -433,6 +544,7 @@ fn decode_level_distribution(
 fn decode_legend(
     id: &str,
     object: &serde_json::Map<String, Value>,
+    publisher: bool,
 ) -> Result<BTreeMap<u32, Content>, ClientError> {
     let map = object
         .get("legend")
@@ -445,8 +557,12 @@ fn decode_legend(
                     "answers.{id}.legend has a non-numeric level key {key:?}"
                 ))
             })?;
-            let content = Content::try_from(value.clone())
-                .map_err(|error| malformed(&format!("answers.{id}.legend.{key}: {error}")))?;
+            let content = if publisher {
+                Content::local_json(value.clone())
+            } else {
+                Content::try_from(value.clone())
+            }
+            .map_err(|error| malformed(&format!("answers.{id}.legend.{key}: {error}")))?;
             Ok((level, content))
         })
         .collect()
@@ -456,6 +572,43 @@ fn decode_legend(
 mod tests {
     use super::*;
     use jev_core::limits::{MAX_ERROR_BODY_CHARS, MAX_JSON_DEPTH};
+
+    #[test]
+    fn scalar_and_blank_score_legends_are_only_decoded_for_the_publisher_bridge() {
+        for value in [
+            serde_json::json!(null),
+            serde_json::json!(false),
+            serde_json::json!(1.5),
+            serde_json::json!(""),
+            serde_json::json!("   "),
+        ] {
+            let body = serde_json::json!({"model":"clef","answers":{"q":{"type":"score","score":0.5,"legend":{"0":value,"1":"other"},"probabilities":{"0":0.5,"1":0.5},"confidence":0.5}},"usage":{}});
+            let bytes = serde_json::to_vec(&body).unwrap();
+            assert!(decode_evaluation(&bytes).is_err());
+            let response = decode_publisher_evaluation(&bytes).unwrap();
+            let Some(Answer::Score { legend, .. }) = response.answer("q") else {
+                panic!("expected score");
+            };
+            assert_eq!(legend[&0].to_value(), value);
+            let envelope =
+                serde_json::to_vec(&serde_json::json!({"success":true,"result":body})).unwrap();
+            assert!(decode_cloudflare_evaluation(&envelope).is_err());
+        }
+    }
+
+    #[test]
+    fn cloudflare_envelopes_require_success_and_valid_inner_fields() {
+        for body in [br#"{"success":false,"errors":[{"code":3040}],"result":{}}"#.as_slice(),br#"{"result":{}}"#,br#"{"success":true,"result":{"model":"clef","answers":{},"usage":{"input_tokens":1,"output_tokens":0}}}"#,br#"{"success":true,"result":{"model":"clef","answers":{"q":{"type":"noul","noul":1.1}},"usage":{"input_tokens":1,"output_tokens":0}}}"#] {
+            assert!(decode_cloudflare_evaluation(body).is_err());
+        }
+        let deep = format!(
+            "{{\"success\":true,\"result\":{}0{}}}",
+            "[".repeat(65),
+            "]".repeat(65)
+        );
+        assert!(decode_cloudflare_evaluation(deep.as_bytes()).is_err());
+        assert!(decode_cloudflare_evaluation(b"\xff").is_err());
+    }
 
     fn evaluation(body: &str) -> Result<EvaluationResponse, ClientError> {
         decode_evaluation(body.as_bytes())

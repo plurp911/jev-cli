@@ -1,0 +1,314 @@
+{
+  "schema": "jev.clef.publisher-input-final-phase/v1",
+  "synthetic": true,
+  "provider": "huggingface",
+  "model": "clef-flash",
+  "publisher_revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+  "device": "cpu",
+  "dtype": "bfloat16",
+  "threads": 8,
+  "loopback_only": true,
+  "offline": true,
+  "implicit_authentication_disabled": true,
+  "ready_before_requests": true,
+  "ready_elapsed_seconds": 5.024922677999712,
+  "loaded_bridge_sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506",
+  "planned_cases": 6,
+  "planned_requests": 20,
+  "max_requests": 20,
+  "attempts": 1,
+  "retries": 0,
+  "fallback": false,
+  "other_case_timeout_seconds": 600,
+  "original_numeric255_timeout_preserved": true,
+  "original_numeric255_not_resent": true,
+  "original9_valid_cases_not_reexecuted": true,
+  "artifacts": {
+    "jev_binary": {
+      "bytes": 6637400,
+      "sha256": "43c31555bcc58a841b50ab7d8b6343ff4d154c692b005e27fa090969ec0e3020"
+    },
+    "loaded_bridge_source": {
+      "bytes": 21689,
+      "sha256": "3bfb653be8f00039743bd9025b55fca5f165ee84c0f548090e802d1e0dca3506"
+    },
+    "live_helper": {
+      "bytes": 33814,
+      "sha256": "78b39d87beb0d67e2f67ac62dba932c99a8b6c189cf14ab45548531df79a8a63"
+    },
+    "runner": {
+      "bytes": 10212,
+      "sha256": "468d52f20c3730936b2a4f570fc4b5c40d91aaab93b38035c520a42f352da0fb"
+    },
+    "observer": {
+      "bytes": 1827,
+      "sha256": "a1f2b08db94e7c4be24189759e6e19b866e5e49b5f1da6f69b33d5b27de5dc81"
+    },
+    "prior_failed_report": {
+      "bytes": 1862,
+      "sha256": "21d9ffe8b7837d6583ae3bf04b0a76fa77972dbe4f9a03931beda957a5105b7f"
+    },
+    "prior_expired_inference_abort": {
+      "bytes": 620,
+      "sha256": "94d8927b58ff52187985c4121c1de2a3e9b8419bcf38eb890bd53cbe41e0e619"
+    },
+    "manifest_verification": {
+      "bytes": 223,
+      "sha256": "7a02f11503310e0054a2d141b398f0fe733b9d87ad33bf3592a278f008800d1c"
+    },
+    "python_profile": {
+      "bytes": 3415,
+      "sha256": "640a92a01ff1cb1b404de21a2cfdb2136652e1a5f8496ae52f90c3f89b80f99c"
+    },
+    "prior_remaining_controller_report": {
+      "bytes": 1815,
+      "sha256": "eecefb8b2e291e7eb92dcd013a40501707d3e2ad8d2d11d5acc0b3f3c00049ee"
+    },
+    "map_capture_reanalysis": {
+      "bytes": 5195,
+      "sha256": "ca6b98cbaaa6b840be3fc037aed53b98d89be89af0f9cefafef3e3e2ef5e67f3"
+    },
+    "initial_smoke_report": {
+      "bytes": 3480,
+      "sha256": "6a2259971444d29207351ceff537ffc24dc5020dd5207d559e07a53484147550"
+    },
+    "initial_quality_report": {
+      "bytes": 834,
+      "sha256": "3dabb8d7e380aa70710ffce5a8dc8061795eec336dc619bee48afd8c47fb7f07"
+    },
+    "final_report": {
+      "bytes": 1987,
+      "sha256": "57925c076aec4ae4136f2f5dd6e187ed1668282a3bf7693d20680f53b07b0785"
+    },
+    "cleanup_report": {
+      "bytes": 991,
+      "sha256": "0d63fc1e2dac0981f940f6964e8e4f9202844157cba10315fb68db232ffcc78e"
+    },
+    "final_timing": {
+      "bytes": 149,
+      "sha256": "22955b6e5eeaadf3b2a813df652fe9f3607043cc3f6e288b35d5954cd22ca4bc"
+    }
+  },
+  "cleanup_complete": true,
+  "quality_claim": false,
+  "all_request_timeout_seconds": 600,
+  "earlier_score_options_levels_map_not_reexecuted": true,
+  "prior_capture_bindings": {
+    "001-cli.json": {
+      "bytes": 7354,
+      "sha256": "871cac9ed4ec2ffd3639fe2ea5e7020721229884577ef02d1a2c4a9bb2002ffa"
+    },
+    "002-cli.json": {
+      "bytes": 498,
+      "sha256": "6e80ce7553800ff1110d0e25c2c073972e18ac705a093ccbf2de93ee1c58780d"
+    },
+    "003-cli.json": {
+      "bytes": 640,
+      "sha256": "2d91a942a4abb4c5718e0d49af58093687a5c3c6bbdc981031be9f1dc6d9de9f"
+    },
+    "004-cli.json": {
+      "bytes": 3026,
+      "sha256": "0b4c551d3cbce5701dc66d3c037b5d6b212b1f48999ee5874c26da3d568003d8"
+    }
+  },
+  "finished": true,
+  "passed": true,
+  "assembled_valid_cases": [
+    {
+      "case": "state-0",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-1",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-2",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-3",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-4",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-5",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-6",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "state-7",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "mixed-json-descriptions",
+      "evidence_phase": "original",
+      "requests_reserved": 1
+    },
+    {
+      "case": "score255-null-descriptions",
+      "evidence_phase": "compact-and-files",
+      "requests_reserved": 1
+    },
+    {
+      "case": "choice-options-file",
+      "evidence_phase": "compact-and-files",
+      "requests_reserved": 1
+    },
+    {
+      "case": "score-levels-file",
+      "evidence_phase": "compact-and-files",
+      "requests_reserved": 1
+    },
+    {
+      "case": "eval-scalar-rows",
+      "evidence_phase": "final-eval-and-mcp",
+      "requests_reserved": 8
+    },
+    {
+      "case": "mcp-noul",
+      "evidence_phase": "final-eval-and-mcp",
+      "requests_reserved": 1
+    },
+    {
+      "case": "mcp-choice",
+      "evidence_phase": "final-eval-and-mcp",
+      "requests_reserved": 1
+    },
+    {
+      "case": "mcp-score",
+      "evidence_phase": "final-eval-and-mcp",
+      "requests_reserved": 1
+    },
+    {
+      "case": "mcp-ask",
+      "evidence_phase": "final-eval-and-mcp",
+      "requests_reserved": 1
+    },
+    {
+      "case": "mcp-map",
+      "evidence_phase": "final-eval-and-mcp",
+      "requests_reserved": 8
+    },
+    {
+      "case": "map-scalar-rows",
+      "evidence_phase": "offline reanalysis of the original successful capture, no resend",
+      "requests_reserved": 8
+    }
+  ],
+  "one_fresh_19_case_pass_claim": false,
+  "all_phase_reserved_requests": 41,
+  "original_numeric255_performance_failure_preserved": true,
+  "map_controller_assertion_failure_preserved_and_offline_corrected": true,
+  "score255_result": "Distinct255-null-description request passed in894.277407227seconds; original255-numeric-description request timed out at600seconds and its ongoing computation was explicitly aborted.",
+  "initial_smoke_cases": 25,
+  "initial_smoke_reserved_requests": 30,
+  "initial_image_quality_rows": 32,
+  "all_hf_reserved_requests_including_smoke_quality_and_extra_failed_probe": 103,
+  "quality_metrics": {
+    "rows": 32,
+    "positives": 8,
+    "negatives": 24,
+    "agreement_at_0_5": 1.0,
+    "brier_score": 0.00013185187499999991,
+    "log_loss_clipped_at_1e_15": 0.00847308626229318,
+    "generalizable": false,
+    "limitation": "Only this original synthetic shape family; no production calibration claim"
+  },
+  "initial_quality_phase": "Original loaded bridge/CLI/helper binding is preserved separately in residuals-hf-quality-phase.json; no retroactive rebinding.",
+  "cleanup": {
+    "schema": "jev.clef.owned-runtime-cleanup/v1",
+    "owned_server_stopped": true,
+    "phase": "remaining",
+    "weights_removed": [
+      {
+        "file": "joint_head.safetensors",
+        "bytes": 243538016
+      },
+      {
+        "file": "model-00001-of-00004.safetensors",
+        "bytes": 4942706120
+      },
+      {
+        "file": "model-00002-of-00004.safetensors",
+        "bytes": 4987757928
+      },
+      {
+        "file": "model-00003-of-00004.safetensors",
+        "bytes": 4954810240
+      },
+      {
+        "file": "model-00004-of-00004.safetensors",
+        "bytes": 3934446832
+      }
+    ],
+    "weight_bytes_removed": 19063259136,
+    "only_new_task_weights_removed": true,
+    "publisher_metadata_retained": true,
+    "manifest_verification_retained": true,
+    "disk_available_before_bytes": 11164688384,
+    "disk_available_after_bytes": 11408232448,
+    "server_memory": {
+      "VmHWM": "14798592 kB",
+      "VmRSS": "14286972 kB",
+      "VmSwap": "0 kB",
+      "Threads": "16"
+    },
+    "remaining_model_metadata_bytes": 20118266
+  },
+  "optional_native_kernels": "Absent: pinned publisher used its PyTorch implementation; no provider or model fallback.",
+  "timing": {
+    "elapsed_seconds": 1844.3234271179972,
+    "attempts": 1,
+    "passed": true,
+    "captured_synthetic_outputs": 7,
+    "requests_added_by_observer": 0
+  },
+  "final_capture_bindings": {
+    "001-cli.json": {
+      "bytes": 4195,
+      "sha256": "187dc952e22427b60ee02a8fdbd0b1bc0c2425c5cdb814fa34c8e6b56f13023d"
+    },
+    "002-mcp.json": {
+      "bytes": 579,
+      "sha256": "03e6c0d77fa6ace612d5a8b5d3f6b4be13f422e7bc65f9dabc1d9d3c0f29ad6b"
+    },
+    "003-mcp.json": {
+      "bytes": 719,
+      "sha256": "8234354c8289ffd2c1e7f2c28814e1d017fd65fa1a73436c159418efe1ac96aa"
+    },
+    "004-mcp.json": {
+      "bytes": 912,
+      "sha256": "5396e104f9746ac111a2d9b330fe9e179459a67c42cc701ab839b485c037175d"
+    },
+    "005-mcp.json": {
+      "bytes": 1196,
+      "sha256": "a4ed66c91024abf773cbe0cea6e89e4204a2353a3ccc37b1580258a55ef84360"
+    },
+    "006-mcp.json": {
+      "bytes": 2024,
+      "sha256": "67720cb70670061202b3fd4c430e79332df769dcc3f915bc4e7d5886696c64fd"
+    },
+    "007-mcp.json": {
+      "bytes": 16475,
+      "sha256": "33e711dfe959553ab2f25d733ed0b630ff613eea667a773e87263a2f01ea8f93"
+    }
+  },
+  "same_loaded_bridge_still_on_disk": true,
+  "same_live_helper_still_on_disk": true,
+  "same_frozen_cli": true
+}

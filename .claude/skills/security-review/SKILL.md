@@ -20,7 +20,19 @@ are in `SECURITY.md`. This skill is how you check a change against them.
 ```sh
 git diff --stat main...HEAD
 git diff main...HEAD
+git diff --stat --cached
+git diff --cached
+git diff --stat
+git diff
+git ls-files --others --exclude-standard
 ```
+
+The branch diff covers committed changes only. Review the staged and unstaged
+diffs too, and inspect each untracked source/configuration file in scope. Record the
+base ref, HEAD, and working-tree state you reviewed. Do not print credential files
+or raw secret-bearing artifacts while inspecting untracked paths. If `main` is not
+the intended base, select the requested base explicitly; missing branch history
+does not justify skipping local changes.
 
 Does it touch any of these? If yes, this review is required, not optional.
 
@@ -34,6 +46,7 @@ Does it touch any of these? If yes, this review is required, not optional.
 | Local gate and release workflow | `.githooks/**`, `scripts/verify.sh`, `.github/workflows/**`, `.github/dependabot.yml` |
 | Release | `.github/workflows/release.yml`, `publish` fields |
 | Agent instructions | `AGENTS.md`, `CLAUDE.md`, `.claude/skills/**` |
+| Clef local runtime and verification | `scripts/clef-server.py`, `scripts/clef-local/**`, `scripts/clef-live.py`, `scripts/clef-model-manifest.py`, `scripts/source-snapshot.py` and their tests |
 
 ## 2. Run the mechanical checks first
 

@@ -1,0 +1,96 @@
+{
+  "schema": "jev.clef.publisher-token-inspection/v1",
+  "revision": "17f0b0ad64efb65d273590632833508766b2aae6",
+  "publisher_source_sha256": "0e304cf7c6500e8bb59bef7e2afd2c6373f82596dfb3b57d1aa93c175e2dc3a3",
+  "tokenizer_source": "verified local publisher files",
+  "model_weights_loaded": false,
+  "head_loaded": false,
+  "inference_requests": 0,
+  "network": false,
+  "records": [
+    {
+      "description_variant": "numeric",
+      "criteria": 255,
+      "input_tokens": 5375,
+      "question_span": [
+        61,
+        66
+      ],
+      "option_count": 255,
+      "first_option_span": [
+        77,
+        87
+      ],
+      "last_option_span": [
+        5339,
+        5353
+      ],
+      "sum_option_span_tokens": 3350,
+      "max_length": 16384,
+      "max_state_tokens": null
+    },
+    {
+      "description_variant": "null",
+      "criteria": 255,
+      "input_tokens": 3955,
+      "question_span": [
+        61,
+        66
+      ],
+      "option_count": 255,
+      "first_option_span": [
+        77,
+        83
+      ],
+      "last_option_span": [
+        3925,
+        3933
+      ],
+      "sum_option_span_tokens": 1930,
+      "max_length": 16384,
+      "max_state_tokens": null
+    },
+    {
+      "description_variant": "empty",
+      "criteria": 255,
+      "input_tokens": 4465,
+      "question_span": [
+        61,
+        66
+      ],
+      "option_count": 255,
+      "first_option_span": [
+        77,
+        85
+      ],
+      "last_option_span": [
+        4433,
+        4443
+      ],
+      "sum_option_span_tokens": 2440,
+      "max_length": 16384,
+      "max_state_tokens": null
+    },
+    {
+      "description_variant": "whitespace",
+      "criteria": 255,
+      "input_tokens": 4720,
+      "question_span": [
+        61,
+        66
+      ],
+      "option_count": 255,
+      "first_option_span": [
+        77,
+        86
+      ],
+      "last_option_span": [
+        4687,
+        4698
+      ],
+      "sum_option_span_tokens": 2695,
+      "max_length": 16384,
+      "max_state_tokens": null
+    }
+  ]
+}

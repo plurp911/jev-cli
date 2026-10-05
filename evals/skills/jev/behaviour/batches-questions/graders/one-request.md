@@ -3,10 +3,13 @@ type: llm
 focus: last_message
 ---
 
-The response asks all four judgments in a **single** `jev` invocation carrying multiple
-questions, rather than issuing four separate single-question calls (four `jev noul`
-commands, a shell loop over four questions, or four piped invocations).
+The response asks the three semantic judgments (user-visible change, database
+migration, security relevance) in a **single** `jev` invocation carrying multiple
+questions. It detects the issue-number reference separately with an exact pattern in
+ordinary code, rather than asking a probabilistic model to do literal matching.
 
-PASS if the answer's primary recommendation is one batched request.
-FAIL if it recommends one call per judgment, or if it presents the batched and
-per-question forms as equally good without preferring the batched one.
+PASS only if the primary recommendation batches all three semantic questions into
+one request and uses a deterministic pattern for the issue-number check.
+FAIL for separate per-question model calls, presenting batching and per-question
+calls as equally good, omitting a semantic question, or sending issue-number
+detection to the model.

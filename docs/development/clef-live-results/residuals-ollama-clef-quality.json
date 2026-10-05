@@ -1,0 +1,22 @@
+{
+  "schema": "jev.clef.synthetic-quality/v1",
+  "fixture_version": 1,
+  "provider": "ollama",
+  "model": "clef:27b-q4_k_m",
+  "synthetic": true,
+  "input_kind": "image",
+  "max_requests": 32,
+  "reserved_requests": 32,
+  "retries": 0,
+  "passed": true,
+  "quality": {
+    "rows": 32,
+    "positives": 8,
+    "negatives": 24,
+    "agreement_at_0_5": 1.0,
+    "brier_score": 2.5490113620188502e-05,
+    "log_loss_clipped_at_1e_15": 0.004982329758079232,
+    "generalizable": false,
+    "limitation": "Only this original synthetic shape family; no production calibration claim"
+  }
+}

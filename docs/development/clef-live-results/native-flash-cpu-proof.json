@@ -1,0 +1,80 @@
+{
+  "schema": "jev.clef.native-cpu-proof/v1",
+  "observed_at": "2026-10-04",
+  "model": {
+    "schema": "jev.clef.gguf-download/v1",
+    "repository": "ggml-org/Clef-Flash-GGUF",
+    "revision": "4a7a08c09bc63baf043b62b5ba89dd67a0357d95",
+    "filename": "Clef-Flash-Q4_K_M.gguf",
+    "size_bytes": 6486448192,
+    "sha256": "3243a51d7a7bb205fb4fcf402a7df763f7d31e6645a9c10e5754c4395ab85b66",
+    "verified": true,
+    "retries": 0,
+    "authentication": false
+  },
+  "runtime": {
+    "version": "llama.cpp b11392",
+    "executable_sha256": "d7cedb07f594757c107c2496d33a5d15854da571bcbf3245e1817b60fcf84601",
+    "platform": "Linux x86-64",
+    "device": "CPU",
+    "threads": 8,
+    "parallel": 1,
+    "context_tokens": 8192,
+    "batch_size": 8192,
+    "ubatch_size": 8192,
+    "observed_process": {
+      "VmHWM": "9757752 kB",
+      "VmRSS": "9755716 kB",
+      "VmSwap": "0 kB",
+      "Threads": "31"
+    }
+  },
+  "phase_artifacts": {
+    "scripts/clef-live.py": {
+      "sha256": "78b39d87beb0d67e2f67ac62dba932c99a8b6c189cf14ab45548531df79a8a63",
+      "bytes": 33814
+    },
+    "scripts/clef-quality.py": {
+      "sha256": "a055c4dd9103589e605f0e851fa121bf045b9151ecc4f40fc9cedb19cc77f337",
+      "bytes": 9243
+    },
+    "jev-test": {
+      "sha256": "7f2b1b358ed19f88d521d79c14a402b561b2caaecbacab0d809fe8cff58a227c",
+      "bytes": 6644152
+    }
+  },
+  "smoke": {
+    "passed": true,
+    "cases": 16,
+    "reserved_requests": 21,
+    "report": "residuals-native-flash-smoke.json"
+  },
+  "quality": {
+    "passed": true,
+    "report": "residuals-native-flash-quality.json",
+    "measurements": {
+      "rows": 32,
+      "positives": 8,
+      "negatives": 24,
+      "input_kind": "text",
+      "evaluation_task": "literal_text_reading",
+      "comparable_across_input_kinds": false,
+      "agreement_at_0_5": 1.0,
+      "brier_score": 0.00017900113091189306,
+      "log_loss_clipped_at_1e_15": 0.00991090325561175,
+      "generalizable": false,
+      "limitation": "Text-only sanity check: the input states the color and shape; these metrics do not measure vision and cannot be compared with image runs."
+    }
+  },
+  "limitations": [
+    "Text-only native decision endpoint; no vision or video claim",
+    "One Linux CPU quantization/runtime configuration; synthetic literal text checks are not production calibration",
+    "Concurrent local CPU tests; elapsed times are not performance benchmarks"
+  ],
+  "cleanup": {
+    "server_signal_sent": "SIGTERM",
+    "server_stopped": true,
+    "task_weight_removed_after_verified_inference": true,
+    "runtime_and_download_proof_retained": true
+  }
+}

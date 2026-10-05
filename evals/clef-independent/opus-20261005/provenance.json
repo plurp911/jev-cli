@@ -1,0 +1,26 @@
+{
+  "schema": "jev.independent-clef-authorship/v1",
+  "case_count": 6,
+  "original_authoring_admission_sha256": "8c4aeb90312891e9637d0b42488cbf2f098c8f29f5b27b06e06179288577cd4f",
+  "original_author_note_sha256": "2bd5e59744a39e1a0dfabc6a67e0bcb37ccb475b3dfe23c62470c9399e6df30a",
+  "admitted_manifest_sha256": "8e60507aa4e290d828dfccc1ae076323dfd2be9a5c0440baf72f4dddd9641def",
+  "pre_inference_format_delta_sha256": "61853750f6b05107c6b816b2bb818a872296c2e7d5b74a2879047aaece8f9897",
+  "original_case_files": 19,
+  "admitted_case_files": 19,
+  "model_answers_seen_when_admitted": 0,
+  "original_authorship_preserved": true,
+  "format_corrections_before_inference": {
+    "expected_field_to_supported_exact_input_match": 10,
+    "explicit_min_zero_for_intended_max_zero_negatives": 5,
+    "sparse_generation_length_term_corrected_to_input_tokenization_limit": 768
+  },
+  "independence_scope": "Author reports no shipped skills, existing evaluation prompts/graders, repository documentation, historical transcripts or measured responses were read; runner format normalization does not constitute independent authorship.",
+  "case_prompts_and_graders_not_tuned_to_model_answers": true,
+  "separate_from_historical30_and_prospective29": true,
+  "model_policy": {
+    "measured": "gpt-6.1-sol",
+    "judge": "gpt-6.1-sol",
+    "effort": "high"
+  },
+  "execution_status": "Not started; frozen source retained before model answers"
+}

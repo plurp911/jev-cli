@@ -1,0 +1,32 @@
+{
+  "schema": "jev.skill.discovery-alias-proof/v1",
+  "observed_at": "2026-10-04",
+  "specific_user_approval": true,
+  "scope": "Three ignored environment-owned project skill files only; shipped and canonical source remain independent of runtime aliases.",
+  "files": [
+    {
+      "path": ".agents/skills/api-compat/SKILL.md",
+      "canonical": ".claude/skills/api-compat/SKILL.md",
+      "previous_sha256": "acc7b524ae6b5f72d41a31c9d8755bc50f8e994253bee69b98de359bcc58b070",
+      "canonical_sha256": "9ceb463bf096f8a92e75fcab3c325b272ede6380494e6e6378cd594c1c0d6bae",
+      "symlink_target": "../../../.claude/skills/api-compat/SKILL.md"
+    },
+    {
+      "path": ".agents/skills/security-review/SKILL.md",
+      "canonical": ".claude/skills/security-review/SKILL.md",
+      "previous_sha256": "220a3b0235a59cc6e1defb98ae353d23f3a8fabd11dc6f73f974a3963e183726",
+      "canonical_sha256": "aa38549f65b2f3c890bbb300542ca85c540ece9fdb4257e9fe8c21d979dced6f",
+      "symlink_target": "../../../.claude/skills/security-review/SKILL.md"
+    },
+    {
+      "path": ".agents/skills/release-review/SKILL.md",
+      "canonical": ".claude/skills/release-review/SKILL.md",
+      "previous_sha256": "0f2be9f8fb15efffefc4c5389a9de41c97cf6164c9388d4570eb1f07f18a087c",
+      "canonical_sha256": "e798ad9e15296ba73bc54c87f8739a2b0a3c5e33d8617c02b3da1a74887ba694",
+      "symlink_target": "../../../.claude/skills/release-review/SKILL.md"
+    }
+  ],
+  "original_file_backups": "target/clef-local/skill-adapter-repair",
+  "strict_readiness_exit": 0,
+  "warnings": 0
+}

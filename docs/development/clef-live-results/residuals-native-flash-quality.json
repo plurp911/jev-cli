@@ -1,0 +1,28 @@
+{
+  "schema": "jev.clef.synthetic-quality/v1",
+  "fixture_version": 1,
+  "provider": "llamacpp",
+  "model": "clef-flash",
+  "synthetic": true,
+  "input_kind": "text",
+  "evaluation_task": "literal_text_reading",
+  "comparable_across_input_kinds": false,
+  "benchmark_limitation": "Text-only sanity check: the input states the color and shape; these metrics do not measure vision and cannot be compared with image runs.",
+  "max_requests": 32,
+  "reserved_requests": 32,
+  "retries": 0,
+  "passed": true,
+  "quality": {
+    "rows": 32,
+    "positives": 8,
+    "negatives": 24,
+    "input_kind": "text",
+    "evaluation_task": "literal_text_reading",
+    "comparable_across_input_kinds": false,
+    "agreement_at_0_5": 1.0,
+    "brier_score": 0.00017900113091189306,
+    "log_loss_clipped_at_1e_15": 0.00991090325561175,
+    "generalizable": false,
+    "limitation": "Text-only sanity check: the input states the color and shape; these metrics do not measure vision and cannot be compared with image runs."
+  }
+}

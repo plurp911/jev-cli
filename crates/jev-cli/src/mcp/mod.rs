@@ -64,6 +64,11 @@ pub(crate) fn serve(
     injected: Option<&(dyn Transport + Send + Sync)>,
     stdin_is_terminal: bool,
 ) -> Result<u8> {
+    if !session.context.image_paths.is_empty() || !session.context.video_frames.is_empty() {
+        return Err(CliError::usage(
+            "jev mcp serve accepts embedded images in tool calls; --image file paths apply to CLI inference commands",
+        ));
+    }
     if injected.is_some() {
         // Only the in-process test harness injects a transport, and it cannot hand over
         // ownership of a borrowed one. MCP is tested through a real child process

@@ -4,8 +4,19 @@ Evidence that the Agent Skills in [`skills/`](../../skills) do something, and th
 right one does it. The methodology, and the policy that makes this mandatory, are in
 [`docs/development/skill-authoring.md`](../../docs/development/skill-authoring.md).
 
-Run it with [`scripts/skill-eval.sh`](../../scripts/skill-eval.sh). **It costs money**:
-every run and every LLM grader is a real model call on your own credential.
+Run it with [`scripts/skill-eval.sh`](../../scripts/skill-eval.sh). The default adapter
+uses Codex app-server with the existing ChatGPT login, explicitly selecting
+`gpt-6.1-sol` at `high` effort for every measured run and independent judge. It
+refuses API-key authentication and reports tokens, with dollar billing unavailable.
+These are real model calls that consume the account's usage allowance.
+
+The suite measures an instrumented portable skill catalog with read-only
+`Skill`, `Read`, `Glob`, and `Grep` tools; it does not establish native skill
+discovery in Claude, Codex, or Cursor. Baseline sessions have no skill catalog or
+`Skill` tool. Reads stay within synthetic fixtures and a fixed candidate snapshot,
+and inherited real MCP servers, shell/network tools, plugins and apps are disabled.
+The historical Claude adapter remains available only when explicitly selected
+with `JEV_SKILL_EVAL_RUNTIME=claude`; it bills model calls and retains its budget cap.
 
 ```sh
 scripts/skill-eval.sh --list            # what would run
@@ -22,18 +33,17 @@ refused under `--iterate`, so that they are never looked at while descriptions a
 Only the **last** `--case` glob applies; repeating the flag keeps one of them, silently.
 
 `--iterate` is a signal, not a result: one run, no baseline arm, same model. It answers
-"did my edit change anything" for about a sixth of the cost. It does not
+"did my edit change anything" with a sixth of the measured sessions. It does not
 answer "is this good", and a number from it never goes in a pull request — see
 [`docs/development/skill-authoring.md`](../../docs/development/skill-authoring.md) §6 for
 why it stays on the measured model rather than a cheaper one.
 
 ## Why the harness runs everything twice
 
-`claude plugin eval` runs each case in two arms: once with the skills loaded, once with
-no plugin at all. The second arm is the **RED baseline** — what the agent does when the
-skill does not exist — measured rather than assumed. A case whose delta is zero is a
-case the skill did not change, which means either the skill is not pulling its weight or
-the case is not testing anything. Both are findings.
+The harness runs each case in two arms: once with the skill catalog available, once
+without it. The second arm is the **RED baseline** — what the agent does when the
+skill does not exist — measured rather than assumed. A zero delta on a behavior case warrants inspecting what the skill changed. A
+negative trigger case should have zero delta when both arms correctly stay away.
 
 ## Layout
 
@@ -131,7 +141,9 @@ A case is a directory holding `prompt.md` and a `graders/` directory with one gr
 file, optionally with a `case.yaml` for what `prompt.md` frontmatter cannot express. The
 directory name is the case name unless `name:` overrides it.
 
-`results/` is gitignored. A report is one run against one model version on one day; it
+`results/` is gitignored. Codex results include each actual tool trace, rubric votes,
+token usage, candidate snapshot, aggregate JSON, and a local HTML report. Dollar cost
+is explicitly unknown for subscription transport. A report is one run against one model version on one day; it
 is not a lasting fact about the skill, and committing timestamped HTML would bury the
 cases under the noise. Paste the summary table into the pull request instead.
 
@@ -194,9 +206,23 @@ PASS if the primary recommendation is one batched request.
 FAIL if it recommends one call per judgment.
 ```
 
-`focus` (and `regex`'s `target`) can also be `trace`, `files`, `mock_calls`, or
+The default Codex adapter supports `last_message` and `trace`, and the corpus uses
+`llm`, `regex`, `tool_used`, and `skill_order` graders. The historical Claude harness also supports
+`focus` (and `regex`'s `target`) values `files`, `mock_calls`, or
 `{ source: file, path: … }`. Other grader types: `regex`, `tool_order`, `file_exists`,
 `baseline`.
+
+The parsed `skill_order` grader accepts `primary` and `secondary` skill names.
+It rejects any secondary load attempt before a successful primary load, including
+failed secondary attempts; intermediate reads are allowed. A separate positive
+trigger check still requires the primary skill. Cases combining these dependency
+and trigger checks score all of them. The historical Claude adapter refuses a
+selected `skill_order` case before model calls, including whole-corpus legacy
+`--list`; the default Codex `--list` supports the complete corpus.
+
+Install `codex`, `git`, and `rg` before evaluating. `Grep` uses bounded Rust regex
+through `rg`, so lookaround and backreferences are refused rather than executed
+through Python's backtracking engine.
 
 Under `--ablation with-without`, `tool_used: Skill` graders become plugin-fired
 indicators rather than part of the score — unless every grader in the case is one, which
@@ -231,18 +257,20 @@ And two were defects in the **fixture**:
   a target retried against a split that had already refused one. The model caught it and
   was marked wrong for doing so.
 
-**Then suspect the judge.** Much of the above traced, in the end, to the grader model
-rather than to the rubric. The harness grades with Haiku by default, and Haiku is too
+**Then suspect the judge.** Much of the historical Claude evidence above traced to the
+grader model rather than the rubric. That external harness graded with Haiku by default, and Haiku was too
 literal for these rubrics: it kept failing a response for *mentioning* a scope exclusion
 after the rubric had been rewritten to say that stating it is correct. With a stronger
 judge, the same case went from a delta of −0.22 to +0.11, and grading was about 7% of the
-run's cost. `scripts/skill-eval.sh` now grades with the same model it measures; override
-with `JEV_SKILL_EVAL_JUDGE_MODEL`. Every result measured before this change was graded by
+run's cost. The explicitly selected Claude adapter can override its judge with
+`JEV_SKILL_EVAL_JUDGE_MODEL`; the default Codex adapter fixes both measured and judge
+sessions to GPT-6.1 Sol high. Every historical result measured before that Claude change was graded by
 Haiku, and a failure from that period is not evidence until it is re-graded.
 
 A grader that fails a response you would have been happy to receive is a grader to fix. A
 grader that fails a response you would have sent back is a skill to fix. Telling them
-apart requires reading the response, which is why `--keep-temp` exists.
+apart requires reading the response. Default Codex results preserve every trace and
+verdict; `--keep-temp` is an option of the historical Claude harness.
 
 ## Cross-skill routing
 
@@ -268,3 +296,15 @@ Named so that a pass is not read as more than it is.
 - **All five skills on every held-out "none" case.** Two of them assert only that one
   skill stayed out. Held-out cases are not edited once their results have been seen, so
   the fix is a new batch written blind, not an added grader.
+
+
+The original 30-case held-out receipts are historical. The urgent CSV case was
+retired into `routing/urgent-csv-pilot-before-cli` after its grader was changed
+following evaluation. Current heldout has 29 active cases; the committed admission
+manifest freezes prompts, graders, fixtures and metadata. See `heldout/README.md`.
+
+Malformed judge replies remain harness errors, separate from valid semantic fails.
+The report retains judge usage even when parsing fails, reports attempted/valid/error
+run counts against the full expected denominator, and refuses confirmation on any
+error or incomplete coverage. Quality means use only valid runs and must be quoted
+with these counts; a judge error is never evidence that the candidate passed.

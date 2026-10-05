@@ -1,0 +1,12 @@
+{
+  "schema": "jev.clef.cleanup-settled/v1",
+  "owned_hf_loopback_port_closed": true,
+  "all_five_new_weight_files_absent": true,
+  "weight_bytes_removed": 19063259136,
+  "publisher_metadata_bytes_retained": 20118266,
+  "manifest_verification_retained": true,
+  "disk_available_after_reclamation_bytes": 30190600192,
+  "observed_monotonic": 105006.985869167,
+  "disk_reclamation_note": "The immediate deletion receipt preceded deferred filesystem block reclamation; this separate subsequent observation records settled free space without rewriting the receipt.",
+  "other_runtime_processes_and_models_untouched": true
+}

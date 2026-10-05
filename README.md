@@ -1,7 +1,13 @@
 # jev
 
 A fast, secure, Unix-friendly command-line interface for [TypeSafe AI][typesafe]'s
-System One API and the [Jev][jev-docs] model.
+System One API and the [Jev][jev-docs] model, plus Cloudflare's Clef and Clef Flash.
+
+Version 0.3.0 supports hosted Cloudflare and local Ollama/llama.cpp
+inference, plus publisher Python weights through an explicit local bridge. Vision
+is supported through Cloudflare, Ollama, and the Python bridge; prepared video
+frames and processor controls are supported through the bridge. See
+[Clef setup and capabilities](docs/clef.md); TypeSafe remains the default provider.
 
 > [!IMPORTANT]
 > **This is an independent, community-maintained project.** It is not affiliated with,
@@ -12,7 +18,7 @@ System One API and the [Jev][jev-docs] model.
 > this project, this notice will say so; until then, assume it has not.
 
 > [!WARNING]
-> **Pre-1.0.** The current version is `0.2.1`. Exit codes and JSON documents may still
+> **Pre-1.0.** The current version is `0.3.0`. Exit codes and JSON documents may still
 > change. Read the `schema` field and pin the version if you script against it. The
 > contract in [`docs/cli-contract.md`](docs/cli-contract.md) takes effect at `1.0.0`,
 > not today.
@@ -21,11 +27,11 @@ System One API and the [Jev][jev-docs] model.
 
 ## Install and try it
 
-Download the archive for your platform from the [v0.2.1 release][release]. Verify its
+Download the archive for your platform from the [v0.3.0 release][release]. Verify its
 checksum before running it. For Linux x86-64:
 
 ```sh
-base=https://github.com/plurp911/jev-cli/releases/download/v0.2.1
+base=https://github.com/plurp911/jev-cli/releases/download/v0.3.0
 archive=jev-cli-x86_64-unknown-linux-gnu.tar.xz
 curl -fLO "$base/$archive" -fLO "$base/$archive.sha256"
 sha256sum --check "$archive.sha256"
@@ -463,7 +469,7 @@ this work, as defined in the Apache-2.0 license, shall be dual-licensed as above
 without any additional terms or conditions.
 
 [typesafe]: https://typesafe.ai
-[release]: https://github.com/plurp911/jev-cli/releases/tag/v0.2.1
+[release]: https://github.com/plurp911/jev-cli/releases/tag/v0.3.0
 [typesafe-docs]: https://docs.typesafe.ai
 [jev-docs]: https://docs.typesafe.ai/concepts/system-one
 [parallel]: https://docs.typesafe.ai/cookbooks/parallel_questions

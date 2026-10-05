@@ -38,6 +38,8 @@ pub const CUSTOM_API_KEY_FILE_ENV: &str = "JEV_CUSTOM_API_KEY_FILE";
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum CredentialSource {
+    /// Local inference without any credential lookup or authorization header.
+    Anonymous,
     /// The `JEV_API_KEY` environment variable.
     Environment,
     /// A file named by `JEV_API_KEY_FILE`, as produced by a secret manager.
@@ -60,6 +62,7 @@ impl CredentialSource {
     #[must_use]
     pub const fn as_str(self) -> &'static str {
         match self {
+            Self::Anonymous => "anonymous",
             Self::Environment => "environment",
             Self::EnvironmentFile => "environment-file",
             Self::TypesafeEnvironment => "typesafe-environment",
@@ -78,7 +81,7 @@ impl CredentialSource {
             Self::TypesafeEnvironment => Some(TYPESAFE_API_KEY_ENV),
             Self::CustomEndpointEnvironment => Some(CUSTOM_API_KEY_ENV),
             Self::CustomEndpointEnvironmentFile => Some(CUSTOM_API_KEY_FILE_ENV),
-            Self::OsKeychain => None,
+            Self::Anonymous | Self::OsKeychain => None,
         }
     }
 }
@@ -212,6 +215,7 @@ pub enum CredentialSourceError {
 /// rather than a machine identifier like `environment-file`.
 fn location(origin: CredentialSource) -> String {
     match origin {
+        CredentialSource::Anonymous => "local inference without authentication".to_owned(),
         CredentialSource::Environment => format!("${API_KEY_ENV}"),
         CredentialSource::EnvironmentFile => format!("the file named by ${API_KEY_FILE_ENV}"),
         CredentialSource::TypesafeEnvironment => format!("${TYPESAFE_API_KEY_ENV}"),

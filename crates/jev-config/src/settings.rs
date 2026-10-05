@@ -145,6 +145,12 @@ pub enum SettingsError {
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Settings {
+    /// Inference protocol: typesafe, cloudflare, ollama, llamacpp, or huggingface.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub provider: Option<String>,
+    /// Nonsecret Cloudflare account identifier, overridden by the flag or environment.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cloudflare_account_id: Option<String>,
     /// Default model identifier. Overridden by `--model`.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
@@ -176,6 +182,8 @@ pub struct Settings {
 
 /// The names a user may pass to `jev config get|set|unset`.
 pub const SETTING_NAMES: &[&str] = &[
+    "cloudflare_account_id",
+    "provider",
     "color",
     "endpoint",
     "max_input_bytes",
@@ -280,6 +288,25 @@ impl Settings {
             key: key.to_owned(),
             reason: reason.to_owned(),
         };
+        if let Some(provider) = &self.provider
+            && !matches!(
+                provider.as_str(),
+                "typesafe" | "cloudflare" | "ollama" | "llamacpp" | "llama-cpp" | "huggingface"
+            )
+        {
+            return Err(invalid(
+                "provider",
+                "expected `typesafe`, `cloudflare`, `ollama`, `llamacpp` (alias `llama-cpp`), or `huggingface`",
+            ));
+        }
+        if let Some(account) = &self.cloudflare_account_id
+            && (account.len() != 32 || !account.bytes().all(|b| b.is_ascii_hexdigit()))
+        {
+            return Err(invalid(
+                "cloudflare_account_id",
+                "expected exactly 32 hexadecimal characters",
+            ));
+        }
         if let Some(output) = &self.output
             && !matches!(output.as_str(), "text" | "json")
         {
@@ -347,6 +374,8 @@ impl Settings {
     #[must_use]
     pub fn get(&self, key: &str) -> Option<String> {
         match key {
+            "provider" => self.provider.clone(),
+            "cloudflare_account_id" => self.cloudflare_account_id.clone(),
             "model" => self.model.clone(),
             "output" => self.output.clone(),
             "color" => self.color.clone(),
@@ -385,6 +414,8 @@ impl Settings {
         // next successful `set`.
         let mut candidate = self.clone();
         match key {
+            "provider" => candidate.provider = Some(value.to_owned()),
+            "cloudflare_account_id" => candidate.cloudflare_account_id = Some(value.to_owned()),
             "model" => candidate.model = Some(value.to_owned()),
             "output" => candidate.output = Some(value.to_owned()),
             "color" => candidate.color = Some(value.to_owned()),
@@ -429,6 +460,8 @@ impl Settings {
     /// Returns [`SettingsError::UnknownKey`] for an unrecognized name.
     pub fn unset(&mut self, key: &str, path: &str) -> Result<(), SettingsError> {
         match key {
+            "provider" => self.provider = None,
+            "cloudflare_account_id" => self.cloudflare_account_id = None,
             "model" => self.model = None,
             "output" => self.output = None,
             "color" => self.color = None,
@@ -655,6 +688,28 @@ impl fmt::Display for Settings {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn provider_and_account_settings_round_trip_and_refuse_invalid_values() {
+        let mut settings = Settings::default();
+        settings.set("provider", "cloudflare", "config").unwrap();
+        settings
+            .set(
+                "cloudflare_account_id",
+                "0123456789abcdef0123456789abcdef",
+                "config",
+            )
+            .unwrap();
+        assert_eq!(settings.get("provider").as_deref(), Some("cloudflare"));
+        assert!(settings.set("provider", "unknown", "config").is_err());
+        assert!(
+            settings
+                .set("cloudflare_account_id", "../escape", "config")
+                .is_err()
+        );
+        assert_eq!(settings.get("provider").as_deref(), Some("cloudflare"));
+        settings.unset("provider", "config").unwrap();
+        assert!(settings.get("provider").is_none());
+    }
     use super::*;
     use crate::env::MapEnvironment;
 
@@ -1023,5 +1078,17 @@ mod tests {
             !path.starts_with("."),
             "the configuration path is relative to the working directory: {path:?}"
         );
+    }
+}
+
+#[cfg(test)]
+mod provider_alias_tests {
+    #[test]
+    fn llama_cpp_cli_alias_is_also_accepted_in_config() {
+        let mut settings = super::Settings::default();
+        settings.set("provider", "llama-cpp", "config").unwrap();
+        assert_eq!(settings.get("provider").as_deref(), Some("llama-cpp"));
+        let parsed = super::Settings::parse("provider = \"llama-cpp\"", "config").unwrap();
+        assert_eq!(parsed.provider.as_deref(), Some("llama-cpp"));
     }
 }

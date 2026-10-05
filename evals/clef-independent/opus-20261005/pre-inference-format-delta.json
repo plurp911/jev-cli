@@ -1,0 +1,100 @@
+{
+  "schema": "jev.independent-case-pre-inference-format-delta/v1",
+  "original_authored_manifest_sha256": "8c4aeb90312891e9637d0b42488cbf2f098c8f29f5b27b06e06179288577cd4f",
+  "admitted_manifest_sha256": "8e60507aa4e290d828dfccc1ae076323dfd2be9a5c0440baf72f4dddd9641def",
+  "original_author_note_sha256": "2bd5e59744a39e1a0dfabc6a67e0bcb37ccb475b3dfe23c62470c9399e6df30a",
+  "original_case_files": 19,
+  "case_count": 6,
+  "mechanical_expected_to_exact_input_match": [
+    "bounded-repo-opportunity-map/graders/01-skill-trigger.md",
+    "sparse-platform-frames/graders/01-skill-trigger.md",
+    "sprite-workflow-retro/graders/01-skill-trigger.md",
+    "eligibility-plus-damage-fit/graders/01-skill-trigger.md",
+    "job-event-vector-comparator/graders/04-no-jev-pilot.md",
+    "job-event-vector-comparator/graders/02-no-is-jev-useful-here.md",
+    "job-event-vector-comparator/graders/01-no-jev.md",
+    "job-event-vector-comparator/graders/03-no-jev-opportunity-audit.md",
+    "job-event-vector-comparator/graders/05-no-jev-workflow-retro.md",
+    "parcel-photo-pilot/graders/01-skill-trigger.md"
+  ],
+  "intended_skills_min_max_preserved": true,
+  "only_sparse_terminology_factual_change": "generation length \u2192 input tokenization limit, value768 unchanged; statebudget0 and all other criteria unchanged",
+  "source": "https://huggingface.co/Cloudflare/clef/raw/main/joint_schema_model.py",
+  "primary_evidence": "encode_record uses max_length to bound fixed schema/media and remaining state tokens; state is truncated to the remaining input allowance. It is not generation length.",
+  "model_answers_seen_for_this_batch": 0,
+  "model_calls": 0,
+  "delta": [
+    {
+      "path": "bounded-repo-opportunity-map/graders/01-skill-trigger.md",
+      "before_sha256": "9d82979291840aa18762d8576cbdb5c212e31016cce79c39fe983379997282ab",
+      "after_sha256": "1d947d0963914473fb478d62034a8d7378b1ed89f9c26178374021d09e3a81fb"
+    },
+    {
+      "path": "eligibility-plus-damage-fit/graders/01-skill-trigger.md",
+      "before_sha256": "49689d8775674f5b0ee5a7aaad7f509783394c93a286d4ab96da8c6380e37449",
+      "after_sha256": "05029fdf75ec0a815f702af91f3d60edc58dd4de209181d8e61080f5431f87ef"
+    },
+    {
+      "path": "job-event-vector-comparator/graders/01-no-jev.md",
+      "before_sha256": "1a8dfee3250c8fd5e061c0aa22bae080f39479e8076c33b71b402d6de1863cbd",
+      "after_sha256": "19941aeb63fdf8706adc225d39fea3ab73905db160e5c43fe8cf9de9d6e12f24"
+    },
+    {
+      "path": "job-event-vector-comparator/graders/02-no-is-jev-useful-here.md",
+      "before_sha256": "c4e18fa6b05fd4ed6ff7447e9ddb0071c61cd851c04ee25c77fc3cd3a3191e32",
+      "after_sha256": "e27ceb238499dd493d38411f73e4ef7dabe643aeb7fe27b53ceea3b2547f426f"
+    },
+    {
+      "path": "job-event-vector-comparator/graders/03-no-jev-opportunity-audit.md",
+      "before_sha256": "2e30074a99b03b23812ac006f92cae820567a908e7fb20e8ecd69cd5178022ba",
+      "after_sha256": "50bb2290ebbcd37131ae24834edf8c90a103590692b523f9f3d89517b23d0341"
+    },
+    {
+      "path": "job-event-vector-comparator/graders/04-no-jev-pilot.md",
+      "before_sha256": "8c33688f59e737666f4c6cacb7728b479f54d81db10a7fadebbeec50486c148d",
+      "after_sha256": "ec1fd3bb80e75b68efaed3bf3d5b5ef0251028ed2ac110d527cc380581dfd172"
+    },
+    {
+      "path": "job-event-vector-comparator/graders/05-no-jev-workflow-retro.md",
+      "before_sha256": "a07767cf8bce11a4c01ecc3ea708abbd81e683e063414a940829e9ec455ea179",
+      "after_sha256": "199bafc41a2e2ea79b66ff2dd5fae94e01cfb76b0a9637da5c00c03808bad82e"
+    },
+    {
+      "path": "parcel-photo-pilot/graders/01-skill-trigger.md",
+      "before_sha256": "02b80b64dcb1ba50f1fe9007fb7ecde17d570d78e8530dac93b5577c822f7a85",
+      "after_sha256": "d19b054112de4caa5ef1f04322b034664df9cc757821143b979b25f2bf610951"
+    },
+    {
+      "path": "sparse-platform-frames/graders/01-skill-trigger.md",
+      "before_sha256": "26da0c702790843674fbed8c4d8bf3ea7f9a1e13174a686b1e75abe5bc4d5335",
+      "after_sha256": "cff4301ef7dfd58a1db1c0b437cd0640fd30f21d75180f5848826ae56f123c97"
+    },
+    {
+      "path": "sparse-platform-frames/graders/02-independent-behavior.md",
+      "before_sha256": "849152e0bae4eb85702f880d68da9fa2d8fc0246df9588970e356527c7e51693",
+      "after_sha256": "5a7140c186541de354f1936922f39382dae3ffb5c3248baa6329a4c8e9094035"
+    },
+    {
+      "path": "sparse-platform-frames/prompt.md",
+      "before_sha256": "0fd1a9a2fa6146d0a9cdef98c725b9f883f45de90e630667cd4d3a6b437e1e20",
+      "after_sha256": "8bce74428a15244195af662376b77c2463e1c39a964dc4c17dba29560dac9c3d"
+    },
+    {
+      "path": "sprite-workflow-retro/graders/01-skill-trigger.md",
+      "before_sha256": "3f51da96194a52a3ba9d6e5be36f62774c34988fe2059db44a71feef9bbcf712",
+      "after_sha256": "bdb50f6624ab2e1313d46aa5bd08c3840b5274e638b90f9e66378ac779072cb0"
+    }
+  ],
+  "negative_min_zero_fields": [
+    "job-event-vector-comparator/graders/04-no-jev-pilot.md",
+    "job-event-vector-comparator/graders/02-no-is-jev-useful-here.md",
+    "job-event-vector-comparator/graders/01-no-jev.md",
+    "job-event-vector-comparator/graders/03-no-jev-opportunity-audit.md",
+    "job-event-vector-comparator/graders/05-no-jev-workflow-retro.md"
+  ],
+  "original_negative_max_zero_and_intended_no_calls_preserved": true,
+  "offline_exact_match_checks": 30,
+  "declared_repeats": 3,
+  "max_turns": 8,
+  "criterion_text_unchanged_except_authorized_sparse_input_budget_terminology": true
+}

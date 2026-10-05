@@ -6,9 +6,11 @@ description: >-
   points at a codebase, a subtree or a whole project and asks where Jev -- or an AI
   judgment they have not named -- could help, which of its existing LLM calls are really
   returning a label, where it is paying generative prices for a classification, or where
-  hand-maintained keyword and regex rules are standing in for meaning. Use it equally
-  when the honest answer may be "nowhere". Every finding cites a path, a symbol and the
-  code, and carries one next action. Diagnostic only: it changes no code, calls no API,
+  hand-maintained keyword and regex rules stand in for meaning. "Nowhere" is valid.
+  Every finding cites a path, a symbol and the
+  code, and carries one next action. General code review without an AI/Jev opportunity
+  question stays outside scope, including review of routing or urgency logic.
+  Diagnostic only: it changes no code, calls no API,
   opens no secrets, and it names the tempting places Jev must stay out of. One workflow,
   file or function the user has already singled out is a fit question and belongs to the
   `is-jev-useful-here` skill, not this one; operating the CLI belongs to `jev`.
@@ -67,6 +69,9 @@ it if it is worth the user knowing; act on none of it.
 
 
 ## Search by surface
+
+If no repository files are available after checking the workspace, state the missing
+checkout and ask for its path; stop guessing other file locations.
 
 Build a picture of the architecture first — the README, the entry points, the dependency
 manifest, the directory names — then go looking. `references/audit-method.md` has the
@@ -167,6 +172,8 @@ data, user queries, internal documents or proprietary source out of the organisa
 the bullet says so in a clause. That disclosure is never the thing brevity removes; if
 it will not fit, the item earns a heading. The number of headed findings is not a
 measure of the audit.
+Unconfirmed leads use the same one-sentence budget: path, missing evidence, and any
+sensitive-data disclosure. They do not receive a second assessment template.
 
 Each headed finding, a few lines per field:
 
@@ -191,11 +198,16 @@ Each headed finding, a few lines per field:
 - **Risk** — accuracy and the cost of being wrong; whether the input is written by
   someone who benefits from a particular answer; what happens when the service is slow or
   down; whether the decision has to stay reproducible years later; drift.
-- **What would leave** — whether the state this judgment needs is customer data, personal
-  data, user queries, internal documents or proprietary source, and that adopting it
-  sends that content to TypeSafe. Per finding, not once in a preamble. Note where the
-  repository already has a gate — a residency flag, a consent field, a redaction helper —
-  because a finding that bypasses an existing gate is a finding with a problem.
+- **What would leave** — identify the state and supplied media, including customer
+  data, personal data, user queries, internal documents or proprietary source. Name
+  the actual recipient: TypeSafe by default, Cloudflare for `cloudflare`, or the
+  selected server for a local provider. Loopback sends to the local server; content
+  stays on this machine only if the server runs locally without cloud offload or
+  proxy forwarding. Confirm that condition when content must stay local. The data
+  owner must agree to this content and recipient before any transmission, including
+  a prototype. Consult the [provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md).
+  Do this per finding, not once in a preamble. Note existing residency, consent and
+  redaction gates; a finding must respect them.
 - **Migration complexity** — call sites touched, whether a public signature or a stored
   shape changes, what has to sit behind a flag.
 - **Next action** — `PILOT` is a handoff, not a conclusion: the `jev-pilot` skill is what

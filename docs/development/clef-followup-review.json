@@ -1,0 +1,117 @@
+{
+  "schema": "jev.clef.independent-followup-review/v1",
+  "reviewer": "GPT-6.1 Sol high",
+  "head": "bcf6043e60d5fef3f5dadc78b41b67840ab379ed",
+  "scope": "Final frozen working-tree files identified by SHA-256; source read-only",
+  "outcome": "pass_scoped_review",
+  "supersedes": [
+    "sol-high-followup-fix-review.json",
+    "sol-high-deep-json-review.json"
+  ],
+  "findings": [],
+  "resolved_findings": [
+    {
+      "severity": "P2",
+      "finding": "Malformed nested quality output or MCP content caused missing receipts",
+      "status": "resolved",
+      "proof": "Typed boundary validation. Real offline fake-executable reproduction obtains failed stable-provenance receipts, exit 1, no traceback, mode 0600."
+    },
+    {
+      "severity": "P2",
+      "finding": "Report parent symlink replacement redirected creation",
+      "status": "resolved",
+      "proof": "Descriptor-relative no-follow parent opening and exclusive no-follow leaf creation inspected; independent parent-symlink swap reproduction refuses with no file in replacement target."
+    },
+    {
+      "severity": "P2",
+      "finding": "Deep CLI JSON decoding RecursionError bypassed failure receipts",
+      "status": "resolved",
+      "proof": "Shared decoder catches RecursionError and raises opaque Failure from None. Independent real fake executable emitting 20,007-byte JSON with 10,000 nested arrays now obtains failed stable-provenance receipts from both helpers, exit 1, no traceback. New real-process regression inspected."
+    }
+  ],
+  "checks": [
+    {
+      "command": "python3 -B scripts/test-clef-provenance.py",
+      "tests": 17,
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B scripts/test-clef-live.py",
+      "tests": 38,
+      "exit_code": 0
+    },
+    {
+      "command": "python3 -B scripts/test-clef-quality.py",
+      "tests": 12,
+      "exit_code": 0
+    }
+  ],
+  "total_tests": 67,
+  "covered": [
+    "Credential alias and rotation protection",
+    "Manifest bounds and no-follow artifact capture",
+    "Resolved subprocess target binding",
+    "Failure receipts for malformed output and excessive nesting",
+    "Exclusive restrictive report creation and symlink races",
+    "Remote/local loaded-artifact association and inventory limitations",
+    "Focused guide recipient/consent, credential namespace, loopback offload caveat, timeout/retry/server lifecycle guidance"
+  ],
+  "limitations": [
+    "Scoped offline review only; root owns final scripts/verify.sh gate.",
+    "No source edits, external model calls, or live inference.",
+    "Disk fingerprints do not attest exact execution, in-memory code, loaded server files, complete dependencies, or remote weights.",
+    "Platforms without required POSIX primitives fail closed and may be unable to persist refusal reports; native Windows/macOS coverage remains unverified."
+  ],
+  "artifacts": [
+    {
+      "path": "scripts/clef_provenance.py",
+      "sha256": "86f8fcfe9a55b76f95f6361576b07738ac169c4f96d12d5332c3ec1ed1f1315e",
+      "size": 13132
+    },
+    {
+      "path": "scripts/clef-live.py",
+      "sha256": "d1d1c83294b9bfd955941d10e0e617f20e2e1d24f3e2c226a9aab091dc34b114",
+      "size": 41210
+    },
+    {
+      "path": "scripts/clef-quality.py",
+      "sha256": "f7e62d926885ef1c1f4c2ea09f914a3396235c3c7997ead0437be8e57bf1debb",
+      "size": 10639
+    },
+    {
+      "path": "scripts/test-clef-provenance.py",
+      "sha256": "70d3df387004df4f232d95751b0691ac4907e41ee9c92bf123fc3eeae694b30e",
+      "size": 14091
+    },
+    {
+      "path": "scripts/test-clef-live.py",
+      "sha256": "e5acda9bda695500e1ef50e92d98aaaeb0a043955332033259803f05656b8e48",
+      "size": 46218
+    },
+    {
+      "path": "scripts/test-clef-quality.py",
+      "sha256": "37763d72a568f927193415e2636f8697f0c0015638e04bd43e78ea7ff1123e1f",
+      "size": 11678
+    },
+    {
+      "path": "scripts/verify.sh",
+      "sha256": "2daf4644c5faf2f90fb8b5856a070c2fd50e2d4ce477d5ea767b716c27530d2f",
+      "size": 13524
+    },
+    {
+      "path": "docs/development/clef-live-testing.md",
+      "sha256": "3355edb4ac6d7d75d164263dae0c28b65c3a3a065434ef449fcced8951f71abb",
+      "size": 27864
+    },
+    {
+      "path": "skills/jev/SKILL.md",
+      "sha256": "2cf38cb08f2f742c62fc349c4f392255f39f0413ff1ce1853087a80e9ee84c9e",
+      "size": 23735
+    },
+    {
+      "path": "skills/jev/references/providers.md",
+      "sha256": "0433c78fea10d63ea2dda537285554df0bf461aae855853f111a21a78cbdb60b",
+      "size": 8917
+    }
+  ]
+}

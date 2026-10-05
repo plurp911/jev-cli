@@ -25,6 +25,8 @@ pub type Result<T> = std::result::Result<T, CliError>;
 pub enum CliError {
     /// The invocation or its input was wrong. Exit `2`.
     Usage(String),
+    /// Cloudflare was selected without an account; offline diagnostics can report it.
+    IncompleteCloudflareConfiguration,
     /// No credential, or the API rejected it. Exit `3`.
     Auth(String),
     /// The API could not be reached or was unwell. Exit `4`.
@@ -64,7 +66,7 @@ impl CliError {
         // command that produced them rather than raised as an error that would suppress
         // the output the user is entitled to.
         match self {
-            Self::Usage(_) => exit::USAGE,
+            Self::Usage(_) | Self::IncompleteCloudflareConfiguration => exit::USAGE,
             Self::Auth(_) => exit::AUTH,
             Self::Unavailable(_) => exit::UNAVAILABLE,
             Self::Io(_) => exit::IO,
@@ -81,6 +83,7 @@ impl CliError {
                  https://github.com/plurp911/jev-cli/issues",
             ),
             Self::Usage(_)
+            | Self::IncompleteCloudflareConfiguration
             | Self::Auth(_)
             | Self::Unavailable(_)
             | Self::Io(_)
@@ -97,6 +100,9 @@ impl fmt::Display for CliError {
             | Self::Unavailable(message)
             | Self::Io(message)
             | Self::Internal(message) => message.as_str(),
+            Self::IncompleteCloudflareConfiguration => {
+                "Cloudflare requires --cloudflare-account-id, CLOUDFLARE_ACCOUNT_ID, or the cloudflare_account_id setting"
+            }
             Self::Interrupted => "interrupted",
         };
         // Every message here can embed API- or file-supplied text, so all of it is

@@ -20,7 +20,10 @@ use serde::ser::{SerializeMap, SerializeStruct};
 use serde::{Serialize, Serializer};
 
 use crate::content::Content;
-use crate::limits::{CHOICE_MAX_OPTIONS, CHOICE_MIN_OPTIONS, SCORE_MAX_LEVELS, SCORE_MIN_LEVELS};
+use crate::limits::{
+    CHOICE_MAX_OPTIONS, CHOICE_MIN_OPTIONS, SCORE_ABSOLUTE_MAX_LEVELS, SCORE_MAX_LEVELS,
+    SCORE_MIN_LEVELS,
+};
 
 /// Reasons a question definition is not valid.
 #[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
@@ -71,6 +74,14 @@ pub enum QuestionError {
     TooManyLevels {
         /// How many were supplied.
         found: usize,
+    },
+    /// A Score exceeded the explicitly selected provider's level limit.
+    #[error("a score question accepts at most {max} levels for this provider, found {found}")]
+    TooManyLevelsForProvider {
+        /// How many were supplied.
+        found: usize,
+        /// Provider-specific maximum.
+        max: usize,
     },
     /// A Noul question supplied a `criteria` object with neither outcome described.
     #[error("noul criteria must describe the true outcome, the false outcome, or both")]
@@ -267,14 +278,38 @@ impl Question {
     ///
     /// Returns [`QuestionError::TooFewLevels`] or [`QuestionError::TooManyLevels`].
     pub fn score(instructions: Content, levels: Vec<Content>) -> Result<Self, QuestionError> {
+        Self::score_with_max(instructions, levels, SCORE_MAX_LEVELS)
+    }
+
+    /// Builds a Score with an explicitly selected provider's maximum.
+    ///
+    /// Ollama documents up to 26 levels. The local publisher adapter uses a 255-level
+    /// client resource bound; the default [`Self::score`] keeps TypeSafe's 10-level
+    /// limit. Adapters enforce their independently selected limit before transport.
+    ///
+    /// # Errors
+    /// Returns [`QuestionError`] for too few levels or too many for the selected limit.
+    pub fn score_with_max(
+        instructions: Content,
+        levels: Vec<Content>,
+        max: usize,
+    ) -> Result<Self, QuestionError> {
         if levels.len() < SCORE_MIN_LEVELS {
             return Err(QuestionError::TooFewLevels {
                 found: levels.len(),
             });
         }
-        if levels.len() > SCORE_MAX_LEVELS {
-            return Err(QuestionError::TooManyLevels {
-                found: levels.len(),
+        let max = max.min(SCORE_ABSOLUTE_MAX_LEVELS);
+        if levels.len() > max {
+            return Err(if max == SCORE_MAX_LEVELS {
+                QuestionError::TooManyLevels {
+                    found: levels.len(),
+                }
+            } else {
+                QuestionError::TooManyLevelsForProvider {
+                    found: levels.len(),
+                    max,
+                }
             });
         }
         Ok(Self::Score {

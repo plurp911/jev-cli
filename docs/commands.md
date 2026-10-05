@@ -12,6 +12,16 @@ Accepted by every subcommand.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
+| `--provider <typesafe\|cloudflare\|ollama\|llamacpp\|huggingface>` | `typesafe` | Explicit inference protocol; [hosted/local Clef setup](clef.md). |
+| `--cloudflare-account-id <ID>` | environment/configuration | Cloudflare-only, 32 hexadecimal characters; flag beats `CLOUDFLARE_ACCOUNT_ID`, then configuration. |
+| `--image <PATH>` | none | Explicit PNG/JPEG/WebP image file; repeat in order for Cloudflare, Ollama, or the Hugging Face bridge. |
+| `--video-frame <PATH>` | none | Prepared PNG/JPEG/WebP frames of one ordered video; repeat for the local Hugging Face bridge. |
+| `--video-fps <FPS>` | none | Source cadence of the prepared video, greater than zero and at most 120; requires `--video-frame`. |
+| `--max-length <TOKENS>` | bridge default | Local Hugging Face context control; 1–65,536. |
+| `--max-state-tokens <TOKENS>` | none | Independent local Hugging Face state token budget; 0–65,536, also constrained by the total context budget. |
+| `--media-kwargs <JSON>` | bridge default | Explicit validated local processor controls; see [Clef](clef.md). |
+| `--reject-if-busy` | off | Cloudflare-only capacity rejection without queueing. |
+| `--keep-alive <DURATION>` | server default | Ollama-only model lifetime, such as `5m`, `0`, or `-1`. |
 | `-o, --output <text\|json>` | `text` | Output format. `json` is the stable machine contract. |
 | `--color <auto\|always\|never>` | `auto` | Colour policy for human output. Under `auto`, colour is used only when **stdout** is a terminal and `NO_COLOR` is unset. `--color always` is an explicit instruction and outranks `NO_COLOR`; `NO_COLOR` is about defaults. |
 | `-m, --model <MODEL>` | `jev-latest` | Model identifier or alias. |
@@ -27,6 +37,14 @@ Accepted by every subcommand.
 There is no `--api-key`, and there will not be one. Arguments are visible in `ps`, in
 shell history, and in CI logs.
 
+The model/base defaults in this table describe TypeSafe. The other providers default
+to `clef` and their documented hosted/local endpoint; see [Clef](clef.md). Requests,
+batch/evaluation rows, and MCP calls may carry embedded images. `map --images-field
+FIELD` explicitly selects per-record media. `--videos-field FIELD` selects prepared
+embedded video frames for the Python bridge. Local loopback providers never read or
+send credentials, and a request that fails provider validation is refused before
+credential lookup or network use.
+
 ## Supplying state
 
 Four mutually exclusive flags, plus stdin. Passing two is a usage error, not a
@@ -36,17 +54,24 @@ precedence rule to memorise.
 | --- | --- |
 | `--state <TEXT>` | Literal text. |
 | `--state-file <PATH>` | Text from a file. `-` means stdin. |
-| `--state-json <JSON>` | Literal JSON: an object, an array, or a string. |
+| `--state-json <JSON>` | Literal JSON: an object, an array, or a string. The [publisher Python bridge](clef.md) also accepts scalar JSON and blank strings. |
 | `--state-json-file <PATH>` | JSON from a file. `-` means stdin. |
 | *(none)* | Text from stdin. If stdin is a terminal, this is an error rather than a hang. |
 
 In the synopses below, `[state source]` stands for whichever one of those you use. It
 is not a positional argument — there is no bare `jev noul "…" "some state"`.
 
-Rejected before anything is sent, so a mistake costs no tokens: empty input, invalid
-UTF-8, binary content (a NUL byte), a directory, input over the byte limit, invalid
-JSON, and a bare JSON scalar. One trailing newline is stripped from text input, because
-the shell added it. Nothing else is trimmed, and input is never silently truncated.
+All providers reject invalid UTF-8, binary content (a NUL byte), a directory,
+input over the byte limit, invalid JSON, and duplicate JSON object keys before
+anything is sent. An empty JSON source and empty implicit stdin are also rejected.
+TypeSafe, Ollama, and llama.cpp reject blank text state and numeric, boolean, or null
+JSON state. Cloudflare permits blank text with validated images but still rejects
+numeric, boolean, or null JSON state.
+The publisher Python bridge accepts explicitly supplied blank text and JSON scalars,
+including null. One trailing newline is stripped from text input, because the shell
+added it. Nothing else is trimmed, and the CLI never silently truncates input.
+Cloudflare and the Python publisher encoder may truncate state to their token budget;
+Ollama instead refuses inputs exceeding its loaded context.
 
 ---
 
@@ -131,8 +156,10 @@ $ jev score "How severe is the reported issue?" \
     --state-file bug-report.txt
 ```
 
-Levels are numbered from 0 in the order given. The API accepts 2 to 10. The answer can
-fall between levels: it is the probability-weighted mean.
+Levels are numbered from 0 in the order given. `jev` accepts 2 to 10 by default,
+2 to 26 for Ollama, and 2 to 255 for the explicit Hugging Face provider. See
+[provider limits](clef.md#provider-limits). The answer can fall between levels:
+it is the probability-weighted mean.
 
 ---
 
@@ -195,8 +222,8 @@ $ jev ask -r ticket-questions.json -o json | jq '.answers.department.choice'
 
 ### The request file is the API's format, and how it is versioned
 
-The same file works with `jev ask`, `jev map`, `jev --dry-run`, `curl`, and the official
-SDKs. That is the whole design: several community CLIs invented their own question
+For the default TypeSafe provider, the same file works with `jev ask`, `jev map`,
+`jev --dry-run`, `curl`, and the official SDKs. That is the whole design: several community CLIs invented their own question
 vocabulary, and the result is that the official documentation stops applying to their
 tool.
 
@@ -208,7 +235,9 @@ own. So the format is versioned the way the API versions it, and the JSON Schema
 describes it is versioned by its own `$id`:
 
 - [`schema/request.schema.json`](../schema/request.schema.json) — JSON Schema
-  (2020-12). Point an editor at it for completion and inline validation:
+  (2020-12), describing TypeSafe requests. Other providers have additional media
+  and option fields; use their [provider guide](clef.md) and `--dry-run` for
+  validation. Point an editor at the TypeSafe schema for completion and inline validation:
 
   ```json
   { "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -258,7 +287,7 @@ jev map -r PATH [-i PATH] [--lines] [--state-field F] [--id-field F]
 
 | Flag | Default | Effect |
 | --- | --- | --- |
-| `-r, --request <PATH>` | required | Questions, or a request document whose `state` is ignored. |
+| `-r, --request <PATH>` | required | Questions, or a request document whose `state` is ignored without semantic validation; row state remains validated. |
 | `-i, --input <PATH>` | stdin | Input records, one per line. |
 | `--lines` | off | Treat each line as plain text rather than a JSON value. |
 | `--state-field <F>` | whole record | Use this field of each JSON record as the state. |
@@ -731,7 +760,7 @@ jev config path
 ```
 
 Non-secret settings only: `color`, `endpoint`, `max_input_bytes`, `model`, `output`,
-`retries`, `timeout_seconds`.
+`retries`, `timeout_seconds`, `provider`, `cloudflare_account_id`.
 
 **A credential is not a setting.** `jev config set api_key …` is refused, and so is a
 hand-written file containing a key-shaped key at any nesting level. The file is created
