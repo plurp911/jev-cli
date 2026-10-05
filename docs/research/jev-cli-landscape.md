@@ -14,6 +14,11 @@ initial commit in its cloned history and was last touched within a week of the s
 Treat maturity judgments accordingly: nobody here has a track record yet, which is
 precisely the gap `jev` can fill.
 
+This historical survey predates Clef support. Its proposed provider exclusions
+are not the current feature list. See [Clef capabilities](../clef.md) and
+[the later provider research](../development/clef-research.md). The pinned
+comparisons below remain unchanged.
+
 ## The nine implementations
 
 | Short name | Slug | Language | Distribution |

@@ -19,7 +19,8 @@ winget install --manifest manifests\p\plurp911\jev\<version>
 ```
 
 The `ShortDescription` must keep the "unofficial, community" wording. A package listing
-that reads as though TypeSafe published it would be a misrepresentation, and the store
+that reads as though TypeSafe or Cloudflare published it would misrepresent this
+independent community project. The store
 listing is exactly where that misreading is most likely.
 
 [repo]: https://github.com/microsoft/winget-pkgs

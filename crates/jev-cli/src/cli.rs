@@ -28,9 +28,10 @@ use crate::context::{Overrides, Verbosity};
     version,
     about,
     long_about = "jev is an independent, community-maintained CLI for TypeSafe's System One \
-                  API and its Jev model. It is not affiliated with, endorsed by, or supported \
-                  by TypeSafe AI.\n\n\
-                  State you supply is transmitted to the configured API endpoint when a \
+                  API and Jev, plus explicitly selected hosted/local Clef and Clef Flash. \
+                  It is not affiliated with, endorsed by, or supported by TypeSafe AI or \
+                  Cloudflare. TypeSafe remains the default provider.\n\n\
+                  State and media you supply are transmitted to the selected endpoint when a \
                   request runs. Use --dry-run to see exactly what would be sent.\n\n\
                   Text output is for humans and is not a stable interface. Scripts should use \
                   `--output json`, whose documents carry a versioned `schema` field.",
@@ -110,8 +111,8 @@ pub struct GlobalArgs {
     #[arg(long, short = 'm', global = true, value_name = "MODEL", help_heading = GLOBAL_HEADING)]
     pub(crate) model: Option<String>,
 
-    /// API base URL; a non-official one uses JEV_CUSTOM_API_KEY, never a stored
-    /// TypeSafe key [default: the official TypeSafe API]
+    /// Override the selected provider's base URL; remote custom endpoints use custom
+    /// key sources, while explicit local providers on loopback never use credentials
     #[arg(long, global = true, value_name = "URL", help_heading = GLOBAL_HEADING)]
     pub(crate) endpoint: Option<String>,
 
@@ -386,7 +387,7 @@ pub struct NoulArgs {
                   selected option, the probability of every option, and a confidence derived \
                   from how concentrated that distribution is.\n\n\
                   Give every option, not a shortlist, and add an `other` option when the list \
-                  may not cover every input. The API accepts up to 255 options.",
+                  may not cover every input. Use 2 to 255 options, or 2 to 26 with Ollama.",
     after_long_help = REQUIRE_HELP
 )]
 pub struct ChoiceArgs {
@@ -419,8 +420,9 @@ pub struct ChoiceArgs {
     long_about = "Ask one question that rates the state against ordered levels. The answer is \
                   the probability-weighted position on those levels, which can fall between \
                   them, plus the full distribution and a confidence.\n\n\
-                  Levels are numbered from 0 in the order given. The API accepts 2 to 10 \
-                  levels, and each must describe a concrete situation that stands on its own.",
+                  Levels are numbered from 0 in the order given. Use 2 to 10 levels by \
+                  default, 2 to 26 with Ollama, or 2 to 255 with the local Hugging Face \
+                  bridge. Each level should describe a concrete situation.",
     after_long_help = REQUIRE_HELP
 )]
 pub struct ScoreArgs {
@@ -451,12 +453,12 @@ pub struct ScoreArgs {
 #[derive(Debug, Args)]
 #[command(
     long_about = "Ask several independent questions about one state in a single request.\n\n\
-                  This is how System One is meant to be used: questions are evaluated in \
-                  parallel against one reading of the state, so asking ten costs far less \
-                  than ten requests and answers in roughly the same time. Include \
-                  speculative questions and let your code read only the relevant answers.\n\n\
-                  The request document is the official API request body:\n  \
+                  Batch related questions instead of issuing a request per question. \
+                  TypeSafe evaluates them against one reading of the state; cost and \
+                  latency depend on the selected provider and runtime.\n\n\
+                  The common request syntax follows the default TypeSafe API body:\n  \
                     {\"state\": ..., \"model\": \"jev-latest\", \"questions\": {...}}\n\
+                  Clef adapters apply their own wire encoding, media/options, and limits. \
                   `model` is optional and --model overrides it. With --questions, only the \
                   questions map is read and the state comes from the --state flags.",
     after_long_help = REQUIRE_HELP
@@ -589,7 +591,8 @@ pub enum Objective {
                   you have already judged, how well does THIS question, answered by THIS \
                   model version, perform on YOUR data -- and where should the cut go? \
                   Nothing is trained, and a label is never sent: ground truth is compared \
-                  locally, after the answer comes back.\n\n\
+                  locally, after the answer comes back. Supplied state and optional images \
+                  or prepared video frames go to the selected endpoint.\n\n\
                   The dataset is JSONL, one labelled example per line:\n  \
                     {\"schema\": \"jev.eval.row/v1\", \"id\": \"1\", \"state\": \"...\", \
                      \"labels\": {\"<question id>\": <ground truth>}}\n\
@@ -665,7 +668,7 @@ pub struct EvalArgs {
 /// `jev doctor`
 #[derive(Debug, Args)]
 pub struct DoctorArgs {
-    /// Also make one minimal API call to confirm the credential works.
+    /// Check the selected provider's model listing; no inference (bounded retries apply)
     #[arg(long)]
     pub(crate) live: bool,
 }
@@ -677,8 +680,9 @@ pub struct DoctorArgs {
                   MCP client -- as a local Model Context Protocol server.\n\n\
                   The server offers five tools: noul, choice, score, ask, and map. They run \
                   the same code as the commands of the same names and return the same JSON \
-                  documents. Every state passed to a tool is sent to the configured TypeSafe \
-                  endpoint, exactly as it would be from the command line.\n\n\
+                  documents. State and embedded media passed to a tool go to the selected \
+                  endpoint, exactly as from the command line. Provider/account selection \
+                  is fixed at server startup. Local inference servers run separately.\n\n\
                   Setup for each host is in docs/mcp.md."
 )]
 pub enum McpCommand {
@@ -686,13 +690,15 @@ pub enum McpCommand {
     #[command(
         long_about = "Run a Model Context Protocol server over stdio. The host starts this \
                       process and talks to it on stdin and stdout; there is no port, no \
-                      daemon, and nothing to install besides `jev`.\n\n\
+                      daemon, and no MCP runtime to install besides `jev`. Local model \
+                      servers and their weights/dependencies are managed separately.\n\n\
                       stdout carries protocol messages and nothing else. Diagnostics, when \
                       there are any, go to stderr. The server is silent by default; --verbose \
                       adds a line per call, and a non-official endpoint is always warned \
                       about once at startup.\n\n\
-                      Credentials resolve exactly as for every other command: `jev auth \
-                      login`, or TYPESAFE_API_KEY / JEV_API_KEY in the host's environment. \
+                      TypeSafe credentials resolve as for other commands. Cloudflare and \
+                      remote custom servers use JEV_CUSTOM_API_KEY or JEV_CUSTOM_API_KEY_FILE. \
+                      Local providers on loopback never read or send credentials. \
                       Never put a key in the host's MCP configuration as an argument.\n\n\
                       Global flags set the server's defaults, for example \
                       `jev --model jev-1.13.0 mcp serve`. --dry-run is refused."

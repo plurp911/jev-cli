@@ -5,6 +5,17 @@
   here stands.
 * Date: 2026-09-19
 
+## Current-status amendment (2026-10-05)
+
+The TypeSafe-only context below predates the provider selection introduced by
+[ADR-0015](0015-clef-providers-and-vision.md). A TypeSafe API key is required for
+official TypeSafe inference, not every invocation or provider. Cloudflare and
+explicit remote providers use the isolated custom credential namespace;
+explicit local protocols on loopback are anonymous and consult no credential
+source. [ADR-0008](0008-credential-precedence-and-endpoint-isolation.md) remains
+the credential-order authority. The original secret-storage decisions remain
+unchanged.
+
 ## Context
 
 `jev` needs a TypeSafe API key on every call. The key is the highest-value asset the

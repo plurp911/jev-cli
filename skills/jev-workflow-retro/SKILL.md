@@ -39,9 +39,10 @@ A transcript store is the most sensitive directory on a developer's machine. It 
 prompts, proprietary source, customer records, internal documents, URLs, and whatever a
 tool happened to print — including credentials printed by accident.
 
-**The parsing is local, and nothing is sent to TypeSafe.** `scripts/transcripts.py`
-reads local files, makes no network call, and writes to stdout. **No transcript content
-is sent to TypeSafe or to `jev`**, and no part of this workflow calls the API.
+**The parsing is local.** `scripts/transcripts.py` reads local files, makes no
+network call, and writes to stdout. **This retrospective does not submit transcript
+content to a Jev inference endpoint.** Content the agent reads enters its own model
+provider context, as explained below.
 
 **What you read is not local, and say so before reading it.** Text the normaliser prints
 enters this session's context, and so reaches the model provider this agent runs on,
@@ -243,8 +244,9 @@ remembered or unverified price would fabricate a currency estimate:
   into one.
 - **Most of these users are not billed per token at all.** A subscription seat makes an
   API rate the wrong number, not merely an imprecise one.
-- **The other half is unobtainable anyway.** What Jev would cost instead is TypeSafe's
-  pricing, which is not in the data and must not be quoted from memory.
+- **The proposed inference cost is absent too.** Hosted pricing depends on the selected
+  provider; local inference uses runtime/hardware resources. Neither is measured by
+  the agent-session token totals, and neither may be quoted from memory.
 
 Give the argument that is actually supported instead, because it is the stronger one:
 which patterns account for what share of the tokens in the window. "A three-way CI label
@@ -271,8 +273,13 @@ then.
 
 **At most five headed candidates**, ranked, each a few lines per field. Anything else
 real but minor is a one-line bullet — except that if adopting it would send customer
-data, personal data, user queries, internal documents or proprietary source to TypeSafe,
-the bullet says so. That disclosure is never what brevity removes.
+data, personal data, user queries, internal documents or proprietary source, the bullet
+names that payload and its selected recipient: TypeSafe by default, Cloudflare for
+`cloudflare`, or the selected local server. Loopback stays on this machine only when
+the server runs locally without offload or forwarding; confirm that condition when
+required. The [provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md)
+locates the setup and capability boundaries. Agreement to the content and recipient
+is required before a future pilot transmission. That disclosure is never what brevity removes.
 
 Fields, in full in `references/patterns.md`: **Pattern**, **Evidence** (sessions, and a
 short quote of the agent's reasoning — never of what it was reading), **Frequency**,

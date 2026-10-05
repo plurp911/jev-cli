@@ -41,7 +41,9 @@ The current offline doctor measurement therefore excludes a real keychain round 
 Recorded 2026-09-19 on Linux x86_64, with the calibration section added 2026-09-20, `rustc` 1.94.1, release profile (`lto = "thin"`,
 `codegen-units = 1`, `panic = "abort"`, symbols stripped). **One machine, one run.**
 Treat these as an order of magnitude, not a specification. These historical figures
-predate the MCP server in ADR-0012. The current binary includes its async dependencies,
+predate both the MCP server in ADR-0012 and the Clef adapters and media support in
+ADR-0015. They do not measure Clef model latency, vision/video processing, or the
+separate Python bridge. The current binary includes its async dependencies,
 with a runtime constructed only for `jev mcp serve`; rerun the harness for current
 size, dependency counts, and timings.
 

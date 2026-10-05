@@ -139,13 +139,13 @@ pub enum Scalar<'a> {
 
 /// Token counts for a request.
 ///
-/// Both fields are optional because the official SDK models them as optional; a
-/// response that omits them still decodes.
+/// The domain fields are optional. TypeSafe responses may omit them; individual
+/// provider adapters can enforce a stricter documented response contract.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
 pub struct Usage {
-    /// Billable input tokens, when the API reported a count.
+    /// Input tokens, when the provider reported a count. Billing is provider-specific.
     pub input_tokens: Option<u64>,
-    /// Output tokens, when the API reported a count. Currently free of charge.
+    /// Output tokens, when the provider reported a count. This is not a charge.
     pub output_tokens: Option<u64>,
 }
 

@@ -7,6 +7,20 @@ The packaging strategy remains current. This ADR's unarmed release design is
 historical; the current manual release gate is in
 [ADR-0014](0014-manual-release-gate.md).
 
+## Current-status amendment (2026-10-05)
+
+The decision text below preserves the original 2026-09-19 design, including
+distribution aspirations. [ADR-0009](0009-dist-as-a-builder-not-a-workflow-generator.md)
+supersedes workflow generation, and [ADR-0014](0014-manual-release-gate.md)
+supersedes the unarmed authorization posture. The current workflow can publish
+an explicitly authorized GitHub release while every crate remains `publish = false`.
+v0.3.0 was published through that guarded manual path. Current direct downloads
+use `sha256.sum`, per-archive SHA-256 files and binary provenance attestations;
+the source archive and SBOM are not attested, and binaries are not code-signed
+or notarized. Homebrew, Scoop, WinGet and crates.io are not active installation
+channels. Release notes come from the annotated tag. See
+[release verification](../release-verification.md) for the published evidence.
+
 ## Context
 
 `jev` will be installed on developer machines and in CI, where it runs with a live

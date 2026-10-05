@@ -25,13 +25,15 @@ $ scripts/verify.sh --push
       `docs/adr/0003-cli-compatibility.md` and is noted in `CHANGELOG.md`.
 - [ ] Any new dependency is justified below and satisfies
       `docs/adr/0004-dependency-policy.md`.
-- [ ] Any claim about Jev/System One API behaviour is backed by a link to the official
-      TypeSafe documentation, not by recollection.
+- [ ] Any API claim cites the selected provider's primary contract read in this session:
+      TypeSafe, Cloudflare Clef/Flash, Ollama, llama.cpp, or the explicit Python bridge
+      and publisher implementation, as required by `AGENTS.md` §6.
 
 ## API behaviour claims
 
-<!-- If this PR changes how the CLI talks to TypeSafe, link the official docs page
-     that establishes the behaviour. Delete this section if it does not apply. -->
+<!-- If this PR changes provider behavior, link the selected provider's primary
+     contract. Distinguish hosted and local capabilities, protocol tests from live
+     inference, and any remaining provenance or runtime limits. Delete if not applicable. -->
 
 ## New dependencies
 

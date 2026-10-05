@@ -7,6 +7,14 @@ publishes GitHub archives and generates a Homebrew formula and shell installer a
 release assets. Each release requires explicit human authorization; see
 [`AGENTS.md`](../AGENTS.md) §12 and [ADR-0014](../docs/adr/0014-manual-release-gate.md).
 
+## Runtime scope
+
+Release archives and installers contain the native `jev` CLI. Local Ollama and
+llama.cpp runtimes, Python dependencies, and model weights are installed separately
+by the operator. The optional `scripts/clef-server.py` bridge and live-test helpers
+are distributed through the source repository/archive, not embedded in the binary.
+No installer launches inference or downloads weights. See [Clef setup](../docs/clef.md).
+
 ## Channels
 
 | Channel | Manifest | Generated or written? | Updated by |
@@ -44,9 +52,11 @@ between the two, and a person has to do it.
 
 ## Install-path ordering
 
-The README shows package managers before any download, and any download before a shell
-installer. `curl | sh` is offered because people expect it, never as the headline. See
-ADR-0005.
+The current README leads with checksum-verified release archives. Homebrew, Scoop,
+and WinGet publication remain separate, explicitly authorized work; their local
+templates do not establish active package-manager channels. The generated shell
+installer is a release asset. Verify it before executing it; the README does not
+require `curl | sh`. See [installation](../docs/install.md) and ADR-0014.
 
 ## What the installers must not do
 

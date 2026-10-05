@@ -4,6 +4,10 @@
 remains TypeSafe's `jev-latest`; select another provider explicitly. This CLI is an
 independent community project, with no Cloudflare or TypeSafe endorsement.
 
+The provider contracts and CLI behavior below were rechecked on 2026-10-05.
+Dated research and test receipts record their own execution epochs; they do not
+automatically become verification of later binaries or documentation changes.
+
 ## Choose a provider
 
 | Provider | Default base URL | Default model | Authentication | Images |
@@ -289,7 +293,7 @@ image data, and never resolves a token or opens a network connection. Its output
 contains the supplied content; treat it accordingly.
 
 The CLI enforces these media bounds for both hosted and local vision: four images,
-4 MiB encoded file bytes and 16 million pixels per image, and 8 MiB total file
+4 MiB of compressed image file bytes and 16 million pixels per image, and 8 MiB total file
 bytes. Local video and still images share that 8 MiB total and a 64 million
 pixel aggregate budget. The bridge also bounds processor resize/sampling allocations
 against that pixel budget before decoding. These are Cloudflare's documented bounds and deliberate client bounds for
@@ -333,6 +337,27 @@ Unchanged TypeSafe requests retain the existing resume fingerprints.
 MCP uses embedded image/video arguments rather than host filesystem paths, and keeps the
 provider/account fixed at server startup. All five tools use the same validation
 and transport as their CLI counterparts. See [MCP](mcp.md).
+
+## Pinning and verification limits
+
+A model name is not a weight or runtime fingerprint. A Cloudflare result, an
+Ollama tag, and a local server alias do not establish the same inference behavior.
+Record the selected provider, reviewed weight revision or digest, runtime and
+processor versions, and inference options when calibrating a deployment.
+`jev eval` and `map --resume` detect changed supplied inputs and options; they cannot
+detect weights replaced behind an unchanged model name. Recalibrate after such a
+change. The [live-test helpers](development/clef-live-testing.md#execution-provenance)
+can hash explicitly named files without claiming to attest the server's loaded memory.
+
+The [recorded results](development/clef-live-testing.md#recorded-results) distinguish
+offline adapter checks, actual hosted/local inference, synthetic quality measurements,
+and skill evaluations. Release archive and native CLI smoke checks establish
+packaging behavior, not successful inference with every model on every platform.
+Hosted Clef and Clef Flash image inference passed the retained smoke matrices and
+the original 32-image synthetic benchmark. Those tasks do not establish production
+accuracy or calibration. Full unquantized Clef 27B Python inference, full GPU
+residency/Python CUDA inference, native model inference across operating systems,
+production-data quality, and successful Clef capacity rejection remain unverified.
 
 ## Capabilities the endpoints do not expose
 

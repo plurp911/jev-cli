@@ -1,13 +1,18 @@
 # Troubleshooting
 
-Start with `jev doctor`. It reports the endpoint, the model, the configuration file,
+Start with `jev doctor`, using the same `--provider` and other global flags as the
+failing command. It reports the provider, endpoint, model, configuration file,
 which credential sources are populated, and where each setting came from — without
 making a network request or printing your key.
 
 ```console
 $ jev doctor
-$ jev doctor --live      # adds one minimal API call
+$ jev doctor --live      # queries the selected provider's model-listing endpoint
 ```
+
+`--live` does not run inference. For example, `jev --provider ollama doctor --live`
+checks a separately running Ollama server. A successful model listing does not prove
+that its weights are loaded or that image/video inference works.
 
 ---
 
@@ -75,10 +80,71 @@ a TypeSafe credential to another host. Use the separate namespace:
 
 ```sh
 export JEV_CUSTOM_API_KEY="…"
+# or, with a secret manager:
+export JEV_CUSTOM_API_KEY_FILE=/run/secrets/custom-provider
 ```
 
 If you did not mean to use a custom endpoint, `jev config unset endpoint` or drop the
 flag. `jev doctor` shows where the endpoint setting came from.
+
+Cloudflare also uses only these custom key sources, even at its default endpoint.
+Remote Ollama, llama.cpp, and Python-bridge endpoints use them too; loopback local
+providers do not resolve or send credentials.
+
+## Clef provider setup and media
+
+### Cloudflare account or token is missing
+
+Use `--provider cloudflare` explicitly and supply a 32-hexadecimal-character account
+ID with `--cloudflare-account-id`, `CLOUDFLARE_ACCOUNT_ID`, or the saved
+`cloudflare_account_id` setting. The account variable alone does not select
+Cloudflare. Supply the Workers AI token through `JEV_CUSTOM_API_KEY` or
+`JEV_CUSTOM_API_KEY_FILE`; `jev auth login` configures TypeSafe credentials only.
+
+`jev doctor` reports an incomplete saved Cloudflare configuration without contacting
+the server or looking up a credential. See [Cloudflare setup](clef.md#cloudflare).
+
+### Cloudflare returns HTTP 422, code 5012 with `--reject-if-busy`
+
+The retained hosted checks observed this error for Clef and Clef Flash on a Workers
+AI Free account. They did not establish its precise cause or successful capacity
+rejection. The CLI reports the error without silently removing the option. Omit
+`--reject-if-busy` if you choose ordinary hosted inference; see
+[the hosted limitations](clef.md#cloudflare). Ordinary hosted image inference
+passed the [later synthetic checks](development/clef-live-testing.md#recorded-results);
+that evidence does not establish capacity rejection or production accuracy.
+
+### A local provider refuses the connection or takes too long
+
+Start the chosen Ollama, llama.cpp, or [Python bridge](clef.md#publisher-python-weights-and-video)
+server separately and verify that the selected endpoint and model name match it.
+`jev` never starts a server, installs its runtime, downloads weights, or switches to
+a cloud provider on failure. Default loopback ports are 11434 for Ollama, 8080 for
+llama.cpp, and 8787 for the bridge. A llama.cpp model alias must match the running
+server; its batch and microbatch sizes must fit the full Clef prompt, as described
+in [local setup](clef.md#local-open-source-inference).
+
+For slow CPU bridge inference, choose a larger explicit deadline and disable
+duplicate attempts, for example `--timeout 600 --retries 0`. A timeout stops the
+client waiting; it does not cancel an inference already running in PyTorch. A later
+request can wait behind that work.
+
+### An image or video is rejected before inference
+
+Images require Cloudflare, Ollama with vision weights, or the Python bridge;
+TypeSafe and llama.cpp do not accept Clef image input. Pass explicitly named PNG,
+JPEG, or WebP files with `--image`, together with a state source. Ollama needs
+nonempty text state; Cloudflare accepts `--state ''` with validated images.
+
+Prepared video frames require `--provider huggingface` and the running bridge.
+Repeat `--video-frame` in playback order for 1–32 equal-dimension frames; prepare
+them yourself rather than passing a video file. Image paths must not contain
+symlinks, except for the documented macOS system-root aliases. Byte, pixel, format,
+and processor limits apply before sending; see [vision bounds](clef.md#vision-inputs-and-bounds).
+
+Use the same provider flags with `--dry-run` to validate and inspect the request
+without reading a credential or making a network call. Its output includes any
+embedded media and supplied state.
 
 ## "refusing to send a credential over plain HTTP" (exit 2)
 
@@ -135,8 +201,8 @@ jev ask -r big.json --timeout 60
 `jev` received something it could not read as a valid System One response. Either the
 API changed, or you are pointed at something that is not the API.
 
-Check `jev doctor` for the endpoint. If it is the official one and this persists,
-please [open an issue](https://github.com/plurp911/jev-cli/issues) with the exact
+Check `jev doctor` for the selected provider and endpoint. If they are correct and this
+persists, please [open an issue](https://github.com/plurp911/jev-cli/issues) with the exact
 message — but **not** the response body, which may contain your data.
 
 ## "--require could not be evaluated" (exit 6)
@@ -155,7 +221,8 @@ Exit `6` is deliberately not exit `1`: a broken gate is not a negative judgment.
 
 ## The answer is not what I expected
 
-That is a question-design problem, not a CLI problem, and the
+Check the selected model, question design, and your own labelled examples. For
+TypeSafe's Jev, the
 [official documentation](https://docs.typesafe.ai/concepts/how-to-build-with-system-one)
 is the place to take it. Briefly:
 
@@ -172,7 +239,7 @@ is the place to take it. Briefly:
 
 ## My results changed and I did not change anything
 
-`jev-latest` is a moving alias. Check what actually answered:
+For TypeSafe, `jev-latest` is a moving alias. Check what actually answered:
 
 ```console
 $ jev ask -r q.json -o json | jq -r '.model, .model_requested'
@@ -183,6 +250,10 @@ If those differ, the alias moved. Pin the version you calibrated against:
 ```sh
 jev config set model jev-1.13.0
 ```
+
+For Clef, also retain the provider, model revision, runtime, and quantization used
+for evaluation. Thresholds measured for another provider or model do not establish
+quality for the selected configuration.
 
 ## `jev` hangs with no output
 

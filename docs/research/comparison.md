@@ -9,7 +9,8 @@ Recorded **2026-09-19**, against the commits pinned in
 here has a track record, including us.
 
 This is a dated comparison. Its CI and release-workflow descriptions record the state
-at that date; current verification and release rules are in [ADR-0013](../adr/0013-local-verification.md)
+at that date, before Clef support. The current provider/media capabilities are in
+[Clef](../clef.md). Current verification and release rules are in [ADR-0013](../adr/0013-local-verification.md)
 and [ADR-0014](../adr/0014-manual-release-gate.md).
 
 There is no winner declared below. Several of these tools do things this one does not,

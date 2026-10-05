@@ -36,8 +36,13 @@ tools. GitHub runs no automatic CI (ADR-0013). Read and report every skip.
 
 Agents share the canonical development skills under `.claude/skills/`: read
 `verify`, `security-review`, `api-compat`, or `release-review` directly as applicable.
-The official `typesafe-ai` skill is pinned; do not edit it. Claude has its discovery
-adapter in [CLAUDE.md](../../CLAUDE.md); Codex reads AGENTS.md and the same skill paths.
+The official `typesafe-ai` skill is pinned and remains TypeSafe-specific; do not
+edit it to describe Clef. Use `api-compat` for the selected provider's same-session
+primary authority, [Clef capabilities](../clef.md) for the project bridge/client
+bounds, and [local setup and execution provenance](clef-live-testing.md#execution-provenance)
+for runtime, weight, and source identities. A returned alias is not a weight hash,
+and confidence thresholds do not transfer automatically across providers. Claude has
+its discovery adapter in [CLAUDE.md](../../CLAUDE.md); Codex reads AGENTS.md and the same skill paths.
 Generated runtime copies under `.agents/` or `.codex/` are environment-owned and may
 be stale; this checkout does not generate or synchronize them. If a discovered skill
 mentions a nonexistent `.Codex/` path or differs from its canonical source, read
@@ -81,7 +86,7 @@ Other proof paths are part of full verification:
 - `python3 scripts/test-clef-server.py`: independent local HTTP bridge contracts with
   injected inference. `--real-pillow` additionally exercises actual hostile-image decoding;
   full verification reports a skip if Pillow is unavailable. No weights are downloaded.
-- `python3 scripts/test-clef-server.py --real-processor --real-pillow`: the actual
+- `"${JEV_CLEF_PYTHON:-python3}" scripts/test-clef-server.py --real-processor --real-pillow`: the actual
   processor's prepared-video behavior without model weights. Full verification uses
   `JEV_CLEF_PYTHON` for both real-media checks when explicitly set, otherwise
   Python's installed processor and decoder; unavailable dependencies are reported
@@ -92,6 +97,9 @@ Other proof paths are part of full verification:
   harness execution with fake inference, and pinned local model integrity. They do
   not call a provider or load weights. The explicitly invoked real inference and
   model-integrity procedure is in [Clef live testing](clef-live-testing.md).
+- `python3 scripts/test-clef-provenance.py`: bounded, explicitly selected execution-source,
+  model/runtime artifact, and source-archive identity checks with synthetic fixtures.
+  A source archive alone does not prove what an earlier inference process executed.
 - `python3 scripts/test-clef-quality.py`: the synthetic quality benchmark's offline
   plan, scoring, and bounded execution contract; actual inference remains opt-in.
 - `python3 scripts/test-clef-python-profile.py`: offline runtime-profile comparison,
@@ -152,6 +160,8 @@ all five targets, while a local Linux run proves Linux only.
 <!-- readiness: scripts/test-clef-live.py -->
 <!-- readiness: scripts/clef-quality.py -->
 <!-- readiness: scripts/test-clef-quality.py -->
+<!-- readiness: scripts/clef_provenance.py -->
+<!-- readiness: scripts/test-clef-provenance.py -->
 <!-- readiness: scripts/clef-python-profile.py -->
 <!-- readiness: scripts/test-clef-python-profile.py -->
 <!-- readiness: scripts/clef-model-manifest.py -->

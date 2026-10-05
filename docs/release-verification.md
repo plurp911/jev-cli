@@ -9,6 +9,37 @@ compromised artifact is therefore a credential-harvesting vector across every ma
 that installs it. That is why this page exists and why `curl | sh` will never be the
 only install path.
 
+## Recorded v0.3.0 release
+
+[v0.3.0](https://github.com/plurp911/jev-cli/releases/tag/v0.3.0) was published from
+commit `3d914e0cd747231abc631681725872381f836ce9`. The
+[release workflow run](https://github.com/plurp911/jev-cli/actions/runs/37344551204)
+passed all 16 jobs. It built Linux x86-64/ARM64, macOS x86-64/ARM64 and Windows
+x86-64 archives, and ran native CLI smoke tests on Linux x86-64/ARM64, macOS ARM64
+and Windows x86-64. The smoke checks exercised version, doctor, shell completion,
+missing-credential failure and archive licence contents; macOS x86-64 had a build
+but no native smoke test.
+
+The [publication inspection receipt](https://github.com/plurp911/jev-cli/releases/download/v0.3.0/jev-v0.3.0-release-verification.json)
+records downloaded checksum and release-tag attestation verification for all five
+platform archives, installer digest checks, an SBOM containing 175 packages, and
+local execution of the downloaded Linux x86-64 CLI. The release has 18 assets:
+16 workflow-built assets, plus the separately uploaded inspection JSON and its
+[SHA-256 file](https://github.com/plurp911/jev-cli/releases/download/v0.3.0/jev-v0.3.0-release-verification.json.sha256).
+The inspection receipt is unsigned; its checksum checks its bytes, and neither
+file is a signed artifact attestation. No provider or model inference was run for
+release verification. This evidence does not extend historical model tests to
+native macOS/Windows inference, full GPU residency, or the unquantized 27B Python
+path.
+
+The public Git tree contains 1,093 files. The published `source.tar.gz` contains
+1,077 matching files because [`.gitattributes`](../.gitattributes) intentionally
+excludes 16 files with `export-ignore`, including `.github/`, the canonical
+`.claude/` development skills and selected repository metadata. The receipt lists
+each exclusion. This committed Git archive is distinct from the captured-working-tree
+source used by a local release rehearsal below. Use a Git clone for the full
+contributor environment.
+
 ## Check a downloaded archive
 
 No package manager installation channel is active yet. Download a release archive and
@@ -41,8 +72,8 @@ that, use the attestation.
 | Install path | Verifies the download |
 | --- | --- |
 | `jev-cli-installer.sh` | **Yes**, sha256 against a digest embedded at build time |
-| Homebrew formula | **Yes**, `sha256` per platform, checked by `brew` |
-| Scoop / WinGet manifests | **Yes**, `hash` / `InstallerSha256` |
+| Generated Homebrew formula (channel inactive) | **Yes**, `sha256` per platform, checked by `brew` |
+| Scoop / WinGet templates (channels inactive) | **Yes**, `hash` / `InstallerSha256` when populated for publication |
 | `.zip` + `sha256.sum` | **You do**, with the command above |
 
 **There is no PowerShell installer, deliberately.** `dist` 0.32.0 generates one with no
@@ -50,8 +81,8 @@ checksum verification at all — no `Get-FileHash`, no embedded digest, no verif
 step; it downloads over HTTPS and runs whatever it is served. Shipping that as the
 Windows install path for a tool whose premise is the paragraph at the top of this page
 would have been incoherent, so `powershell` is not in `installers` in
-`dist-workspace.toml`. On Windows, use Scoop or WinGet, or download the `.zip` and
-verify it against `sha256.sum`.
+`dist-workspace.toml`. On Windows, download the `.zip` and verify it against
+`sha256.sum`; Scoop and WinGet templates remain inactive until submitted and accepted.
 
 The embedded digests are not automatic. `dist build --artifacts=global` learns them
 from the `*-dist-manifest.json` files each per-target build leaves in `target/distrib`;
@@ -136,7 +167,7 @@ The temporary source tree lives outside that cache and has its own Git objects,
 so cache cleanup and pruning the original repository cannot remove its source or
 history. Build tools remain trusted: read-only permissions protect ordinary edits,
 but the same owner could deliberately change permissions and rewrite the copy.
-The source archive includes `.jev-source.json`, recording the original base revision,
+The rehearsal's source archive includes `.jev-source.json`, recording the original base revision,
 whether the working tree differed at capture, and each source file's hash.
 The captured build tree is checked against the archive. Newly added source and
 documentation must be staged first; untracked files are excluded. This avoids

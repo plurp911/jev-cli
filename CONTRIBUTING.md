@@ -60,7 +60,8 @@ Bootstrap does not install these Python packages; doctor checks processor constr
 
 Read the summary. A `skip` line means a check did not run; it does not mean the check
 passed. Git hooks are local to each clone and can be bypassed. The person pushing must
-confirm that verification ran and passed. GitHub does not run CI for this repository.
+confirm that verification ran and passed. GitHub runs no automatic CI for ordinary
+changes; the separately authorized manual release workflow checks release artifacts.
 
 ## Making a change
 
@@ -93,6 +94,10 @@ These are not style preferences.
 - **`unsafe`.** The workspace forbids it.
 - **A claim about TypeSafe API behaviour without a citation** to the official
   documentation. Recollection is not a source. See `AGENTS.md` §6.
+- **A claim about a Clef provider without its primary source.** Read the selected
+  provider's contract in the current session; hosted, Ollama, llama.cpp and the
+  explicit Python bridge have different capabilities. See `AGENTS.md` §6 and
+  [the Clef development guide](docs/development/clef-live-testing.md).
 - **An unjustified dependency.** See `AGENTS.md` §7.
 - **Copied code from another project.** Read it, understand it, write your own. See
   `AGENTS.md` §8.

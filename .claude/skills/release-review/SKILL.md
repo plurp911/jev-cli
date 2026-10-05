@@ -60,7 +60,9 @@ git log --oneline "$(git describe --tags --abbrev=0 2>/dev/null || git rev-list 
   bump? A removed or renamed JSON field, a repurposed exit code, or a changed flag
   meaning is a **major** change.
 - Are all crate versions consistent?
-- Does the changelog claim anything that is not actually implemented?
+- Does the changelog claim anything that is not actually implemented? Clef/Flash,
+  hosted vision, and local prepared-video capabilities differ by provider; do not
+  describe bridge controls as Cloudflare hosted features.
 
 ## 2. The build
 
@@ -75,6 +77,10 @@ cargo build --workspace --locked --release
   `strip = "symbols"`.
 - Is `Cargo.lock` committed and current?
 - Do the target platforms in `.github/workflows/release.yml` still match ADR-0005?
+- Did the local bridge, provider/media process tests, source/provenance tests, and
+  actual decoder/processor checks run? A missing processor dependency is unverified
+  coverage; fake inference is not a live model result. Platform claims require those
+  platforms, and optional live inference requires its own explicit authorization.
 
 ## 3. Artifacts
 
@@ -89,6 +95,13 @@ For each platform the release claims to support:
 ./target/release/jev --help
 ./target/release/jev doctor
 ```
+
+The Clef Python bridge ships in the source repository/archive and runs separately
+from the installed binary. Inspect the actual archive and installers: they must not
+silently package/download weights, provision Python dependencies, launch a server,
+or imply that the bridge is embedded in every platform binary. Review source contents
+and attribution against ADR-0015, `docs/clef.md`, and the local setup guide. Publisher
+code and weights prepared by a user are not project-owned release assets.
 
 ## 4. Integrity
 
@@ -108,6 +121,14 @@ Verify an attestation as a user would:
 ```sh
 gh attestation verify <artifact> --repo plurp911/jev-cli
 ```
+
+Use `scripts/release-dry-run.sh` for the host archive/checksum/installer/source
+rehearsal and inspect its source-snapshot receipt. An archive hash identifies those
+archived bytes; it does not prove that an earlier Python live run executed the same
+source. `scripts/clef_provenance.py` records the separate executing-source evidence.
+Model/weight hashes and runtime profiles are also separate identities. Keep historical
+live/quality receipts immutable, identify their original sources, and avoid presenting
+synthetic quality cases as production accuracy or cross-platform proof.
 
 If reproducibility has not actually been verified end to end, the release notes must not
 claim reproducible builds. ADR-0005 states it as a goal, not a claim.

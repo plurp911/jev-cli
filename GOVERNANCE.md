@@ -2,8 +2,9 @@
 
 ## What this project is
 
-`jev` is an independent, community-maintained CLI for TypeSafe AI's System One API. It
-is not a TypeSafe product, and TypeSafe has no control over it. The aspiration is to
+`jev` is an independent, community-maintained CLI for TypeSafe AI's System One API,
+with explicitly selected Cloudflare Clef and Clef Flash providers and separately
+managed local inference. It is not a TypeSafe or Cloudflare product. The aspiration is to
 become the CLI the community converges on; that is earned through reliability, not
 claimed through branding.
 
@@ -40,7 +41,8 @@ that makes a decision auditable later.
 ## Scope discipline
 
 The hardest ongoing job here is saying no. A feature request is evaluated against
-whether it makes `jev` a better *interface to System One from a shell*, not against
+whether it makes `jev` a better *interface to System One and the explicitly supported
+Clef providers from a shell*, not against
 whether it is useful in general. Adjacent functionality belongs in another tool that
 pipes into this one.
 

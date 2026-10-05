@@ -81,8 +81,9 @@ connected. The tools are convenient for trying a question on a few inputs, but a
 evidence has to be rerunnable, and it should not flow through your context: that means
 `jev eval` and `jev map --output-file`, from a shell.
 
-`jev eval` and `jev map` send one request per row and bill the user's credential. Three
-checks come first, and any of them can end the pilot at zero cost:
+`jev eval` and `jev map` send one request per evaluated row to the selected endpoint.
+Hosted billing depends on that provider; loopback inference needs no credential and
+uses the separately managed runtime's resources. Three checks come first:
 
 1. **Is the output bounded?** A yes/no, one of a named set, or a position on a described
    scale. If the step needs prose, a plan, code, a summary, or a chain of inference, Jev
@@ -192,7 +193,9 @@ explicitly require the responsible data owner's approval of the minimised state 
 destination before transmission. Scrubbing alone is not authorisation.
 
 **One row is a sample; the batch is every row.** Before `map` or `eval`, scan all of the
-rows locally for the same things, counting by kind as above, and tell the user how many rows, and so how many billed requests, are about to be sent.
+rows locally for the same things, counting by kind as above, and tell the user how
+many inference requests are planned and which provider/runtime will receive them.
+Include explicitly supplied images/frames in this review; they are transmitted inputs too.
 Send on their go-ahead, not on the strength of the one row you looked at.
 
 **When you report what you found, name the kind, never the value.** "Every row carries a
@@ -245,7 +248,7 @@ cannot be run, say so and mark the comparison as missing rather than assuming.
 The measurement is `jev eval`, in step 8. It sends each labelled row once, and with
 `--show-rows` its report keeps each reported row's label and answer — the answers its
 metrics were computed from. Do not also `jev map` the same rows as a matter of course:
-that is a second bill and a second draw, and its answers are not the ones that were
+that is another inference request (and another hosted charge when applicable) and a second draw, and its answers are not the ones that were
 scored.
 
 `jev map` is for what `eval` does not keep. The report records each answer, not its
@@ -259,8 +262,16 @@ jev --model jev-1.13.0 map -r pilot/request.json -i pilot/error-rows.jsonl \
 ```
 
 **Pin the model.** `jev-latest` moves, and a result recorded against a moving alias
-cannot be compared to anything later. Record the `model` the response reports, which is
-what actually answered.
+cannot establish immutable model identity. Record the selected provider and endpoint,
+and the `model` the response reports, which is
+what actually answered. For local Clef, an alias or reported model string does not prove
+which weights ran. Retain a separate manifest of runtime version, model release
+revision/digest, and quantization/processor settings when available; mark missing
+identity as unverified rather than inventing fields in a `jev eval` report. The
+[provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md)
+locates setup/provenance guidance. Calibration belongs to this provider/model,
+question, media controls, and data distribution; a TypeSafe threshold is not
+validated for Clef.
 
 Keep the full report and answers. The distribution is the thing you came for;
 flattening to a label before the analysis means paying again to get it back. Keep them
@@ -348,7 +359,8 @@ another pass.
 Jev against the incumbent, on the dimensions that matter here: quality on the agreed
 metric, the escalated or uncertain fraction, latency, usage actually recorded, coverage,
 operational complexity, and what happens when the service is unavailable. Weigh
-credentials, network failure behavior, model-version pinning, recurring billing and
+provider credentials or local runtime management, network failure behavior, model
+identity, hosted billing or local resource use, and
 recalibration on releases against any measured benefit, including a tie at low volume.
 Say which ones you could not measure.
 

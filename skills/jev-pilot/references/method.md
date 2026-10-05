@@ -79,9 +79,10 @@ declares:
 {"schema":"jev.eval.row/v1","id":"T-1","state":"…","labels":{"urgent":true,"team":"billing"}}
 ```
 
-Of a row's fields only `state` is sent — with the request file's `model` and
-`questions`; labels are compared locally after the answer comes
-back. A Noul label is `true`/`false`, a Choice label is one of that question's option
+A row's `state` and explicitly supplied `images`/`videos` are sent with the request
+file's model, questions, and selected provider options. Labels are compared locally
+after the answer comes back; row `id` and `schema` are local dataset metadata.
+Unsupported media is rejected for the selected provider before transmission. A Noul label is `true`/`false`, a Choice label is one of that question's option
 names exactly, and a Score label is a level index from `0`. Validation is total and
 happens before anything is sent — an unknown question id or an undeclared option is
 refused rather than skipped, which is what stops a row looking scored when it was not.
@@ -232,7 +233,7 @@ the one justified revision, `REVISE AND RE-EVALUATE`, naming what was wrong; aft
 | Latency | measured during the run | your network, that day |
 | Usage | `usage` in the responses | tokens, not a bill — a price is not in the data |
 | Coverage | rows answered / rows sent | failures are part of the result |
-| Operational complexity | what has to exist | a credential, a network dependency, a version to pin |
+| Operational complexity | what has to exist | hosted credentials/service or a separately managed local runtime and weights; provider, runtime, and model identity to record |
 | Behaviour when unavailable | design | which direction the workflow fails in |
 
 **Say which dimensions you could not measure.** A blank is information; a guess is not.

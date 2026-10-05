@@ -9,12 +9,12 @@ PackageName: jev
 PackageUrl: https://github.com/plurp911/jev-cli
 License: MIT OR Apache-2.0
 LicenseUrl: https://github.com/plurp911/jev-cli/blob/main/LICENSE-MIT
-ShortDescription: An unofficial, community CLI for TypeSafe's System One API and the Jev model.
+ShortDescription: An unofficial, community CLI for TypeSafe Jev and Cloudflare Clef.
 Description: >-
   jev is an independent, community-maintained command-line interface for TypeSafe AI's
-  System One API and the Jev model. It is not affiliated with, sponsored by, or endorsed
-  by TypeSafe AI. It asks bounded semantic questions -- yes/no, one-of-a-set, or a
-  position on a described scale -- and returns typed answers with calibrated
+  System One API and Jev, plus explicitly selected hosted/local Clef and Clef Flash.
+  It is not affiliated with, sponsored by, or endorsed by TypeSafe AI or Cloudflare. It asks bounded semantic questions -- yes/no, one-of-a-set, or a
+  position on a described scale -- and returns typed answers with
   probabilities, as structured JSON a script can branch on.
 Tags:
   - ai

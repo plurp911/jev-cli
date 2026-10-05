@@ -14,8 +14,8 @@ use crate::wire;
 
 /// The `User-Agent` this CLI identifies itself with.
 ///
-/// A distinct agent string lets TypeSafe distinguish this community tool from their own
-/// SDKs in their logs, which matters if `jev` ever misbehaves at scale. It carries the
+/// A distinct agent string lets the selected provider distinguish this community tool
+/// from its own SDKs in its logs, which matters if `jev` ever misbehaves at scale. It carries the
 /// version and nothing about the user or the machine.
 #[must_use]
 pub fn user_agent() -> String {
@@ -90,7 +90,8 @@ pub struct CallStats {
     pub elapsed: Duration,
     /// The final HTTP status, when a response arrived.
     pub status: Option<u16>,
-    /// The API's own identifier for the final attempt, from `x-typesafe-request-id`.
+    /// The provider's identifier for the final attempt: `x-typesafe-request-id`, or
+    /// Cloudflare's `cf-ray`.
     ///
     /// Documented at <https://docs.typesafe.ai/sdk/python/api/exceptions.md>, where the
     /// official SDK exposes it as `TypeSafeAPIError.request_id` and appends it to every
@@ -167,7 +168,8 @@ impl<T: Transport, C: Clock> Client<T, C> {
     ///
     /// Exposed so that `--dry-run` shows the user the real bytes rather than a
     /// reconstruction. The credential is not part of a [`Request`], so this value is
-    /// safe to print in full.
+    /// free of authentication material. It still contains the user-supplied state
+    /// and media, so callers must treat a full preview as sensitive content.
     ///
     /// # Errors
     ///
@@ -362,7 +364,8 @@ impl<T: Transport, C: Clock> Client<T, C> {
 /// cannot describe a request that differs from the one a real run would send: the URL,
 /// the method, the header set, and the body bytes all come from here in both cases.
 ///
-/// The credential is not part of a [`Request`], so the result is safe to print in full.
+/// The credential is not part of a [`Request`]. The result still contains the
+/// user-supplied state and media, so a full preview is sensitive content.
 ///
 /// # Errors
 ///

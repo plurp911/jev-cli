@@ -218,10 +218,13 @@ look.
   command line. Name the decision and the primitive; the syntax belongs to the `jev`
   skill and the question design to the official `typesafe-ai` skill.
 - A threshold presented as validated.
-- A finding whose input is not text — images, audio, video, scanned documents. Say the
-  OCR or transcription problem comes first and is a separate decision. Numeric fields in
-  otherwise structured state do not belong on this list; arithmetic over them is excluded
-  by bar 4, not by modality.
+- A finding requiring a modality the selected provider cannot accept. Cloudflare/Ollama
+  Clef support bounded image judgments; the project Hugging Face bridge also accepts
+  prepared frames. TypeSafe and llama.cpp Clef remain text-only here; audio is unsupported.
+  OCR/transcription is a separate option when extracted text is needed. Check the
+  [provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md),
+  and do not discover or upload media while auditing. Numeric fields in structured state
+  are ordinary input; arithmetic over them is excluded by bar 4, not modality.
 - A proposal to bound the core output of a product whose job *is* generation.
 - A finding at a place the repository already calls TypeSafe or `jev`. Say it is already
   done.

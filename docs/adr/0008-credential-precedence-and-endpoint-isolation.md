@@ -6,6 +6,16 @@
   Everything else in ADR-0002 — no plaintext fallback, no credential as an argument,
   `Secret` redaction and zeroization — stands unchanged.
 
+## Current-status amendment (2026-10-05)
+
+[ADR-0015](0015-clef-providers-and-vision.md) adds explicit provider protocols
+without weakening endpoint credential isolation. The original non-official
+credential order below applies to Cloudflare and explicit remote providers.
+Explicit local protocols on loopback instead use anonymous credentials: neither
+the TypeSafe nor custom environment sources nor the OS store are consulted,
+and no authorization header is sent. Selecting a loopback URL alone for the
+TypeSafe protocol does not enable this local-provider behavior.
+
 ## Context
 
 ADR-0002 fixed the set of credential sources and the rule that there is no plaintext

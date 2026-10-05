@@ -99,6 +99,26 @@ found a credential leak. Treat it as a security incident, not a test failure.
 A `proptest` failure writes a seed to `proptest-regressions/`. **Commit it.** Reproduce
 with the `cc` line the failure printed.
 
+### Clef bridge, media, and provenance
+
+Full verification includes the offline provider/media process suite and the bridge,
+live-harness, synthetic-quality, execution-provenance, runtime-profile, model-integrity,
+and source-snapshot tests. These tests download no weights and call no provider.
+A passing fake-inference test is not a live inference result.
+
+The real decoder/processor checks use `JEV_CLEF_PYTHON` when explicitly set; otherwise
+normal mode reports unavailable Pillow/Transformers as skips and push mode fails.
+Prepare the interpreter through `docs/development/clef-live-testing.md` instead of
+removing the check. Reproduce with that interpreter and:
+
+```sh
+"${JEV_CLEF_PYTHON:-python3}" scripts/test-clef-server.py --real-processor --real-pillow
+```
+
+These checks use synthetic media without loading model weights. Paid/real inference
+and model downloads remain separately authorized operations, outside verification.
+Report actual processor coverage separately from a skipped dependency check.
+
 ### `docs`
 
 `RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps --all-features`. Usually a
@@ -115,8 +135,8 @@ lockfile. If a dependency changed and you did not intend it, find out why.
 | --- | --- | --- |
 | `advisories` | A dependency has a RustSec advisory | Update it. Do not add it to `ignore`. |
 | `licenses` | A licence is not on the allow-list | Find another crate. Adding a licence is a security review. |
-| `bans` | A banned crate entered the tree (`openssl`, `tokio`, `libloading`) | Find out which dependency pulled it in: `cargo tree -i <crate>`. Removing a ban needs an ADR. |
-| `sources` | A git or path dependency reached the release graph | Not allowed. |
+| `bans` | A banned crate or unapproved runtime edge entered the tree (`openssl`, `tokio`, `libloading`) | Find out which dependency pulled it in: `cargo tree -i <crate>`. Removing a ban needs an ADR; existing reviewed `tokio` wrapper exceptions are confined to MCP (ADR-0012). |
+| `sources` | An unapproved registry or Git dependency reached the release graph | Not allowed. |
 
 ### `spelling` (typos)
 

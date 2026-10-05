@@ -11,11 +11,10 @@ frames and processor controls are supported through the bridge. See
 
 > [!IMPORTANT]
 > **This is an independent, community-maintained project.** It is not affiliated with,
-> sponsored by, or endorsed by TypeSafe AI. "TypeSafe", "System One", and "Jev" are
-> used descriptively to say what this tool talks to. For anything authoritative about
-> the model or the API — behaviour, pricing, availability, support — see the
-> [official TypeSafe documentation][typesafe-docs]. If TypeSafe ever formally endorses
-> this project, this notice will say so; until then, assume it has not.
+> sponsored by, or endorsed by TypeSafe AI or Cloudflare. Provider and model names are
+> used descriptively. For authoritative model and API information, see the
+> [official TypeSafe documentation][typesafe-docs] and
+> [Cloudflare's Clef documentation](https://developers.cloudflare.com/workers-ai/models/clef/).
 
 > [!WARNING]
 > **Pre-1.0.** The current version is `0.3.0`. Exit codes and JSON documents may still
@@ -41,8 +40,8 @@ jev=./jev-cli-x86_64-unknown-linux-gnu/jev
 ```
 
 See [Install jev](docs/install.md) for Linux ARM, macOS, Windows, and source builds.
-`doctor` does not contact the API unless you pass `--live`. To ask a question, first
-store your TypeSafe API key with `"$jev" auth login`, then run:
+`doctor` does not contact the API unless you pass `--live`. For the default TypeSafe
+provider, first store your TypeSafe API key with `"$jev" auth login`, then run:
 
 ```sh
 "$jev" choice "Which team should handle this?" \
@@ -87,8 +86,9 @@ whole probability distribution, and it makes what leaves your machine auditable.
   `jev guard`. Those bake in a prompt and a threshold that were never evaluated on
   *your* data. `jev` gives you the primitives and a request-file format so you can write
   them, review them, and commit them.
-- **Not a multi-provider gateway.** It talks to the TypeSafe API. Custom endpoints are
-  supported for proxies and local testing, behind a separate credential namespace.
+- **Not an arbitrary model gateway.** It supports TypeSafe and the explicitly selected
+  Clef providers described in [the provider guide](docs/clef.md). An endpoint override
+  keeps the selected provider's protocol and uses a separate credential namespace.
 - **Not a certainty machine.** Typed output guarantees the interface, not the truth.
   Validate performance on your own data before you rely on a threshold — that is what
   [`jev eval`](docs/commands.md#jev-eval) is for.
@@ -131,6 +131,9 @@ guide](docs/release-verification.md) for the integrity and provenance checks.
 
 ## Authenticate
 
+The following TypeSafe examples assume the default provider configuration. Use
+`--provider typesafe` to select it explicitly if you have saved another provider.
+
 Interactively, into your operating system's credential store:
 
 ```console
@@ -158,7 +161,55 @@ Check what it can see, without making a network call:
 $ jev doctor
 ```
 
+## Choose a Clef provider
+
+Select a provider explicitly; `clef` is its default model and `--model clef-flash`
+selects Flash. For hosted inference, obtain a Workers AI token through
+[Cloudflare's REST setup](https://developers.cloudflare.com/workers-ai/get-started/rest-api/),
+then supply it through `JEV_CUSTOM_API_KEY` or `JEV_CUSTOM_API_KEY_FILE` from your
+secret manager. Cloudflare never uses your TypeSafe key or OS credential store.
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID=0123456789abcdef0123456789abcdef
+# Configure JEV_CUSTOM_API_KEY or JEV_CUSTOM_API_KEY_FILE through your secret manager.
+jev --provider cloudflare --model clef-flash noul 'Is this urgent?' \
+  --state 'Checkout is failing for every customer.' --output json
+jev --provider cloudflare --image screenshot.png noul 'Is an error visible?' \
+  --state 'Application screenshot' --dry-run
+```
+
+For local inference, install and start the chosen server and download its compatible
+weights separately. `jev` does not install a runtime, download weights, start a
+server, or switch to a hosted provider when a local server is unavailable.
+Once Ollama with vision weights or a compatible llama.cpp server is running:
+
+```sh
+jev --provider ollama --model clef-flash --image screenshot.png \
+  noul 'Is an error visible?' --state 'Application screenshot'
+jev --provider llamacpp --model clef noul 'Is this urgent?' --state 'Checkout is down.'
+```
+
+The separately started [publisher Python bridge](docs/clef.md#publisher-python-weights-and-video)
+supports images and prepared video frames. With that bridge running as `clef-flash`:
+
+```sh
+jev --provider huggingface --model clef-flash --timeout 600 --retries 0 \
+  --video-frame frame-001.png --video-frame frame-002.png --video-fps 2 \
+  noul 'Does the object move to the left?' --state 'Ordered video frames'
+```
+
+Prepare frames explicitly; the CLI does not decode video files. Loopback local
+providers use no credential, but privacy also depends on whether the chosen server
+forwards requests. See [Clef setup and capabilities](docs/clef.md) for model loading,
+limits, processor controls, batch/evaluation examples, and verification evidence.
+The [retained hosted/local image checks](docs/development/clef-live-testing.md#recorded-results)
+passed their narrow synthetic cases. Successful `--reject-if-busy` capacity
+rejection remains unverified. CLI support does not establish model inference on
+every operating system.
+
 ## First question
+
+These examples use TypeSafe's Jev model with the default provider configuration.
 
 A **Noul** — does a condition hold?
 
@@ -254,9 +305,11 @@ An example copied straight out of <https://docs.typesafe.ai/api> runs unchanged.
 | a pipe | nothing — stdin is the default |
 | structured context | `--state-json '{"subject":"…","body":"…"}'` or `--state-json-file path` |
 
-Empty input, invalid UTF-8, binary files, oversized input, malformed JSON, and bad
-question definitions are all rejected **before** a request is sent, so a mistake costs
-no tokens. Input is never silently truncated.
+Invalid UTF-8, binary text files, oversized input, malformed JSON, and invalid
+question definitions are rejected **before** a request is sent. TypeSafe requires
+nonempty state; [Clef input requirements](docs/clef.md) vary by provider. The CLI
+never silently truncates input bytes; the selected provider's encoder can truncate
+text state as described in that guide.
 
 ## In a script
 
@@ -303,9 +356,11 @@ Full detail: [`docs/cli-contract.md`](docs/cli-contract.md).
 
 Plainly, because it matters:
 
-- **The `state` you supply is transmitted to the configured API endpoint** — by default
-  `https://api.typesafe.ai` — whenever a request runs. So are your instructions and your
-  option and level descriptions.
+- **The `state` you supply is transmitted to the selected provider's endpoint** — by
+  default `https://api.typesafe.ai` — whenever a request runs. So are your instructions,
+  option and level descriptions, and any explicitly supplied images or video frames.
+  Local server forwarding and model configuration determine whether loopback requests
+  stay on your machine.
 - Run `jev noul … --dry-run` to see the exact bytes that would be sent, without sending
   them or reading your credential.
 - `jev` reads **no file you did not name**. It does not walk directories, expand globs
@@ -397,10 +452,12 @@ codex mcp add jev -- jev mcp serve                        # Codex
 grok mcp add jev -- jev mcp serve                         # Grok CLI
 ```
 
-It uses stdio only, with no port and no daemon, and it reuses the credential from
-`jev auth login`, so no key goes into any MCP configuration. The state you pass is sent
-to TypeSafe, as it is from the command line. Cursor setup, the tool schemas, limits, and
-when to prefer the CLI are in [`docs/mcp.md`](docs/mcp.md).
+It uses stdio only, with no port and no daemon. TypeSafe uses the same credential
+sources as the CLI, including `jev auth login`; Cloudflare uses the custom key
+namespace, and loopback local providers use no key. The provider is fixed at server
+startup, for example `jev --provider ollama mcp serve`. Supplied state and embedded
+media go to that provider's endpoint as they do from the command line. Cursor setup,
+the tool schemas, limits, and when to prefer the CLI are in [`docs/mcp.md`](docs/mcp.md).
 
 ## Shell completions
 
@@ -415,6 +472,7 @@ $ jev completions fish > ~/.config/fish/completions/jev.fish
 | Document | What is in it |
 | --- | --- |
 | [`docs/commands.md`](docs/commands.md) | Every command and flag. |
+| [`docs/clef.md`](docs/clef.md) | Hosted/local Clef setup, images, prepared video, provider limits, and evidence. |
 | [`docs/mcp.md`](docs/mcp.md) | `jev mcp serve`: host setup, tools, limits, troubleshooting. |
 | [`docs/output-schema.md`](docs/output-schema.md) | The JSON contract, document by document. |
 | [`docs/cli-contract.md`](docs/cli-contract.md) | What is stable, exit codes, environment, configuration. |

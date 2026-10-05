@@ -21,10 +21,14 @@
 //!
 //! # Wire compatibility
 //!
-//! Request and response shapes follow the official HTTP API reference at
+//! TypeSafe request and response shapes follow the official HTTP API reference at
 //! <https://docs.typesafe.ai/api>, cross-checked against the official Python SDK.
 //! Fixtures recorded from the documented examples are in
 //! `crates/jev-client/tests/compatibility.rs`; they fail if decoding drifts.
+//! Clef adapters use the selected provider's own routes, image encodings, limits,
+//! and response envelopes. Their primary sources and compatibility evidence are
+//! recorded in `docs/clef.md` and `docs/development/clef-research.md`.
+//! Loopback local providers use [`Credential::anonymous`] and send no authorization.
 
 mod client;
 mod credential;

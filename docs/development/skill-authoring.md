@@ -44,7 +44,8 @@ scripts/skill-authoring-setup.sh --check  # verify only; no network, no writes
 scripts/skill-authoring-setup.sh --list   # what the lockfile pins
 ```
 
-Restart Claude Code afterwards so it discovers the new skills.
+Restart the agent runtime when its skill discovery requires it; any runtime can
+read the canonical `.claude/skills/<name>/SKILL.md` directly.
 
 The script clones each pinned commit into the gitignored `references/07-skill-authoring/`
 and copies the listed skill directories, verbatim, into `.claude/skills/`, each with the
@@ -91,6 +92,25 @@ and either raise it upstream or write our own skill next to it.
 ---
 
 ## 3. Which tool for which job
+
+Before changing a shipped skill, read the relevant canonical authoring skills and
+these primary sources in the same session:
+
+- [Open Agent Skills specification](https://agentskills.io/specification): portable
+  metadata, directory layout, and reference paths; this is our packaging authority.
+- [Anthropic authoring best practices](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices):
+  concise instructions, task-dependent freedom, shallow references, and evaluated examples.
+- [Superpowers writing-skills](https://github.com/obra/superpowers/tree/main/skills/writing-skills):
+  observed baseline failure, minimum intervention, and pressure/counterexample tests.
+
+Read pinned `skill-creator`, `writing-skills`, its prerequisite
+`test-driven-development`, and `verification-before-completion` from `.claude/skills/`.
+Use their relevant methodology through our portable GPT-6.1 Sol high harness; their
+Claude-specific commands do not require running a Claude evaluation. Keep the pinned
+copies unmodified and use `scripts/skill-authoring-setup.sh --check` to detect drift.
+If a suggested format differs from the open specification or repository invariants,
+apply `AGENTS.md` and the specification rather than importing the runtime-specific rule.
+
 
 | You are… | Use |
 | --- | --- |
@@ -231,6 +251,16 @@ historical Claude adapter refuses unsupported selected graders before any model
 call. Forbidden
 read attempts count against negative tool graders even when the adapter refuses
 the read. `scripts/test-skill-eval-codex.py` tests these invariants without model calls.
+
+For a provider/documentation audit, use a focused set covering each changed fact and
+both trigger directions before selecting a full suite. Keep the original candidate,
+case/fixture/grade bytes, and receipts immutable. Distinguish source-proven factual
+corrections from new workflow rules: existing text such as "only state is sent" can
+be checked against actual media-bearing request construction. Explore the unchanged
+skill before editing and report a correct baseline honestly; it does not establish
+an improvement. Confirmation still needs repeated with/no-guide controls. Keep fresh
+audit outputs under a unique `target/` directory rather than replacing historical
+receipts, and do not tune held-out prompts or graders after observing their results.
 
 **One model, two depths.** `scripts/skill-eval.sh --iterate` runs one pass with no
 baseline arm, on the same model results are quoted from — roughly a sixth of a default

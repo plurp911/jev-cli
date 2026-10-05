@@ -19,7 +19,7 @@ Project skills live in `.claude/skills/` and are invoked with `/<name>`.
 | `/typesafe-ai` | **Official TypeSafe skill.** Any question about Jev, System One, `Choice`, `Score`, `Noul`, question design, confidence, or the API. Authoritative — see `AGENTS.md` §6. |
 | `/verify` | Before claiming any work is complete, and whenever a check fails and you need to diagnose it rather than silence it. |
 | `/security-review` | Any change touching credentials, the network, untrusted input, output rendering, workflows, or release configuration. |
-| `/api-compat` | Any change to what `jev` sends to or expects from the TypeSafe API. |
+| `/api-compat` | Any change to what `jev` sends to or expects from the TypeSafe API or a selected Clef provider; use that provider's primary sources under `AGENTS.md` §6. |
 | `/release-review` | Assessing release readiness. It never publishes anything. |
 
 The `typesafe-ai` skill is vendored from `typesafe-ai/skills` and pinned in

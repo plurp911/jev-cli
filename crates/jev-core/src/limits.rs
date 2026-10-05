@@ -1,9 +1,8 @@
-//! Documented limits of the TypeSafe System One API, and the client-side bounds `jev`
-//! applies on top of them.
+//! Documented provider limits and the client-side bounds `jev` applies on top.
 //!
 //! # Provenance
 //!
-//! Every constant marked *API* is transcribed from the official documentation, which
+//! The TypeSafe constants marked *API* are transcribed from its documentation, which
 //! was re-fetched and compared byte-for-byte against
 //! `references/05-typesafe-docs/pages/` on 2026-09-19:
 //!
@@ -31,7 +30,7 @@
 /// and says so, exactly as it does for a one-option [`CHOICE_MIN_OPTIONS`] Choice.
 pub const SCORE_MIN_LEVELS: usize = 2;
 
-/// *API.* Most levels a Score question may define.
+/// *API.* Default Score maximum for TypeSafe, Cloudflare, and llama.cpp.
 pub const SCORE_MAX_LEVELS: usize = 10;
 
 /// *Client.* Absolute supported Score level bound across providers.

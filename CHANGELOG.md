@@ -16,6 +16,12 @@ policy, use `AGENTS.md` and [ADR-0014](docs/adr/0014-manual-release-gate.md).
 
 ## [Unreleased]
 
+### Fixed
+
+- Documentation and agent guidance now consistently describe the selected Clef
+  provider, transmitted images/video, isolated credentials, local runtime lifecycle,
+  provider limits, model pinning, test provenance, and the published 0.3.0 release.
+
 ## 0.3.0 — 2026-10-05
 
 ### Added

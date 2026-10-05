@@ -15,8 +15,8 @@ pub struct EvaluationResponse {
     /// The model the API says answered.
     ///
     /// This may differ from the model requested: an alias such as `jev-latest` resolves
-    /// to a versioned identifier. Recording it is the only way to reason later about a
-    /// threshold that was calibrated against a particular version.
+    /// to a versioned identifier. Record it when calibrating thresholds. A Clef
+    /// name or local alias does not establish weight or runtime identity.
     pub model: ModelId,
     /// One answer per question, keyed by the id from the request.
     pub answers: Vec<(QuestionId, Answer)>,
@@ -49,14 +49,14 @@ impl EvaluationResponse {
     }
 }
 
-/// One entry from `GET /v1/models`.
+/// One normalized entry from the selected provider's model listing.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModelCard {
     /// The identifier or alias accepted by a request's `model` field.
     pub name: String,
     /// What the model is for.
     pub description: String,
-    /// Release date, formatted `YYYY-MM-DD` by the API.
+    /// Release date as reported by the provider, or an empty string if unknown.
     ///
     /// Kept as the string the API sent rather than parsed into a date type: `jev` only
     /// displays it, and a parser here would turn an unexpected format into a failure

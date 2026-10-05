@@ -31,3 +31,14 @@ that it covers the published bytes.
 - A release artifact exists only after a human authorizes that specific release.
 - Local verification remains the only routine gate; the manual workflow does not
   replace automatic CI for ordinary changes. See [ADR-0013](0013-local-verification.md).
+
+## Current-status amendment (2026-10-05)
+
+The guarded workflow published v0.3.0 from
+`3d914e0cd747231abc631681725872381f836ce9`; all 16 jobs in
+[run 37344551204](https://github.com/plurp911/jev-cli/actions/runs/37344551204)
+passed. Downloaded checksums and release-tag provenance were verified for all five
+platform archives. The separately uploaded inspection receipt is unsigned and
+does not extend the attestation scope to the source archive or SBOM. This records
+the gate's execution, not authorization for another release. See
+[release verification](../release-verification.md#recorded-v030-release).

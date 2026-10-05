@@ -26,6 +26,8 @@ apply unchanged.
 
 ## Set up
 
+The following setup uses the default TypeSafe provider. For Clef, use
+[provider startup and credential settings](clef.md).
 First make sure `jev` works from a terminal:
 
 ```sh
@@ -168,8 +170,8 @@ All five tools:
 - **Annotations.** `readOnlyHint: true`, `destructiveHint: false`,
   `idempotentHint: false`, `openWorldHint: true`. The spec gives `destructiveHint` and
   `idempotentHint` meaning only when `readOnlyHint` is false, so a host may ignore them;
-  they are set because they are true, since a repeated call is another billed request and
-  another sample from a probabilistic model. All four are hints to the host, not a
+  they are set because they are true, since a repeated call is another inference request, potentially billed by a hosted
+  provider, and another sample from a probabilistic model. All four are hints to the host, not a
   security boundary. The boundary is that the server has no
   code that writes a file, runs a command, or changes configuration.
 
@@ -403,7 +405,9 @@ actually attempted.
 This is a small sample on one host and one model. It shows the descriptions steer
 correctly on these cases; it does not prove they do everywhere. The eval costs about
 $0.08 per case on the caller's Claude credential, is not part of `scripts/verify.sh`,
-and sends nothing to TypeSafe.
+and sends nothing to the selected Jev inference endpoint. The transcript goes to the evaluator
+model service. These dated measurements are historical, not new Clef tool-selection
+evidence.
 
 ---
 
@@ -428,8 +432,10 @@ The Inspector, like other clients built on the MCP TypeScript SDK, passes the se
 only a short allow-list of environment variables, so a key in the environment reaches
 `jev` only through `-e`. `jev auth login` needs nothing.
 
-A `tools/call` through the Inspector against your real configuration is a real, billed
-TypeSafe request.
+A `tools/call` against your real configuration sends state and supplied media to
+the selected inference endpoint. Hosted usage can be billed; local runtime execution
+consumes local resources. Forward Cloudflare custom credential variables and its
+account ID by name when selecting that provider. Loopback local providers need no key.
 
 ---
 
@@ -441,8 +447,8 @@ TypeSafe request.
 | Every call returns `kind: "auth"` | No credential in the host's environment. Run `jev auth login`, or forward `TYPESAFE_API_KEY` (Codex: `env_vars`). `jev doctor` from a terminal shows what `jev` can see. |
 | `kind: "auth"` although `TYPESAFE_API_KEY` is exported | The host did not pass it on. Hosts built on the MCP TypeScript SDK's defaults, and Codex, give a server only a short allow-list of variables such as `PATH` and `HOME`. Forward the variable in the host's configuration by name (Codex: `env_vars`), or use `jev auth login`. |
 | `secure credential storage is unavailable` | The host started `jev` without access to the OS credential store: over SSH, in a container, or with a restricted environment. Use `TYPESAFE_API_KEY`. |
-| `kind: "auth"` with a custom endpoint | By design: a non-official endpoint reads only `JEV_CUSTOM_API_KEY`, never your TypeSafe key. |
-| `kind: "unavailable"` | The API was slow, rate limiting, or down after the configured retries. Raise `--timeout` or `--retries` in the host's `args`, or retry later. |
+| `kind: "auth"` with Cloudflare or a remote custom endpoint | Set or forward `JEV_CUSTOM_API_KEY` or `JEV_CUSTOM_API_KEY_FILE`, and the Cloudflare account ID when applicable. TypeSafe keys and its OS store are not consulted. |
+| `kind: "unavailable"` | Check provider availability and the separately started local runtime. For slow CPU bridge inference, use an explicit deadline such as `--timeout 600 --retries 0`; the host tool timeout must allow that wait. A timeout/disconnect does not cancel PyTorch work already running. |
 | `map` refuses a batch | It is over a limit above. Split it, or use `jev map` from a shell. |
 | The connection drops right away | Something wrote to stdout. `jev` does not; check for a wrapper script that prints. The Inspector's `--method initialize` shows the first bytes. |
 | An old host cannot negotiate | The server accepts every revision back to 2024-11-05. Report the host and version in an issue. |

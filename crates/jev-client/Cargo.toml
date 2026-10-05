@@ -1,6 +1,6 @@
 [package]
 name = "jev-client"
-description = "Transport-agnostic TypeSafe System One client for the unofficial Jev CLI."
+description = "Transport-agnostic TypeSafe, Cloudflare, and local decision client for the unofficial Jev CLI."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

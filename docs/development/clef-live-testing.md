@@ -127,7 +127,12 @@ Provenance preflight requires descriptor-relative, no-follow file opening.
 Report creation also uses an exclusive, descriptor-relative, no-follow open;
 replacing a report parent with a symlink cannot redirect the write. Platforms
 without those filesystem primitives refuse before inference and may be unable to
-persist the refusal report; native Windows/macOS coverage remains unverified.
+persist the refusal report. Native Windows/macOS execution of these Python
+provenance helpers and model inference remains unverified. The later v0.3.0
+release workflow separately built all five CLI targets and ran native CLI smoke
+tests on Linux x86-64/ARM64, macOS ARM64 and Windows x86-64; that scope does not
+exercise these helpers or model inference. See
+[release verification](../release-verification.md).
 
 These are disk fingerprints, not proof of the serving process's loaded files or
 of a complete dependency inventory. The helper interpreter hash does not cover
@@ -323,11 +328,14 @@ driver or global runtime installation was made.
 
 ## Recorded results
 
-The [current verification receipt](clef-residuals-verification.json) records the finish condition,
-repository gate, independent reviews, cleanup, and remaining limits.
+The [residuals verification receipt](clef-residuals-verification.json) records that
+phase's finish condition, repository gate, independent reviews, cleanup, and limits.
+Its reports retain their recorded source bindings. The later
+[v0.3.0 publication inspection](../release-verification.md#recorded-v030-release)
+verifies the published CLI artifacts separately and ran no provider inference.
 
 The expanded matrix adds a real structured-question request to every provider.
-These current runs passed with no retries:
+The following recorded runs passed with no retries:
 
 | Provider and model | Passed cases | Reserved requests | Evidence |
 | --- | --- | --- | --- |
@@ -418,11 +426,15 @@ it loaded no weights and ran no inference. The unquantized 27B download exceeded
 this machine's available disk space. The
 [cross-platform checks](clef-live-results/cross-platform-checks.json) passed for
 core/configuration on Windows and macOS targets; whole-workspace checks stopped
-at missing native compiler/SDK requirements. Neither OS was executed here.
+at missing native compiler/SDK requirements. Neither OS was executed in that
+local inference phase.
 The subsequent [security-helper type check](clef-opus-review/cross-platform-security-typecheck.json)
 compiled the exact production macOS and Windows file-opening helpers against
 their real APIs and the workspace's dependency versions. This narrower proof
 does not establish an entire CLI build or native execution on either platform.
+The subsequent v0.3.0 release builds and native CLI smoke tests supply separate
+CLI evidence, while native model inference on those operating systems remains
+unverified. macOS x86-64 was built but had no native smoke test.
 
 The [hosted capacity recheck](clef-live-results/cloudflare-capacity-recheck.json)
 observed HTTP 422 / Cloudflare code 5012 for `rejectIfBusy` on both models, with
@@ -439,3 +451,13 @@ have separate source bindings; earlier live reports retain their original record
 provenance and coverage. No further provider inference was performed in the review
 phase. Raw review streams and evaluation answers are retained locally, as the
 receipt identifies, rather than included in the source archive.
+
+The later [focused skill follow-up](clef-followup-skill-evaluations.json) records
+60 fresh valid attempts across four new cases: the old guide passed 16/20,
+the updated guide 20/20, and the common no-guide control 5/20. This disclosed,
+frozen comparison used five repetitions per case and variant; its updated-guide
+run was development-only, not a standalone paired confirmation. It establishes
+neither native skill discovery nor broad reliability. The original 225 attempts,
+including 12 execution errors and nine candidate criterion failures, remain
+unchanged historical evidence; the follow-up does not regrade them or bind
+earlier inference to the updated guide.

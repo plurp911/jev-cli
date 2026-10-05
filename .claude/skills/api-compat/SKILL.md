@@ -101,8 +101,11 @@ deliberate omission, and deliberate omissions get a comment saying so.
 
 ### 4. Semantics, not just shape
 
-Wire compatibility is the easy half. These are the errors that produce plausible,
-wrong output:
+Wire compatibility is the easy half. The TypeSafe semantics below require its
+official sources. For Clef, read the selected provider/publisher sources separately,
+preserve its returned confidence, and verify interpretation/calibration on that model;
+TypeSafe semantics or measured thresholds do not establish another provider's contract.
+These are the errors that produce plausible, wrong output:
 
 - **A `Noul` is a probability of yes, not a confidence and not an intensity.** A value
   near 0.5 means "roughly as likely as not", not "moderately".

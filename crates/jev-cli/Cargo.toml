@@ -1,6 +1,6 @@
 [package]
 name = "jev-cli"
-description = "jev - an unofficial, community command-line interface for TypeSafe's System One API."
+description = "jev - an unofficial, community CLI for TypeSafe Jev and hosted/local Cloudflare Clef."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

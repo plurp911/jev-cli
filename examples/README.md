@@ -6,7 +6,7 @@ request files, and exit codes. They are **examples, not features**. There is no
 task-shaped command bakes in someone else's prompt and someone else's threshold, and the
 threshold is the part that has to be yours.
 
-Every request file in [`requests/`](requests/) is the official API request body
+The default TypeSafe examples use request files in [`requests/`](requests/) that follow the official API request body
 ([`docs.typesafe.ai/api`](https://docs.typesafe.ai/api)), so the same file works with
 `jev ask`, `jev map`, `jev --dry-run`, `curl`, and the official SDKs. Validate one
 against [`../schema/request.schema.json`](../schema/request.schema.json).
@@ -18,9 +18,16 @@ against [`../schema/request.schema.json`](../schema/request.schema.json).
 > labelled examples before you let one decide anything. See
 > [thresholds](../docs/commands.md#thresholds-and-what-confidence-does-and-does-not-mean).
 
-> **Everything you pipe in is sent to TypeSafe.** Each record becomes the `state` of one
-> request. Read [what `jev map` sends](../docs/commands.md#what-jev-map-sends) before
-> pointing any of these at a log export, a ticket dump, or a private repository.
+> **Supplied state and media go to the selected endpoint.** These examples default
+> to TypeSafe; Cloudflare and explicit remote servers also receive content off-machine.
+> A loopback server can forward or offload it. Read [what `jev map` sends](../docs/commands.md#what-jev-map-sends)
+> before using a log export, ticket dump, or private repository.
+
+To adapt a text recipe for Clef, select its provider and model explicitly, for example
+`jev --provider ollama --model clef-flash map ...`. The model flag overrides the
+TypeSafe model in a request file. Provider limits still apply, especially Ollama's
+26-option ceiling. Recalibrate thresholds for the selected model. Image/video
+examples and their privacy and runtime requirements are in [the Clef guide](../docs/clef.md).
 
 ---
 

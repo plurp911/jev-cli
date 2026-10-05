@@ -8,7 +8,8 @@ the short form.
 
 ## Global flags
 
-Accepted by every subcommand.
+These flags are parsed globally. Media and inference-option flags are accepted
+only by commands that consume them; unrelated commands refuse them.
 
 | Flag | Default | Effect |
 | --- | --- | --- |
@@ -20,13 +21,13 @@ Accepted by every subcommand.
 | `--max-length <TOKENS>` | bridge default | Local Hugging Face context control; 1–65,536. |
 | `--max-state-tokens <TOKENS>` | none | Independent local Hugging Face state token budget; 0–65,536, also constrained by the total context budget. |
 | `--media-kwargs <JSON>` | bridge default | Explicit validated local processor controls; see [Clef](clef.md). |
-| `--reject-if-busy` | off | Cloudflare-only capacity rejection without queueing. |
+| `--reject-if-busy` | off | Requests Cloudflare capacity rejection without queueing; [Clef live availability remains unverified](clef.md#cloudflare). |
 | `--keep-alive <DURATION>` | server default | Ollama-only model lifetime, such as `5m`, `0`, or `-1`. |
 | `-o, --output <text\|json>` | `text` | Output format. `json` is the stable machine contract. |
 | `--color <auto\|always\|never>` | `auto` | Colour policy for human output. Under `auto`, colour is used only when **stdout** is a terminal and `NO_COLOR` is unset. `--color always` is an explicit instruction and outranks `NO_COLOR`; `NO_COLOR` is about defaults. |
 | `-m, --model <MODEL>` | `jev-latest` | Model identifier or alias. |
 | `--endpoint <URL>` | `https://api.typesafe.ai` | API base URL. See [Custom endpoints](#custom-endpoints). |
-| `--timeout <SECONDS>` | `10` | Per-attempt HTTP timeout. |
+| `--timeout <SECONDS>` | `10` | Per-attempt HTTP timeout, 1–3600 seconds. A timeout does not cancel running local inference. |
 | `--retries <N>` | `2` | Retries after the first attempt. |
 | `--max-input-bytes <BYTES>` | `1048576` | Ceiling on one input source. |
 | `--no-config` | off | Ignore the configuration file entirely. |
@@ -124,8 +125,8 @@ $ jev choice "Which team should handle this?" \
 ```
 
 Give the model every option, not a shortlist, and add an `other` option when the list
-might not cover an input. The API accepts up to 255; `jev` requires at least 2, because
-a one-option Choice has only one possible answer.
+might not cover an input. `jev` accepts 2–255 options, except Ollama accepts 2–26.
+A one-option Choice has only one possible answer. See [provider limits](clef.md#provider-limits).
 
 `--options-file` exists for large option sets:
 
@@ -176,16 +177,16 @@ jev ask [-r PATH | --questions PATH] [state source] [--value] [--require EXPR]
 | `-r, --request <PATH>` | A full request document. `-` or omitted means stdin. |
 | `--questions <PATH>` | A questions map alone; state comes from the state flags. |
 
-**This is the command that matters for cost and latency.** System One evaluates every
-question in a request against one reading of the state, in parallel, so N separate calls
-pay for the state N times and one batched call pays once. TypeSafe measures the difference
+With TypeSafe, System One evaluates questions in parallel against one reading of the
+state. N separate calls charge for that state N times; one batched call charges once.
+Other providers retain their own pricing and runtime behavior. TypeSafe measures the difference
 on a long document in its
 [parallel questions cookbook](https://docs.typesafe.ai/cookbooks/parallel_questions);
 read the figures there, since two official pages quote different numbers for the same
 run. Include speculative questions and let your code read only the
 answers the branch it took needs.
 
-The request document is the **official API request body**, not an invention of this CLI:
+For the default TypeSafe provider, the request document uses the **official API request body**:
 
 ```json
 {
@@ -266,9 +267,10 @@ that against a real socket.
 
 ### Worked examples
 
-[`examples/`](../examples/) has six recipes — issue classification, semantic log
+[`examples/`](../examples/) has seven recipes — issue classification, semantic log
 filtering, a pull-request risk gate, RAG candidate relevance, dataset triage with an
-uncertain-row file, and agent action classification — with committed request files in
+uncertain-row file, agent action classification, and labelled threshold calibration,
+with committed request files in
 [`examples/requests/`](../examples/requests/). They are examples, not commands: `jev`
 ships primitives so recipes are expressible, and does not ship the recipes.
 
@@ -292,6 +294,8 @@ jev map -r PATH [-i PATH] [--lines] [--state-field F] [--id-field F]
 | `--lines` | off | Treat each line as plain text rather than a JSON value. |
 | `--state-field <F>` | whole record | Use this field of each JSON record as the state. |
 | `--id-field <F>` | input index | Use this field as the row id. |
+| `--images-field <F>` | none | Explicit embedded per-record images for Cloudflare, Ollama, or the Python bridge. |
+| `--videos-field <F>` | none | Explicit embedded prepared-frame videos for the Python bridge. |
 | `--limit <N>` | every record | Run only N of the input records; at least 1. |
 | `--seed <S>` | first N | Choose the `--limit` records by a seeded hash of each id instead. Requires `--limit`. |
 | `--output-file <PATH>` | stdout | Write rows here; the summary still goes to stdout. Refused if it already has rows, unless `--resume`. |
@@ -316,7 +320,7 @@ Properties worth relying on:
   the records this run answered, so there is no need to sum the rows with `jq`. It is
   not a bill: a failed record reports no usage, even one whose response arrived and
   could not be decoded, and neither does a failed earlier attempt of a retried record.
-  Records `--resume` skipped are not in it, because this run did not pay for them, and
+  Records `--resume` skipped are not in it, because this run did not evaluate them, and
   `rows_without_usage` counts answered records whose response carried no usage, so a
   total that is only a lower bound says so. The same totals are one line on stderr. See
   [`output-schema.md`](output-schema.md#jevmaprowv1-and-jevmapsummaryv1).
@@ -356,7 +360,7 @@ Properties worth relying on:
 ### Trying a question set on a few records first
 
 `--limit N` runs only N of the input records, so a question set can be tried before the
-whole batch is billed. On its own it takes the first N, which is what `head` would give
+whole batch is evaluated. On its own it takes the first N, which is what `head` would give
 you — and the first N lines of a file sorted by date or by source are a biased sample of
 it. `--seed S` takes N chosen by a hash of each record's id (the `--id-field` value, or
 the input index without one) instead: spread across the file, and the same N every time
@@ -455,11 +459,13 @@ gives a script a number with no defined meaning, and `jev` will not do it.
 
 ### What `jev map` sends
 
-Every record becomes the `state` of one request, so **every line of the file you pipe in
-leaves your machine**. That is the whole purpose of the command, and it is worth saying
-out loud because the input is usually a file nobody read line by line first — a log
-export, a ticket dump, a diff. `--state-field` is the tool for narrowing that: it sends
-one field of each record instead of the whole thing.
+Every selected record becomes the `state` of one request to the selected endpoint.
+Hosted providers and explicitly configured remote servers receive that content
+off-machine. A loopback recipient can also forward or offload it. `--state-field`
+sends one field instead of the whole record. `--images-field` and `--videos-field`
+add only the explicitly selected embedded media, including video metadata. Template
+media is sent with every selected row. The CLI never reads image paths found in a
+record, follows media URLs, or gathers context from a directory.
 
 `--dry-run` prints the request that would be sent and sends nothing, but it samples only
 the first few records (of the `--limit` selection, when there is one); it tells you the
@@ -540,7 +546,9 @@ and evaluated without being written three times.
 {"schema":"jev.eval.row/v1","id":"T-2","state":"typo in the footer","labels":{"urgent":false,"team":"other"}}
 ```
 
-`state` is the only field that is ever sent. A row may label a subset of the questions,
+Only `state` and explicitly supplied `images`/`videos` from a row are sent. IDs and
+labels stay local; the template supplies questions, model, and options.
+Media uses the selected provider's bounds and cannot name files or URLs. A row may label a subset of the questions,
 and each question is scored over whichever rows label it. The full rules, and the label
 shape for each question type, are in
 [`output-schema.md`](output-schema.md#jevevalrowv1--the-labelled-dataset-jev-eval-reads).
@@ -644,8 +652,9 @@ jev eval -r triage.json -d labelled.jsonl \
 
 `--report` writes the `jev.eval/v1` document to a file (mode `0600` on Unix). It records
 the model version that actually answered, the dataset fingerprint, the question
-fingerprint, the objective, the threshold, and the metrics — so when TypeSafe ships a
-release you can run the same dataset against the new version and compare like with like.
+fingerprint, the objective, the threshold, and the metrics — so you can compare the same dataset and questions against another model release.
+Clef fingerprints also include provider/account, media, and inference options.
+They do not establish the identity of weights or a runtime behind a model name.
 
 **Pin the model once a threshold is in production.** `jev-latest` is a moving alias, and
 a threshold calibrated against what it meant last month is not a threshold against what
@@ -689,9 +698,11 @@ That is real output, recorded on 2026-09-20. Two things about it are worth knowi
 
 Columns are padded to the longest name.
 
-The list comes from `GET /v1/models` every time. `jev` keeps no hard-coded catalogue:
-the set changes without a release here, and the API accepts versioned identifiers such
-as `jev-1.13.0` whether or not they appear in the list.
+For TypeSafe, the list comes from `GET /v1/models` every time and is not hard-coded.
+Ollama uses `/api/tags`; llama.cpp and the Python bridge use `/v1/models`. Cloudflare
+uses its account model-search endpoint and normalizes a successful result to the two
+supported Clef identifiers. That list is neither an entitlement check nor a complete
+Workers AI catalogue. Listing models does not perform inference. See [Clef](clef.md).
 
 ---
 
@@ -705,8 +716,10 @@ Reports the endpoint, the model, the configuration file, which credential source
 populated, and the limits in force — and where each setting came from.
 
 **It makes no network request unless you pass `--live`**, and says which mode it ran in.
-`--live` makes exactly one call: `GET /v1/models`, which authenticates and consumes no
-model tokens.
+`--live` makes one logical model-listing call using the selected provider's route,
+with the configured bounded retry policy. It does not perform model inference.
+An incomplete saved Cloudflare provider instead reports `configuration_error` and
+`live.checked: false` without looking up a credential or contacting a server.
 
 It never prints a credential. It reports *which source* one would come from.
 
@@ -729,7 +742,9 @@ jev auth status
 jev auth logout
 ```
 
-`login` prompts without echo and stores the key in the operating system credential
+`login` is only for the official TypeSafe endpoint. Cloudflare and remote custom
+endpoints use `JEV_CUSTOM_API_KEY` or `JEV_CUSTOM_API_KEY_FILE`; loopback local
+providers need no key. `login` prompts without echo and stores the key in the operating system credential
 store: the macOS Keychain, the Windows Credential Manager, or the Secret Service on
 Linux. `--stdin` reads it from a pipe instead, for scripted provisioning.
 
@@ -742,7 +757,8 @@ in this space does.
 would otherwise appear to do nothing.
 
 `status` reports where a credential would come from, without showing it, and exits `3`
-when there is none.
+when a required credential is unavailable. Loopback local providers report `anonymous`
+and exit `0` without consulting credential sources.
 
 `logout` removes only the entry `jev` stored, and says so when there was none. It also
 names any environment variable still set, because that is not `jev`'s to remove.
@@ -881,9 +897,12 @@ low number.
 `--endpoint` is a security boundary, not a configuration string.
 
 - The default is `https://api.typesafe.ai`, and nothing else is reachable by accident.
-- A non-official endpoint uses `JEV_CUSTOM_API_KEY` / `JEV_CUSTOM_API_KEY_FILE` and
+- Cloudflare and remote custom endpoints use `JEV_CUSTOM_API_KEY` / `JEV_CUSTOM_API_KEY_FILE` and
   **only** those. `JEV_API_KEY`, `TYPESAFE_API_KEY`, and the OS credential store are not
   consulted, so a production key cannot reach another host.
+- Loopback Ollama, llama.cpp, and Hugging Face providers never resolve or send a
+  credential. The default TypeSafe protocol against a loopback mock still uses the
+  custom namespace.
 - `jev auth login` refuses to run against a non-official endpoint.
 - Plain HTTP is refused unless the host is unambiguously loopback.
   `localhost.evil.example` is not loopback.
@@ -971,8 +990,8 @@ judgment into that exit status. The credential comes from the environment; there
 ```
 
 For a batch, `jev map --output-file` plus `--resume` makes a rerun cheap after a
-timeout: rows already written are not re-evaluated, and an interrupted run leaves only
-complete rows behind.
+timeout: rows already written are not re-evaluated, and complete rows survive an interruption. A truncated final row may remain; see
+[resume behavior](#jev-map).
 
 ---
 
@@ -992,3 +1011,12 @@ $ jev config set model jev-1.13.0
 you asked for in `model_requested`. That is the only way to reason later about a
 threshold. `jev doctor` flags a moving alias, and `--verbose` notes when one resolved to
 something else.
+
+
+For Clef, pin an installed Ollama model tag/digest or a reviewed local publisher/GGUF
+revision and runtime separately. `clef` and `clef-flash` are model names, not weight
+hashes. A returned model name, `jev doctor`, and resume digests cannot detect changed
+weights behind the same name. Record the selected provider and runtime settings,
+then recalibrate when the model or processor changes. Cloudflare does not expose a
+weight hash through this CLI. The opt-in [live-test provenance](development/clef-live-testing.md#execution-provenance)
+records explicitly named disk artifacts with limits on what those hashes establish.

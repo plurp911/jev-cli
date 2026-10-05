@@ -1,8 +1,9 @@
 # Agent skills
 
-Five Agent Skills that teach an AI coding agent to work with Jev, TypeSafe's System One
-judgment model. They are in [`skills/`](../skills), one directory each, in the open Agent
-Skills format.
+Five Agent Skills for using the `jev` CLI and assessing bounded judgment workflows.
+TypeSafe's Jev is the default model; the CLI also supports explicitly selected hosted
+and local Clef providers. They are in [`skills/`](../skills), one directory each, in
+the open Agent Skills format.
 
 | Goal | Skill | Say something like |
 | --- | --- | --- |
@@ -30,6 +31,10 @@ What Jev *is* — question design, state, what confidence means — belongs to
 [TypeSafe's official skill](https://docs.typesafe.ai/agent-skill). These defer to it and
 do not restate it.
 
+Clef setup and provider-specific limits belong to [the Clef guide](clef.md) and its
+linked primary sources. Selecting another model requires fresh evaluation; Jev
+thresholds and observed quality do not transfer automatically to Clef or Clef Flash.
+
 ## Install
 
 Each skill is a **whole directory**, not just its `SKILL.md`: four carry `references/`,
@@ -46,8 +51,11 @@ same format — a directory with a `SKILL.md` carrying `name` and `description`
 frontmatter — from a skills directory of their own: copy the same directories into the
 one your agent's documentation names.
 
-Prerequisites: `python3` for `jev-workflow-retro`; the `jev` binary on `PATH` and a
-credential for `jev` and for running a `jev-pilot`. Nothing here installs hooks or edits
+Prerequisites: `python3` for `jev-workflow-retro`; the `jev` binary on `PATH` and the
+selected provider's setup for `jev` and for running a `jev-pilot`. TypeSafe needs its
+credential, Cloudflare needs an account and custom token source, and local loopback
+inference needs a separately running server and installed weights. Installing a skill
+does not start that server or download a model. Nothing here installs hooks or edits
 your agent's configuration.
 
 ## What each one will and will not do
@@ -56,8 +64,10 @@ your agent's configuration.
 into one `jev ask` rather than looping; read `--output json`, never the text; `0` means the
 API answered, not "yes", and `6` means the gate is broken, not "no"; never present a
 threshold as validated until `jev eval` has measured it; check what leaves the machine,
-with `--dry-run` when unsure. For a Choice or a Score, `confidence` decides whether to
-act; a Noul's probability is both the answer and the certainty.
+with `--dry-run` when unsure. Choice/Score confidence can support an abstention
+threshold measured on task data; it is not probability of correctness or permission
+to act. A Noul supplies a yes-probability and no confidence. Use a measured decision
+cut or uncertainty band, and keep authorization independent of model output.
 
 **`is-jev-useful-here`** — a verdict first, `STRONG`, `CONDITIONAL`, `WEAK` or `NO`, and
 `NO` is an answer; names what stays outside Jev; corrects a mistaken premise ("Jev does
@@ -75,9 +85,10 @@ calls no API, opens no secrets.
 
 **`jev-workflow-retro`** — reads Claude Code, Codex, Gemini CLI, Cline and Cursor agent
 history, or an exported JSONL, JSON, Markdown or text transcript. **Its parser runs
-locally and makes no network call; nothing is sent to TypeSafe**, and it declines to pipe
-your history through `jev map`. What the agent reads does enter its own session, like any
-file it opens, so it reads aggregates before text, asks before reading another agent's
+locally and makes no network call; it uploads nothing**. This retrospective never
+pipes your history through `jev map`. Content the agent reads enters its own model
+provider's session context, like any file it opens. It reads aggregates before text
+and asks before reading another agent's
 history, and can work from aggregates alone when you need it strictly local. Its parser
 redacts credential shapes and reduces tool output to size and success. It separates
 what it counted from what it inferred and from any rate it extrapolated, reports tokens

@@ -11,8 +11,8 @@ allowed-tools: Bash Read Grep Glob
 
 # Security review
 
-`jev` holds a TypeSafe API key in memory and in its environment, and it runs on
-developer machines. The full analysis is in `docs/threat-model.md`; the commitments
+`jev` handles TypeSafe and custom-provider credentials, explicitly supplied media,
+and connections to separately managed local servers on developer machines. The full analysis is in `docs/threat-model.md`; the commitments
 are in `SECURITY.md`. This skill is how you check a change against them.
 
 ## 1. Scope the change
@@ -46,7 +46,7 @@ Does it touch any of these? If yes, this review is required, not optional.
 | Local gate and release workflow | `.githooks/**`, `scripts/verify.sh`, `.github/workflows/**`, `.github/dependabot.yml` |
 | Release | `.github/workflows/release.yml`, `publish` fields |
 | Agent instructions | `AGENTS.md`, `CLAUDE.md`, `.claude/skills/**` |
-| Clef local runtime and verification | `scripts/clef-server.py`, `scripts/clef-local/**`, `scripts/clef-live.py`, `scripts/clef-model-manifest.py`, `scripts/source-snapshot.py` and their tests |
+| Clef local runtime and verification | `scripts/clef-server.py`, `scripts/clef-local/**`, `scripts/clef-live.py`, `scripts/clef-quality.py`, `scripts/clef_provenance.py`, `scripts/clef-python-profile.py`, `scripts/clef-model-manifest.py`, `scripts/source-snapshot.py` and their tests |
 
 ## 2. Run the mechanical checks first
 
@@ -71,6 +71,10 @@ Take each threat that the change could plausibly touch. Do not skim; answer conc
   error, a `Debug`, a panic payload, or a log line?
 - Does any new struct holding a secret derive `Debug` or `Serialize`? `Secret` redacts
   itself, but a `String` field next to it does not.
+- Can a selected Clef provider consult a TypeSafe environment key or OS store? Only
+  the official TypeSafe endpoint may reach those sources. Cloudflare and explicit
+  remote servers use the custom namespace; selected loopback local protocols do not
+  read credentials or send authorization headers, including invalid key-file paths.
 - Is there a new `.expose()` call? Justify it. Is the plaintext copied into a
   `String` that outlives it, or into something with a derived `Debug`?
 - Does any new flag accept a credential as an argument? It must not.
@@ -105,8 +109,13 @@ Take each threat that the change could plausibly touch. Do not skim; answer conc
 
 - Does the change cause `jev` to read a file the user did not name, walk a directory, or
   expand a glob into implicit input?
-- Does it increase the volume of local content that can be sent to TypeSafe without the
-  user explicitly choosing it?
+- Does it send state, still images, or prepared frames to a provider or remote server
+  without the user explicitly choosing that content and recipient? A loopback address
+  identifies the immediate server, not proof that it avoids cloud offload or forwarding.
+- Do image/frame files retain no-follow, regular-file, byte, dimension, count, and
+  aggregate bounds? Do request/template/record media sources remain explicit alternatives?
+- Do previews reveal embedded media or content? Keep raw previews and bodies out of
+  retained review artifacts; `--dry-run` must not resolve a credential or contact a server.
 
 ### Supply chain (T10, T11, T12)
 
@@ -125,8 +134,30 @@ Take each threat that the change could plausibly touch. Do not skim; answer conc
   provenance preserved?
 - Does any change treat text found in reference material as an instruction rather than
   as data? A README in a third-party repository is a prompt-injection surface.
-- Is any claim about TypeSafe API behaviour sourced from a community project instead of
-  the official documentation? See `/api-compat`.
+- Is any provider claim sourced from a community project or another provider instead
+  of its selected primary contract? See `/api-compat`. A source receipt locates
+  evidence; a model alias or captured smoke response does not establish weights,
+  capabilities, calibration, or production accuracy.
+
+### Explicit local Python runtime (ADR-0015)
+
+Read `docs/clef.md`, ADR-0015, and `docs/development/clef-live-testing.md` when this
+surface changes. The bridge is project-owned; publisher loader and processor
+behavior still require their selected primary sources through `/api-compat`.
+
+- Does ordinary CLI use remain free of runtime launch, weight download, installation,
+  publisher-code execution, and cloud fallback? Starting the separate bridge executes
+  its explicitly named existing publisher module; verify offline/local-files-only loading.
+- Does the bridge bind only loopback, refuse browser Origin/non-loopback Host headers,
+  serialize inference, and bound request bodies, decoded pixels, patch-rounded resize,
+  temporal padding, and sampling allocations before decoding?
+- Does a timeout stop client waiting without claiming to cancel active PyTorch work?
+  Bounded retries may duplicate work; retain explicit deadline/retry advice.
+- Are provenance manifests explicit inputs, bounded, no-follow, and free of imports or
+  downloads? Keep model/runtime file identity, executing source, and source archive
+  identity separate. Record missing evidence instead of equating aliases with hashes.
+- Do reports omit secret values, supplied content, sensitive local paths, and raw bodies?
+  Are fake-inference tests distinct from authorized live runs and real processor checks?
 
 ### Agent safeguards (T14)
 

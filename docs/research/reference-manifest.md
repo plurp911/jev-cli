@@ -4,7 +4,10 @@ Provenance record for the local research corpus used to inform `jev`'s design.
 
 The corpus itself lives in `references/`, which is **gitignored** and never committed.
 This file is the tracked, code-free record of what was read, at exactly which revision.
-It contains no third-party source code.
+It contains no third-party source code. This dated corpus predates Clef integration.
+The additional provider sources are recorded in
+[Clef research](../development/clef-research.md); use [the provider guide](../clef.md)
+for the current supported CLI contract.
 
 - **Snapshot date:** 2026-09-19
 - **Clone method:** `git clone --depth 1 --no-recurse-submodules https://github.com/<slug>.git`

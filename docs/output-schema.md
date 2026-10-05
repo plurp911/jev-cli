@@ -7,8 +7,8 @@ never removed or renamed; read by name, tolerate unknown fields, tolerate unknow
 in enumerated string fields.
 
 **A document on stdout does not mean success.** Exit status carries the outcome, and a
-gate that did not hold (`1`) or a batch with failing rows (`5`) still writes the data
-you paid for. Two statuses write *nothing* to stdout, and a script that reads stdout
+gate that did not hold (`1`) or a batch with failing rows (`5`) still writes the returned
+data. Two statuses write *nothing* to stdout, and a script that reads stdout
 unconditionally will misparse them: `70`, an internal error, and `74`, a failure to
 write output such as a full disk. The full table is in
 [`cli-contract.md`](cli-contract.md).
@@ -356,8 +356,7 @@ one summary document on stdout.
 ```
 
 `request_id` is the same field as in `jev.evaluation/v1`, and is present on failed rows
-too — that is where it matters, because a row that failed is what you would ask TypeSafe
-about. It is `null` when no response arrived or the API sent no header.
+too — retain it when asking the selected provider about a failed row. It is `null` when no response arrived or the API sent no header.
 
 `attempts` is the number of HTTP attempts made for the row, retries included, and is
 present on failed rows as well as successful ones. Each attempt may have reached the
@@ -371,12 +370,17 @@ before reading `answers`.
 `state_digest` is a change-detector `--resume` uses to tell whether the record at an
 index is still the same one. Without `--id-field` the `id` is the record's position, so
 comparing ids alone cannot detect a changed input; comparing the digest can. It is a
-non-cryptographic hash of the state, it carries no state content, and it is not a
+non-cryptographic hash of the state and any per-record images/videos, including
+video timing metadata. It carries no state content, and it is not a
 stable interface to compute yourself — treat it as opaque. A row without it, from an
 earlier version, still resumes.
 
 `request_digest` is the same kind of change-detector for the parts of the request that
-are the *same* for every record: the question set and the model. `state_digest` catches a
+are the *same* for every record: the question set and the model, plus Clef provider,
+endpoint, account, template media, and options. Unchanged TypeSafe requests retain
+the earlier fingerprint. These values do not fingerprint loaded model weights or
+runtime binaries; changing weights behind the same model name can change answers
+without changing a resume digest. `state_digest` catches a
 changed input; nothing caught a changed question set, so resuming after editing the
 prompt produced a file whose early rows answered one question and whose later rows
 answered another, reported the batch complete, and exited `0`. Also opaque, also
@@ -418,8 +422,8 @@ nothing is ever discarded.
 | `interrupted` | The specific reason was a signal. |
 | `gate` | How `--require` classified the rows **this run answered**, or `null`. |
 | `limit` | Present only when `--limit` was given; see below. |
-| `usage.input_tokens` | integer or null. Total the API reported for the records **this run answered**. Billable. `null` when no record reported a count. |
-| `usage.output_tokens` | integer or null. The same, for output tokens. Currently free of charge. |
+| `usage.input_tokens` | integer or null. Total the selected provider reported for the records **this run answered**. `null` when no record reported a count. Billing is provider-specific. |
+| `usage.output_tokens` | integer or null. The same, for output tokens. This count does not establish a charge. |
 | `usage.rows_without_usage` | Answered records whose response lacked either count. Non-zero means the totals are only a lower bound. |
 
 `limit` records a `--limit` run, and is **absent** otherwise, so a summary without it
@@ -443,8 +447,8 @@ this run had reached it.
 `usage` is what the rows' own `usage` objects add up to, so it replaces summing them with
 `jq`. It follows `jev.eval/v1`'s `usage`, plus one field:
 
-- **It covers this run only.** A record `--resume` skipped was paid for by the run that
-  answered it, not this one, and is not in the total. Across resumed runs, add up each
+- **It covers this run only.** A record `--resume` skipped was evaluated by an earlier
+  run and is not in this run's total. Across resumed runs, add up each
   run's summary, or sum the rows of the output file — and of the `--review-file` too,
   when one diverted rows, since an answered record's row is in exactly one of them.
 - **`null` is not `0`.** A total is `null` when no answered record reported that count:
@@ -459,9 +463,10 @@ this run had reached it.
 - **A retried record reports the response that answered.** Earlier attempts that failed
   reported no usage; `attempts` on the row says whether there were any.
 
-Whether a count is billable is TypeSafe's pricing, not this CLI's: at the time of writing
-<https://docs.typesafe.ai/models> says *"Charged per input token. Output tokens are
-free."* The same totals are printed on stderr after the run, as one line such as
+Billing follows the selected provider's pricing. Check [TypeSafe models](https://docs.typesafe.ai/models)
+or [Workers AI pricing](https://developers.cloudflare.com/workers-ai/platform/pricing/)
+for hosted usage. A local server's token counts are runtime accounting, not evidence
+of a hosted charge. The same totals are printed on stderr after the run, as one line such as
 `624 tokens in, 96 out, over 2 answered record(s)`, unless `--quiet`.
 
 A successful row also carries `missing_answers`, an array of question ids, when the API
@@ -514,8 +519,15 @@ output file is the likeliest mistake, and this is what catches it.
 | --- | --- |
 | `schema` | Required, exactly `jev.eval.row/v1`. |
 | `id` | Required. A non-empty string with no control characters, unique in the file. It is the split key, so a duplicate is refused rather than deduplicated. |
-| `state` | Required. A string, object, or array — the same values a request document's `state` accepts, validated the same way. **This is the only field that is ever sent.** |
+| `state` | Required. Validated using the selected provider's state contract, including the Python bridge's JSON scalar/blank extension and Cloudflare's empty text with images. Sent as request state. |
+| `images` | Optional embedded image array for supported providers, validated with the same bounds as request images. Sent alongside state. |
+| `videos` | Optional embedded prepared-frame array for the Python bridge, including optional source metadata. Sent alongside state. |
 | `labels` | Required, non-empty. An object keyed by question id. Every key must name a question in the `--request` file; an unknown one is refused, not ignored. |
+
+Only state and explicitly supplied media from a dataset row are sent. IDs, schema,
+and labels remain local. The request template supplies questions, model, and options.
+Template media and per-row media are alternatives; both cannot supply the same media
+kind. See [Clef input forms and bounds](clef.md#vision-inputs-and-bounds).
 
 Label values are shaped by the question they label:
 
@@ -552,7 +564,7 @@ One document, on stdout with `--output json`, and optionally written to a file w
 | --- | --- |
 | `model_requested` | The alias or identifier that was asked for. |
 | `model` | Every concrete version that actually answered, sorted. Normally one. **This is the version a threshold was measured against**; `jev-latest` moves, so a report that recorded only the alias records nothing. |
-| `dataset.fingerprint` | An opaque change-detector over the rows actually evaluated — ids, states, and labels. Two reports with the same fingerprint measured the same examples. `--limit` re-fingerprints, so it always describes what was measured rather than the file. |
+| `dataset.fingerprint` | An opaque change-detector over the rows actually evaluated — ids, states, labels, and per-row media/timing metadata. Two reports with the same fingerprint measured the same examples. `--limit` re-fingerprints, so it always describes what was measured rather than the file. |
 | `request.fingerprint` | The same kind of detector over the question set and the model, shared with `jev map`'s `request_digest`. |
 | `split.mode` | `seeded` (a held-out split of one dataset), `files` (`--calibration` and `--test`), or `none` (no threshold was selected, or `--no-split`). |
 | `objective` | `null` when no `--objective` was given. `threshold_field` is `noul` or `confidence`. |

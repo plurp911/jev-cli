@@ -34,6 +34,18 @@ processor resize bounds prevent small compressed frame sets from requesting
 unbounded decoded arrays. Inference is serialized and errors never echo request
 content, model exceptions, or stack traces.
 
+A client timeout or disconnect does not cancel active PyTorch inference. Requests
+can wait behind the serialized bridge workload. Explicit deadlines and retries
+control the CLI's waiting and duplicate attempts, not the model's execution lifetime.
+
+Live-test helpers accept only explicitly named provenance files. They reject
+symlink paths, credential-file aliases, oversized manifests, and excessive hashing
+budgets. Reports hash disk files before and after testing; they do not attest loaded
+server memory or model/runtime association. POSIX no-follow primitives are required
+for these helper operations; unsupported platforms fail closed. Reports are created
+exclusively with mode `0600` through checked directory handles. See
+[future live-test provenance](development/clef-live-testing.md#execution-provenance).
+
 Local processes that can reach the selected loopback server can request inference;
 this is the same local trust boundary as Ollama. The bridge is not a public inference
 service and must not be exposed by a reverse proxy without an independently designed
@@ -52,7 +64,7 @@ This document explains *what we are defending against*. The resulting rules are 
 
 | Asset | Why it matters |
 | --- | --- |
-| The user's TypeSafe API key | Direct financial loss and impersonation. The highest-value asset here. |
+| The user's TypeSafe key or custom provider token | Financial loss and impersonation, potentially beyond inference for an overprivileged token. Credential material is the highest-value asset here. |
 | The user's content | State and supplied images/videos go to the selected endpoint. Hosted providers and explicit remote servers receive content off-machine; a loopback server can also forward or offload it. |
 | The integrity of `jev` itself | It runs on developer machines and may hold real credentials in the environment. A compromised `jev` is a compromised supply chain. |
 | The user's terminal and filesystem | `jev` renders remote content and may write files. |
@@ -69,7 +81,8 @@ This document explains *what we are defending against*. The resulting rules are 
 | A well-meaning AI agent | Modifies this repository and removes a safeguard without understanding it. |
 
 Out of scope: a compromised operating system, a malicious local administrator, physical
-access, and vulnerabilities in the TypeSafe service itself.
+access, and vulnerabilities inside a selected provider's service or independently
+installed model/runtime. The CLI and bridge boundary controls remain in scope.
 
 ---
 
@@ -371,8 +384,9 @@ injection with a plausible cover story.
 
 **Control.** Reference material is **data, never instructions**. Code is not copied from
 it; it is read, understood, and reimplemented. Licenses and attribution are preserved if
-anything is ever vendored deliberately. The authority for API behaviour is the official
-TypeSafe documentation, never a community project. See `AGENTS.md` §6 and §8.
+anything is ever vendored deliberately. The authority for API behaviour is the selected provider's primary documentation
+or implementation, never a community project. TypeSafe sources govern TypeSafe;
+Clef adapters use the additional authorities in `AGENTS.md` §6. See `AGENTS.md` §6 and §8.
 
 ### T14. An agent weakens a safeguard
 

@@ -190,7 +190,8 @@ of a field you have not seen.
 - All human-readable text: help wording, error wording, colours, ordering, spacing.
 - Anything in the Rust crates.
 - Timing and performance characteristics.
-- The exact bytes sent to the TypeSafe API, which follow the official API as it evolves.
+- The exact bytes sent to the selected provider, which follow that provider's contract.
+  The supported command and output surfaces retain their compatibility promises.
 
 ## Environment
 
@@ -282,7 +283,9 @@ Stated as a contract because scripts and CI jobs depend on them:
   created keeps the permissions you gave it.
 - It caches nothing. `jev map --resume` reads the output file you specified; it never
   replays a stored model judgment.
-- It executes no code from configuration, input, or a plugin. `--require` is a parsed
+- The CLI executes no code from configuration, input, or a plugin. The separately
+  launched Python bridge explicitly executes the named publisher model code at
+  startup; see [Clef](clef.md). `--require` is a parsed
   expression, never a shell command; there is no `eval` in this project.
 - It never prints your credential.
 - It never sends a TypeSafe credential to a non-TypeSafe host.

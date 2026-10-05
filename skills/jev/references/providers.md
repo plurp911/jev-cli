@@ -125,3 +125,14 @@ The provider documentation is the authority for endpoint-specific behavior:
 [Cloudflare Clef](https://developers.cloudflare.com/workers-ai/models/clef/),
 [Ollama System One](https://docs.ollama.com/api/systemone), and
 [publisher weights](https://huggingface.co/Cloudflare/clef).
+
+For reproducible local measurements, record the selected provider/endpoint, runtime
+version/build, exact weight revision or digest, quantization, and processor settings
+in a separate manifest when obtainable. `model` and `model_requested` are real CLI
+fields, but a server's alias/string is not proof of resolved weights. Mark missing
+identities unverified; do not add invented fields to output/report schemas. The
+[source and execution provenance guide](https://github.com/plurp911/jev-cli/blob/main/docs/development/clef-live-testing.md#execution-provenance)
+keeps executing source, archived source, runtime, and model files distinct. Synthetic
+live/quality checks establish their stated cases only, not production accuracy.
+Preserve each provider's returned confidence and recalibrate after changing the
+provider, model/weights, question, media controls, or data distribution.

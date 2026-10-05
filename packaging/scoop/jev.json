@@ -1,12 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/ScoopInstaller/Scoop/master/schema.json",
   "version": "PLACEHOLDER_VERSION",
-  "description": "An unofficial, community command-line interface for TypeSafe's System One API and the Jev model.",
+  "description": "An unofficial, community CLI for TypeSafe Jev and hosted/local Cloudflare Clef and Clef Flash.",
   "homepage": "https://github.com/plurp911/jev-cli",
   "license": "MIT OR Apache-2.0",
   "notes": [
-    "jev is not affiliated with or endorsed by TypeSafe AI.",
-    "Authenticate with `jev auth login`, or set JEV_API_KEY.",
+    "jev is not affiliated with or endorsed by TypeSafe AI or Cloudflare.",
+    "TypeSafe: `jev auth login` or JEV_API_KEY. Cloudflare: custom key sources and account ID; see docs/clef.md.",
+    "Local inference requires a separately installed server and weights; loopback providers need no key.",
     "Verify this artifact's provenance:",
     "  gh attestation verify <archive> --repo plurp911/jev-cli"
   ],

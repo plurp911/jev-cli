@@ -38,8 +38,9 @@ anywhere downstream and no other code needs to defend against one.
 
 ### `jev-client`
 
-The TypeSafe System One client. Every outbound request goes through the `Transport`
-trait, whose signature mentions no HTTP library:
+The System One client for the explicitly selected TypeSafe, Cloudflare, Ollama,
+llama.cpp, or Hugging Face bridge protocol. Every outbound request goes through
+the `Transport` trait, whose signature mentions no HTTP library:
 
 ```rust
 pub trait Transport: Debug + Send + Sync {
@@ -60,8 +61,9 @@ a 422 from a 529 — a distinction the exit-code contract depends on.
 
 `MockTransport`, behind the `testing` feature, records what it was asked to send and
 returns queued responses, so request shaping, retry policy, and response decoding are
-tested without a network, an API key, or a cassette framework. It records that a
-credential was supplied, never its value.
+tested without a network, an API key, or a cassette framework. It records whether
+a credential was supplied, never its value. Explicit local
+providers on loopback use an anonymous credential and omit the authorization header.
 
 Retry is a **pure function** of (attempt, outcome, headers, elapsed, jitter sample).
 Deciding and waiting are separate, so backoff growth, the `Retry-After` path, and budget
@@ -126,6 +128,35 @@ can drive the command surface in process, the fuzz targets can reach the parsers
 the benchmark can separate parsing from process startup. It is not an API; see
 [ADR-0003](adr/0003-cli-compatibility.md).
 
+## Provider and media boundaries
+
+`context` selects the provider, account, endpoint, and model. Switching providers
+uses the new provider's default endpoint unless an explicit override was supplied.
+`jev-config` resolves TypeSafe credentials only for its official endpoint, custom
+credentials for Cloudflare and remote servers, and no credential for local providers
+on loopback. A loopback recipient can still forward requests elsewhere.
+
+`jev-core` represents validated embedded images, prepared video frames, source
+metadata, and provider options without performing I/O. `jev-cli` reads only named
+media files, rejects symlink paths, and validates headers and allocation bounds.
+`jev-client` checks the selected provider's capabilities before credential lookup
+or network use, constructs its route and body, and normalizes the response envelope.
+The [provider guide](clef.md) records the exact limits and supported controls.
+Media and options also participate in batch resume and evaluation fingerprints.
+
+`scripts/clef-server.py` is a separate, explicitly launched Python service. It imports
+an explicitly named local publisher module and loads existing weights offline.
+It owns image decoding and the publisher's tokenization and inference. It binds only
+to loopback, rejects browser origins and non-loopback Host headers, bounds requests
+and processor allocations, and serializes inference. It is not a Rust crate, and
+normal CLI and MCP invocations never launch it or import model code. A client timeout
+does not cancel PyTorch work already running. See [ADR-0015](adr/0015-clef-providers-and-vision.md).
+
+Opt-in smoke and quality helpers capture before/after CLI and helper hashes. An
+explicit provenance manifest can name model and runtime files to hash. These
+fingerprints are evidence about disk files, not proof of the server's in-memory
+execution. Historical receipts are retained unchanged.
+
 ## Key decisions
 
 | Decision | Rationale | Record |
@@ -148,12 +179,13 @@ the benchmark can separate parsing from process startup. It is not an API; see
 | Doc | `///` examples | Documented usage compiles and runs |
 | Integration | `crates/jev-cli/tests/` | Real process, real sockets, exit codes, stream separation |
 | Transport | `crates/jev-client/tests/transport.rs` | The real HTTP client against a real socket: status handling, header casing, size caps, redirects |
-| Compatibility | `crates/jev-client/tests/fixtures/` | Documents recorded from official TypeSafe sources still encode and decode |
-| Fuzz | `fuzz/` | Five targets over every place attacker-influenced bytes enter, each asserting a domain invariant |
+| Compatibility | `crates/jev-client/tests/fixtures/` and provider tests | Recorded TypeSafe/Ollama examples still decode; schema-based Cloudflare and bridge cases enforce their separate contracts |
+| Fuzz | `fuzz/` | Six targets over every place attacker-influenced bytes enter, each asserting a domain invariant |
 | Canary | `secret.rs`, `credential.rs`, `transport.rs`, `scripts/credential-canary.sh` | A known secret does not reach tested output paths |
 | Packaging | `scripts/release-dry-run.sh` | The archive builds, its checksum verifies, and the binary inside runs |
 
-No test touches the network beyond loopback, sleeps, or depends on wall-clock time,
+The default Rust tests do not touch the network beyond loopback, sleep, or depend
+on wall-clock time,
 environment, or ordering. Clocks and jitter are injected; the environment and the
 credential store are traits with in-memory doubles. Retries are pinned to zero.
 
@@ -163,8 +195,8 @@ The list of things this CLI does not have, and the process for proposing one, is
 `AGENTS.md` §3.3. In short: no plugin system, no arbitrary code execution, no telemetry,
 no `.env` discovery, no async runtime outside `jev mcp serve`, and no self-update.
 
-Everything the architecture above describes — the HTTP transport, the request and
-response models, retry and backoff, OS keychain integration, and every user-facing
-command — is implemented. The request and response models were written against the
-official TypeSafe API reference, not from recollection (`AGENTS.md` §6), and the
-recorded fixtures in `crates/jev-client/tests/fixtures/` fail if decoding drifts.
+Provider adapters follow their respective primary sources (`AGENTS.md` §6).
+[API compatibility](api-compatibility.md) separates TypeSafe evidence from Clef
+contracts. Offline compatibility tests do not establish model accuracy or successful
+inference on every runtime. [Live testing](development/clef-live-testing.md) records
+what was actually exercised.

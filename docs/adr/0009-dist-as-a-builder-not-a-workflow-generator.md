@@ -11,6 +11,16 @@ The `dist`-as-builder decision remains current. The release authorization exampl
 below describe the original unarmed workflow; [ADR-0014](0014-manual-release-gate.md)
 records the current manual publish gate.
 
+## Current-status amendment (2026-10-05)
+
+The original `dry_run`-only guard and future arming language below remain as
+historical decision text. [ADR-0014](0014-manual-release-gate.md) replaced that
+guard with explicit tag confirmation and mandatory provenance for publication.
+The hand-written dispatch-only workflow published v0.3.0; `dist` still builds
+artifacts without owning the workflow. The release keeps crates.io publication
+disabled and has no automatic tag or push trigger. See
+[release verification](../release-verification.md) for current artifacts and limits.
+
 ## Context
 
 ADR-0005 chose `dist` for the build and packaging matrix, with its generated workflow

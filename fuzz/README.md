@@ -11,6 +11,11 @@ Six targets, over six places attacker-influenced bytes enter `jev`.
 | `state_input` | state from stdin or a file | the byte limit is respected exactly; nothing is silently truncated |
 | `eval_dataset` | a labelled JSONL dataset | each label is valid for its question and every row id is unique |
 
+The request target reaches the default request parser and the shared raw-image
+validator; the response target reaches the common answer decoder. These targets
+do not establish fuzz coverage of every provider adapter, HTTP envelope, or Python
+bridge input form. Provider-specific regressions and bridge tests complement them.
+
 Each target asserts more than "does not panic". A fuzzer that only checks for crashes
 finds crashes; these check the invariants the rest of the codebase is allowed to assume.
 

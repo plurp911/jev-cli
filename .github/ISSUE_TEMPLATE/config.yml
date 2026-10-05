@@ -10,6 +10,11 @@ contact_links:
     about: >-
       This is an unofficial community project. Questions about Jev's behaviour,
       pricing, or availability belong with TypeSafe, not here.
+  - name: Question about hosted Clef, Clef Flash, or Workers AI
+    url: https://developers.cloudflare.com/workers-ai/models/clef/
+    about: >-
+      Cloudflare documents its models, provider limits, pricing, and availability.
+      CLI adapter or project-owned Python bridge problems belong in this repository.
   - name: Question about using the CLI
     url: https://github.com/plurp911/jev-cli/issues
     about: >-

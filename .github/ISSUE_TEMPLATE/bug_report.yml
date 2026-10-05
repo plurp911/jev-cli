@@ -36,6 +36,28 @@ body:
     validations:
       required: true
 
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Selected provider
+      description: The provider reported by `jev doctor`.
+      options:
+        - TypeSafe
+        - Cloudflare Clef or Clef Flash
+        - Ollama
+        - llama.cpp
+        - Hugging Face Python bridge
+    validations:
+      required: true
+
+  - type: textarea
+    id: local-runtime
+    attributes:
+      label: Local runtime and model, if applicable
+      description: >-
+        Report the runtime version, model tag or revision, and relevant media/processor
+        options. Never include credentials, private state, images, or video frames.
+
   - type: input
     id: version
     attributes:
@@ -65,5 +87,5 @@ body:
       options:
         - label: I have removed all credentials and sensitive data from this report.
           required: true
-        - label: I am reporting a problem with this CLI, not with the TypeSafe API.
+        - label: I am reporting a problem with this CLI or its project-owned bridge, not a provider service outage.
           required: true

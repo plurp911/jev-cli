@@ -1,7 +1,9 @@
 # Repository settings
 
-These settings live on GitHub, outside the repository. Review them when creating the
-public repository. [ADR-0013](adr/0013-local-verification.md) explains the local
+These settings live on GitHub, outside the repository. Review them when maintaining
+the public repository. This page specifies intended settings; a release workflow's
+success does not attest branch protection or security-feature configuration.
+[ADR-0013](adr/0013-local-verification.md) explains the local
 verification policy and its trade-offs.
 
 ## Actions and verification
@@ -9,6 +11,11 @@ verification policy and its trade-offs.
 The repository contains no automatic GitHub Actions workflows. The release workflow
 runs only when explicitly dispatched for an authorized release. Actions must be enabled
 for that workflow. A manual run uses hosted runners.
+
+The [v0.3.0 release run](https://github.com/plurp911/jev-cli/actions/runs/37344551204)
+passed all 16 jobs, including five target builds and four native CLI smoke tests.
+Those authorized release checks do not supply status checks for ordinary pushes or
+pull requests. See [release verification](release-verification.md) for their scope.
 
 Install the hook in each clone with `scripts/install-hooks.sh`. Before pushing, run
 `scripts/verify.sh --push` and read its summary. Hooks can be bypassed, so the person

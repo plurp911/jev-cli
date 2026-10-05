@@ -1,11 +1,13 @@
 # Compatibility fixtures
 
 Recorded request and response documents used to prove that `jev` still speaks the
-protocol the official TypeSafe sources describe.
+protocol the selected provider's primary sources describe. The historical tables
+below describe TypeSafe; [Clef provenance](#clef-provider-provenance) distinguishes
+recorded Ollama examples from hand-authored schema tests.
 
 ## Provenance
 
-Every fixture is transcribed verbatim from an official source, and each file records
+Every historical TypeSafe fixture is transcribed verbatim from an official source, and each file records
 which one in its `_source` field. No fixture is invented, and none comes from a
 community project (`AGENTS.md` §6, §8).
 
@@ -65,7 +67,9 @@ Cloudflare request and envelope tests use hand-authored protocol cases based on
 <https://developers.cloudflare.com/workers-ai/models/clef/schema-input.json>,
 <https://developers.cloudflare.com/workers-ai/models/clef/schema-output.json>, and
 <https://developers.cloudflare.com/workers-ai/get-started/rest-api/>. These cases
-are schema tests, not recordings of live inference. No external inference was run.
+are schema tests, not recordings of live inference. No external inference was run to create these schema cases. Later live Clef
+checks are separately recorded in
+[the live-test guide](../../../../docs/development/clef-live-testing.md).
 
 Ollama request limits and image serialization follow
 <https://docs.ollama.com/api/systemone> and

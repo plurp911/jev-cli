@@ -4,7 +4,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-/// The default model, the alias the official documentation and SDKs use.
+/// The TypeSafe default model, the alias its official documentation and SDKs use.
 ///
 /// An alias moves when TypeSafe ships a new release, so the answers behind it can
 /// change without any change on the user's side. Anyone who has calibrated a threshold
@@ -42,11 +42,12 @@ const MAX_MODEL_ID_LEN: usize = 128;
 
 /// A validated model name or alias, as accepted by the request's `model` field.
 ///
-/// `jev` deliberately does **not** keep a hard-coded catalogue of valid models. The set
+/// The TypeSafe adapter does not keep a hard-coded catalogue of valid models. The set
 /// changes without a release on our side, `GET /v1/models` is the authority, and
 /// versioned identifiers are accepted by the API whether or not they appear in that
 /// list (<https://docs.typesafe.ai/models>). Validation here is therefore about shape,
-/// not membership.
+/// not membership. The Cloudflare adapter separately restricts selectors to its
+/// two supported Clef models. Local names and aliases do not fingerprint weights.
 ///
 /// # Examples
 ///

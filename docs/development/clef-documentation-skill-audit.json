@@ -1,0 +1,900 @@
+{
+  "schema": "jev.documentation-skill-audit/v1",
+  "observed_at_utc": "2026-10-05T19:09:22.088228+00:00",
+  "scope": {
+    "entries": 21,
+    "shipped_skills": 5,
+    "project_owned_developer_skills": 10,
+    "official_typesafe_vendor": 1,
+    "pinned_authoring_vendors": 5,
+    "historical_receipts": "Preserved; none overwritten or retrospectively rebound",
+    "environment_owned_adapters": "Excluded from edits by this worker; root performed a separately user-authorized verify adapter repair. No adapter synchronization is inferred."
+  },
+  "skills": [
+    {
+      "name": "is-jev-useful-here",
+      "path": "skills/is-jev-useful-here/SKILL.md",
+      "kind": "shipped skill",
+      "finding": "Fit reference no longer mandates OCR for all image decisions; selected-provider modality boundaries.",
+      "final_skill_sha256": "4fbf5d196afd6edd763cfd408341dd6ebe09d6483448524d36f6895b26f4c875",
+      "final_related_sources": [
+        {
+          "path": "skills/is-jev-useful-here/references/fit-indicators.md",
+          "sha256": "406551a28fee4a8bcd7178c47e70e6350008a491d6712521e28df47a065c1705"
+        }
+      ]
+    },
+    {
+      "name": "jev",
+      "path": "skills/jev/SKILL.md",
+      "kind": "shipped skill",
+      "finding": "Returned identifier versus resolved weights; provider/model/media-specific calibration; independent runtime/weight/source provenance reference.",
+      "final_skill_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+      "final_related_sources": [
+        {
+          "path": "skills/jev/references/providers.md",
+          "sha256": "041ed1694b91e3d8ab4281da4a253568d08325ce7bfc2333a722cb30ec845101"
+        }
+      ]
+    },
+    {
+      "name": "jev-opportunity-audit",
+      "path": "skills/jev-opportunity-audit/SKILL.md",
+      "kind": "shipped skill",
+      "finding": "Audit reference no longer excludes supported bounded visual/image/prepared-frame decisions categorically.",
+      "final_skill_sha256": "2acad0c8f9233654c9194a9bf0e7028111222575bcffabe93d7e842b4c64a8a6",
+      "final_related_sources": [
+        {
+          "path": "skills/jev-opportunity-audit/references/audit-method.md",
+          "sha256": "71bffc6bafb7beab218576cd9df2e4a70b65f63b43ba33366de7ddaec122fce0"
+        }
+      ]
+    },
+    {
+      "name": "jev-pilot",
+      "path": "skills/jev-pilot/SKILL.md",
+      "kind": "shipped skill",
+      "finding": "Explicit media transmitted alongside state, labels/id/schema local; local inference does not require TypeSafe credentials/billing; immutable identity and provider calibration.",
+      "final_skill_sha256": "196040c3ac61a0a09adf6b161bf19fabb98d7d9568499201370cfc3044ff2885",
+      "final_related_sources": [
+        {
+          "path": "skills/jev-pilot/references/method.md",
+          "sha256": "96c54303ff5c0579955d2d77ce3ba2a244b4198f6881308f68293f967d690a89"
+        }
+      ]
+    },
+    {
+      "name": "jev-workflow-retro",
+      "path": "skills/jev-workflow-retro/SKILL.md",
+      "kind": "shipped skill",
+      "finding": "Parser no-network scope distinguished from agent-context provider; prospective payload recipient and hosted/local operating cost correctly identified.",
+      "final_skill_sha256": "01d7a1b424813879d9e0b6d377e52f7feec6ab2a9451339ace4442230ccd14ca",
+      "final_related_sources": [
+        {
+          "path": "skills/jev-workflow-retro/references/patterns.md",
+          "sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051"
+        },
+        {
+          "path": "skills/jev-workflow-retro/references/providers.md",
+          "sha256": "e255b3a7ef60d8ba6a815bb8bfc0fdff2a0e450087be549486d2ac29265ee35a"
+        },
+        {
+          "path": "skills/jev-workflow-retro/scripts/transcripts.py",
+          "sha256": "5e525b00a949637d594e778b6f3663038b2717c066329a403d4fe1a772de806e"
+        }
+      ]
+    },
+    {
+      "name": "agent-ready-repo",
+      "path": ".claude/skills/agent-ready-repo/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "No Clef-specific stale facts or capability cache found; scope/workflow preserved.",
+      "final_skill_sha256": "6b7961fdc41d71405b822c8e59257f31fb007b7058e182ca784db74497631ac0"
+    },
+    {
+      "name": "api-compat",
+      "path": ".claude/skills/api-compat/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "Clef official authority already present; now explicitly limits TypeSafe confidence/semantics conclusions to their evidence.",
+      "final_skill_sha256": "931f38eef7193327f3c1047c3805e0ebcb8bb91ce2f0717fe7f560e23a190f40"
+    },
+    {
+      "name": "dispatching-parallel-agents",
+      "path": ".claude/skills/dispatching-parallel-agents/SKILL.md",
+      "kind": "pinned authoring vendor",
+      "finding": "Pinned third-party methodology audited through canonical copies; setup --check verifies exact pinned clones/copies; no vendor edit/upgrade.",
+      "final_skill_sha256": "1968923066f3b707eb01d1992cdf4c42284c3855f70253b9cd5000ff45fca13c"
+    },
+    {
+      "name": "engineering-mode",
+      "path": ".claude/skills/engineering-mode/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "No Clef-specific stale facts or capability cache found; scope/workflow preserved.",
+      "final_skill_sha256": "da3e1cb151a751a0ee309e724761efeafaccf54f728cf668f8c9f9e5e0facb85"
+    },
+    {
+      "name": "maintain-agent-readiness",
+      "path": ".claude/skills/maintain-agent-readiness/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "No Clef-specific stale facts or capability cache found; scope/workflow preserved.",
+      "final_skill_sha256": "da35cbca7474f1bc921675560d85220ee7796638287fe7419dc4036fc51ecd2b"
+    },
+    {
+      "name": "recall-current-state",
+      "path": ".claude/skills/recall-current-state/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "No Clef-specific stale facts or capability cache found; scope/workflow preserved.",
+      "final_skill_sha256": "3077cad652ef0e61c605a5c5b88d7efd5954549dd3b12db6625c834682d19b88"
+    },
+    {
+      "name": "release-review",
+      "path": ".claude/skills/release-review/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "Source-distributed separate bridge and user-owned weights, provider-limited release claims, genuine processor coverage, archive/executing-source/model identity distinctions.",
+      "final_skill_sha256": "dee828b8f90b824c28b25672ca70f0d501cc8bb3b0b6f23f96609485ed05e9d6"
+    },
+    {
+      "name": "repo-gardener",
+      "path": ".claude/skills/repo-gardener/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "No Clef-specific stale facts or capability cache found; scope/workflow preserved.",
+      "final_skill_sha256": "efc5c539f91de0fb36644980ddbdb099d7c0ec8ee7585e18245ed1551da0f8f3"
+    },
+    {
+      "name": "security-review",
+      "path": ".claude/skills/security-review/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "Custom/TypeSafe credential isolation, explicit media and preview content, Python loader/server resource/lifecycle and source/model/runtime provenance review.",
+      "final_skill_sha256": "ee921a488658a8b9460bb7c38a636e84e0610d119692476f1412f05107d9d9a5"
+    },
+    {
+      "name": "skill-creator",
+      "path": ".claude/skills/skill-creator/SKILL.md",
+      "kind": "pinned authoring vendor",
+      "finding": "Pinned third-party methodology audited through canonical copies; setup --check verifies exact pinned clones/copies; no vendor edit/upgrade.",
+      "final_skill_sha256": "dcd4803e61e913e6fc27294184cd3a71f09f5e924ff20c8a9a20173e7b3c2bcf"
+    },
+    {
+      "name": "test-driven-development",
+      "path": ".claude/skills/test-driven-development/SKILL.md",
+      "kind": "pinned authoring vendor",
+      "finding": "Pinned third-party methodology audited through canonical copies; setup --check verifies exact pinned clones/copies; no vendor edit/upgrade.",
+      "final_skill_sha256": "64b03fce4aee5a97a93160cea8111f3ba13a17b7c001db4bd5836d67fd10705d"
+    },
+    {
+      "name": "typesafe-ai",
+      "path": ".claude/skills/typesafe-ai/SKILL.md",
+      "kind": "pinned official TypeSafe source",
+      "finding": "Official TypeSafe-specific skill unchanged; exact byte match to current official upstream, recorded in typesafe-upstream-comparison.json. Content/source pinned through installer lock, not an invented explicit git revision.",
+      "final_skill_sha256": "71ea90d7906c6554c4f4c460ef7361b2d26f59116ccdae986dc6d997b9389f52"
+    },
+    {
+      "name": "verification-before-completion",
+      "path": ".claude/skills/verification-before-completion/SKILL.md",
+      "kind": "pinned authoring vendor",
+      "finding": "Pinned third-party methodology audited through canonical copies; setup --check verifies exact pinned clones/copies; no vendor edit/upgrade.",
+      "final_skill_sha256": "2befe7fc55bcadaa3d97dd9e8efeb633d2561c0ebe74c5a8b17c4d9e7e4520b3"
+    },
+    {
+      "name": "verify",
+      "path": ".claude/skills/verify/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "Actual selected-interpreter Clef decoder/processor reproduction, offline test versus live evidence, correct existing MCP tokio exception/source policy.",
+      "final_skill_sha256": "604917e1afdb690c2e576bf3707a45e84e7a5093630017783d30cb8f68ab134e"
+    },
+    {
+      "name": "verify-change",
+      "path": ".claude/skills/verify-change/SKILL.md",
+      "kind": "project-owned developer skill",
+      "finding": "No Clef-specific stale facts or capability cache found; scope/workflow preserved.",
+      "final_skill_sha256": "d31355c9a461324b9e24bafd0a43dae692e0809b1b7f7590cb051ef32cea4a8e"
+    },
+    {
+      "name": "writing-skills",
+      "path": ".claude/skills/writing-skills/SKILL.md",
+      "kind": "pinned authoring vendor",
+      "finding": "Pinned third-party methodology audited through canonical copies; setup --check verifies exact pinned clones/copies; no vendor edit/upgrade.",
+      "final_skill_sha256": "bbdfe742f853562e643a3d40d64476359d47881e39cef80a189283fa26d11ab9"
+    }
+  ],
+  "consulted_primary_sources": [
+    "https://agentskills.io/specification",
+    "https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices",
+    "https://github.com/obra/superpowers/tree/main/skills/writing-skills",
+    "https://docs.ollama.com/api/systemone",
+    "https://developers.cloudflare.com/workers-ai/models/clef-flash/",
+    "https://docs.typesafe.ai/llms.txt",
+    "https://raw.githubusercontent.com/typesafe-ai/skills/main/skills/typesafe-ai/SKILL.md"
+  ],
+  "consulted_repository_sources": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "0fcb7e88b6cf7f75d6f56b04c42dac0b5afae31c1fd9ef3d9339f7a7eb3ecde1"
+    },
+    {
+      "path": "skills-lock.json",
+      "sha256": "73020e856455f67c4755b174779bc95f23be6c9264a1082141b37bf12a5a3196"
+    },
+    {
+      "path": "skill-authoring-lock.json",
+      "sha256": "d7144b5ae0becdb3e7bc6e4ef32181e6709cd881c24cf253f9054b5cf3859d33"
+    },
+    {
+      "path": "docs/development/skill-authoring.md",
+      "sha256": "63f35e15a86b26a99dbe1d23444129fbcdd4468d9d91b139e8974d38bb3392dc"
+    },
+    {
+      "path": "docs/development/agent-workflows.md",
+      "sha256": "a7afb558d0f3f0bcbd152040819dc7732bb83069ee4ef6a61d23195ad2b65123"
+    },
+    {
+      "path": "docs/clef.md",
+      "sha256": "9d4c453fb1ca5e01e09840515cea818be5243f0f45d9d7e1a6326db25c6f4fe2"
+    },
+    {
+      "path": "docs/adr/0015-clef-providers-and-vision.md",
+      "sha256": "e6c508efde5a45d3653d417199810c2cefa661de9997b77ce1192a6c285fd393"
+    },
+    {
+      "path": "docs/development/clef-live-testing.md",
+      "sha256": "15a38563c5c846b51c0edbdbb7de42c860b657ef49bed147fc29d1f104213029"
+    },
+    {
+      "path": "docs/output-schema.md",
+      "sha256": "34d9abb14f67c142ef2683690135737bad18d438d8f88c965ebd451f1658f2fa"
+    },
+    {
+      "path": "crates/jev-cli/src/commands/eval.rs",
+      "sha256": "5ad9f62db9cc3b9d4d43746be0defec8eaf98f4961b074cd3cf4e7d228a2e392"
+    },
+    {
+      "path": "crates/jev-config/src/credentials.rs",
+      "sha256": "f44ab10c36eb71fa398287467e6ae4763bba3c49541ed90fe3f97090d9088327"
+    },
+    {
+      "path": "crates/jev-cli/src/context.rs",
+      "sha256": "92f03dc33d91ba4eaaec26a8c97e7afcbbc93f8b56b17c0aba172301cacb207c"
+    },
+    {
+      "path": "scripts/verify.sh",
+      "sha256": "2daf4644c5faf2f90fb8b5856a070c2fd50e2d4ce477d5ea767b716c27530d2f"
+    },
+    {
+      "path": "scripts/clef_provenance.py",
+      "sha256": "86f8fcfe9a55b76f95f6361576b07738ac169c4f96d12d5332c3ec1ed1f1315e"
+    },
+    {
+      "path": "scripts/skill-eval-codex.py",
+      "sha256": "7be26e966ff05deb98212dbbe993e3bf00539ee41710e9b3a072dbdb105c3b51"
+    },
+    {
+      "path": "scripts/validate-skills.py",
+      "sha256": "868ef60192236eb36e07e978e3bc7fc0980282e8ec795a1a32a1e5bb6febcced"
+    },
+    {
+      "path": "scripts/check-agent-readiness.py",
+      "sha256": "fb553d0aad7a999f433d4ab97aae4248fead5e3c659082ef2e56f9f1a69f7df0"
+    }
+  ],
+  "factual_observations": [
+    {
+      "stale_fact": "All images/scanned inputs require OCR, and audit findings cannot use non-text input",
+      "correction": "Vision-capable selected Clef providers can inspect explicitly supplied images; only the Python bridge supports prepared video here. OCR is conditional on needed extracted text or endpoint capability. No media discovery/upload added.",
+      "evidence": [
+        "docs/clef.md",
+        "https://docs.ollama.com/api/systemone",
+        "https://developers.cloudflare.com/workers-ai/models/clef-flash/"
+      ]
+    },
+    {
+      "stale_fact": "Only a dataset row state is transmitted",
+      "correction": "State and explicitly supplied images/videos are transmitted; labels, row id and schema remain local.",
+      "evidence": [
+        "crates/jev-cli/src/commands/eval.rs:617",
+        "docs/clef.md"
+      ]
+    },
+    {
+      "stale_fact": "Every inference row requires a credential and incurs a TypeSafe bill",
+      "correction": "Billing depends on hosted provider; selected loopback local inference consults no credentials and uses separately managed runtime resources.",
+      "evidence": [
+        "crates/jev-config/src/credentials.rs:203",
+        "crates/jev-cli/src/context.rs:411"
+      ]
+    },
+    {
+      "stale_fact": "A returned alias/model identifier establishes immutable local weights and transferable calibration",
+      "correction": "Preserve real model/model_requested fields; retain separately verified runtime/weight identity when obtainable, mark missing identity unverified, and recalibrate across provider/model/question/media/data changes.",
+      "evidence": [
+        "docs/output-schema.md",
+        "docs/development/clef-live-testing.md#execution-provenance"
+      ]
+    },
+    {
+      "stale_fact": "Developer security/release/verification guidance covers TypeSafe alone",
+      "correction": "Selected-provider auth/privacy, source-distributed Python bridge, explicit publisher execution, bounded media/processor behavior, runtime lifecycle and independent source/runtime/model evidence are now included.",
+      "evidence": [
+        "AGENTS.md",
+        "docs/adr/0015-clef-providers-and-vision.md",
+        "scripts/verify.sh"
+      ]
+    }
+  ],
+  "evaluations": {
+    "requested_model": "gpt-6.1-sol",
+    "requested_effort": "high",
+    "requested_judge_model": "gpt-6.1-sol",
+    "requested_judge_effort": "high",
+    "model_observation": "Server acknowledges requested thread model/provider/effort; per-turn backend attestation is unavailable",
+    "harness": "Existing instrumented read-only Skill/Read/Glob/Grep catalog through Codex app-server; not native Codex/Claude/Cursor discovery",
+    "case_authorship": "Fresh targeted prompts and rubrics authored by the updater; independent fresh three-vote rubric judges, not blind independent case design or held-out prompts",
+    "final_selection": "Assembled from the explicitly named candidate epochs below, not a single 54-session final-source run",
+    "cases": [
+      {
+        "case": "clef-audit-pilot-identity",
+        "guide_score": 1.0,
+        "no_guide_score": 0.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-new/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-pilot-payload",
+        "guide_score": 1.0,
+        "no_guide_score": 0.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-new/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-near-miss-fit",
+        "guide_score": 1.0,
+        "no_guide_score": 1.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-negatives-corrected/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-near-miss-pilot",
+        "guide_score": 1.0,
+        "no_guide_score": 1.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-negatives-corrected/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-near-miss-retro",
+        "guide_score": 1.0,
+        "no_guide_score": 1.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-negatives-corrected/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-retro-recipient",
+        "guide_score": 1.0,
+        "no_guide_score": 0.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-retro-final/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-opportunity-vision",
+        "guide_score": 1.0,
+        "no_guide_score": 0.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-vision-final/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-fit-vision",
+        "guide_score": 1.0,
+        "no_guide_score": 1.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-vision-final/aggregate-result.json"
+      },
+      {
+        "case": "clef-audit-near-miss-opportunity",
+        "guide_score": 1.0,
+        "no_guide_score": 1.0,
+        "repeats_per_arm": 3,
+        "report": "target/clef-docs-skills-20261005/confirmation-vision-final/aggregate-result.json"
+      }
+    ],
+    "selected_measured_sessions": 54,
+    "guide_passes": 27,
+    "guide_attempts": 27,
+    "no_guide_passes": 15,
+    "no_guide_attempts": 27,
+    "selected_errors": 0,
+    "all_successfully_measured_sessions": 88,
+    "all_attempted_sessions": 92,
+    "completed_sessions_with_usable_grading": 70,
+    "session_accounting_note": "The 88 completed/protocol-valid sessions include 18 invalid-grader sessions. Four additional startup failures bring attempts to 92. Of 70 sessions with usable grading, 54 are selected for the final comparison.",
+    "initial_sandbox_startup_errors": 4,
+    "invalid_negative_grader_sessions_retained": 18,
+    "invalid_grader_correction": {
+      "path": "target/clef-docs-skills-20261005/negative-grader-correction.json",
+      "sha256": "453da5d9df799f754fa4f2bbc9d7ad804ae54ff38b5fd734278d0f432b5a2ca4"
+    },
+    "old_exploratory": "Four old-guide cases were correct in one exploratory pass each; this does not establish repeatability or new-versus-old improvement",
+    "new_versus_old_improvement_claim": false,
+    "description_or_routing_changes": false,
+    "commands": [
+      "python3 target/clef-docs-skills-20261005/old/scripts/skill-eval-codex.py --tag positive --iterate --concurrency 4 --output-dir target/clef-docs-skills-20261005/baseline-old-authorized",
+      "python3 target/clef-docs-skills-20261005/new/scripts/skill-eval-codex.py --concurrency 4 --output-dir target/clef-docs-skills-20261005/confirmation-new",
+      "python3 target/clef-docs-skills-20261005/negative-corrected/scripts/skill-eval-codex.py --concurrency 4 --output-dir target/clef-docs-skills-20261005/confirmation-negatives-corrected",
+      "python3 target/clef-docs-skills-20261005/retro-final/scripts/skill-eval-codex.py --concurrency 4 --output-dir target/clef-docs-skills-20261005/confirmation-retro-final",
+      "python3 target/clef-docs-skills-20261005/vision-final/scripts/skill-eval-codex.py --concurrency 4 --output-dir target/clef-docs-skills-20261005/confirmation-vision-final"
+    ],
+    "epochs": [
+      {
+        "id": "baseline-old",
+        "report": {
+          "path": "target/clef-docs-skills-20261005/baseline-old/aggregate-result.json",
+          "sha256": "b7d68c83bd6974a4e076e769661ab033b7f24eb4cbe736b4e26c17754892fd4e"
+        },
+        "candidate_manifest": {
+          "path": "target/clef-docs-skills-20261005/baseline-old/candidate-manifest.json",
+          "sha256": "cb0e4789086175d205badc81c71a22678430aaeeb35234932c308bd675847c96"
+        },
+        "evaluation_manifest": {
+          "path": "target/clef-docs-skills-20261005/baseline-old/evaluation-manifest.json",
+          "sha256": "d88ab7be99f0e87d01184097772eaa27027fc4cca751b799baee978aca53f42f"
+        },
+        "candidate_tree_sha256": "b4652c33bdf7e838cf847f712924102c9692c185f5b54139145610d6d6ab602b",
+        "evaluation_tree_sha256": "220b9deedb9cfda9b70533c9a424eb5fad54edc6b172a2a98f8e484c894d279c",
+        "counts": {
+          "expected": 4,
+          "attempted": 4,
+          "valid": 0,
+          "errors": 4
+        },
+        "mode": "iterate",
+        "selected_cases": [],
+        "scope": "Initial read-only-home startup failures; no valid measurement",
+        "candidate_difference_from_final": [
+          "is-jev-useful-here/references/fit-indicators.md",
+          "jev/SKILL.md",
+          "jev/references/providers.md",
+          "jev-opportunity-audit/references/audit-method.md",
+          "jev-pilot/SKILL.md",
+          "jev-pilot/references/method.md",
+          "jev-workflow-retro/SKILL.md"
+        ],
+        "all_selected_loaded_skill_sources_match_final": true,
+        "selected_loaded_skill_sources": [],
+        "selected_attempt_count": 0,
+        "attempt_binding_note": "Each selected result.json is individually SHA-256 bound in the retained-evidence manifest/archive. Its trace and case/arm/repetition preserve exactly which sources were loaded. The unique loaded-source bindings below match final bytes; unloaded candidate differences listed above are not concealed.",
+        "selection_by_case": []
+      },
+      {
+        "id": "baseline-old-authorized",
+        "report": {
+          "path": "target/clef-docs-skills-20261005/baseline-old-authorized/aggregate-result.json",
+          "sha256": "997b23b62983e7cd32a6ab394be5e817f8b3c5675c8ce7026c89446a44f52180"
+        },
+        "candidate_manifest": {
+          "path": "target/clef-docs-skills-20261005/baseline-old-authorized/candidate-manifest.json",
+          "sha256": "cb0e4789086175d205badc81c71a22678430aaeeb35234932c308bd675847c96"
+        },
+        "evaluation_manifest": {
+          "path": "target/clef-docs-skills-20261005/baseline-old-authorized/evaluation-manifest.json",
+          "sha256": "d88ab7be99f0e87d01184097772eaa27027fc4cca751b799baee978aca53f42f"
+        },
+        "candidate_tree_sha256": "b4652c33bdf7e838cf847f712924102c9692c185f5b54139145610d6d6ab602b",
+        "evaluation_tree_sha256": "220b9deedb9cfda9b70533c9a424eb5fad54edc6b172a2a98f8e484c894d279c",
+        "counts": {
+          "expected": 4,
+          "attempted": 4,
+          "valid": 4,
+          "errors": 0
+        },
+        "mode": "iterate",
+        "selected_cases": [],
+        "scope": "Exploratory old-guide development signal, not confirmation",
+        "candidate_difference_from_final": [
+          "is-jev-useful-here/references/fit-indicators.md",
+          "jev/SKILL.md",
+          "jev/references/providers.md",
+          "jev-opportunity-audit/references/audit-method.md",
+          "jev-pilot/SKILL.md",
+          "jev-pilot/references/method.md",
+          "jev-workflow-retro/SKILL.md"
+        ],
+        "all_selected_loaded_skill_sources_match_final": true,
+        "selected_loaded_skill_sources": [],
+        "selected_attempt_count": 0,
+        "attempt_binding_note": "Each selected result.json is individually SHA-256 bound in the retained-evidence manifest/archive. Its trace and case/arm/repetition preserve exactly which sources were loaded. The unique loaded-source bindings below match final bytes; unloaded candidate differences listed above are not concealed.",
+        "selection_by_case": []
+      },
+      {
+        "id": "confirmation-new",
+        "report": {
+          "path": "target/clef-docs-skills-20261005/confirmation-new/aggregate-result.json",
+          "sha256": "d849ac4f7057546e475d009516f6548cf50f2be0e2b26e7eeee46eae8d862389"
+        },
+        "candidate_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-new/candidate-manifest.json",
+          "sha256": "2aee5fe05bb0976fafd216fcb7d286f2916f7631fd527e13357e5c45ea9fb287"
+        },
+        "evaluation_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-new/evaluation-manifest.json",
+          "sha256": "d88ab7be99f0e87d01184097772eaa27027fc4cca751b799baee978aca53f42f"
+        },
+        "candidate_tree_sha256": "758fe1a0a03721cec64153fd9e427a66751de5546170634bf903fb068ff44586",
+        "evaluation_tree_sha256": "220b9deedb9cfda9b70533c9a424eb5fad54edc6b172a2a98f8e484c894d279c",
+        "counts": {
+          "expected": 42,
+          "attempted": 42,
+          "valid": 42,
+          "errors": 0
+        },
+        "mode": "confirmation",
+        "selected_cases": [
+          "clef-audit-pilot-identity",
+          "clef-audit-pilot-payload"
+        ],
+        "scope": "Repeated guide/no-guide confirmation",
+        "candidate_difference_from_final": [
+          "is-jev-useful-here/references/fit-indicators.md",
+          "jev-opportunity-audit/references/audit-method.md",
+          "jev-workflow-retro/SKILL.md"
+        ],
+        "all_selected_loaded_skill_sources_match_final": true,
+        "selected_loaded_skill_sources": [
+          {
+            "skill_relative_path": "jev/SKILL.md",
+            "snapshot_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+            "final_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev/references/providers.md",
+            "snapshot_sha256": "041ed1694b91e3d8ab4281da4a253568d08325ce7bfc2333a722cb30ec845101",
+            "final_sha256": "041ed1694b91e3d8ab4281da4a253568d08325ce7bfc2333a722cb30ec845101",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev-pilot/SKILL.md",
+            "snapshot_sha256": "196040c3ac61a0a09adf6b161bf19fabb98d7d9568499201370cfc3044ff2885",
+            "final_sha256": "196040c3ac61a0a09adf6b161bf19fabb98d7d9568499201370cfc3044ff2885",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev-pilot/references/method.md",
+            "snapshot_sha256": "96c54303ff5c0579955d2d77ce3ba2a244b4198f6881308f68293f967d690a89",
+            "final_sha256": "96c54303ff5c0579955d2d77ce3ba2a244b4198f6881308f68293f967d690a89",
+            "matches_final": true
+          }
+        ],
+        "selected_attempt_count": 12,
+        "attempt_binding_note": "Each selected result.json is individually SHA-256 bound in the retained-evidence manifest/archive. Its trace and case/arm/repetition preserve exactly which sources were loaded. The unique loaded-source bindings below match final bytes; unloaded candidate differences listed above are not concealed.",
+        "selection_by_case": [
+          {
+            "case": "clef-audit-pilot-identity",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "case": "clef-audit-pilot-payload",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "id": "confirmation-negatives-corrected",
+        "report": {
+          "path": "target/clef-docs-skills-20261005/confirmation-negatives-corrected/aggregate-result.json",
+          "sha256": "d0be4c410a8b67d3bbb29500416a192abc6066f3ebf83920ae35c6f9c5c638f9"
+        },
+        "candidate_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-negatives-corrected/candidate-manifest.json",
+          "sha256": "2aee5fe05bb0976fafd216fcb7d286f2916f7631fd527e13357e5c45ea9fb287"
+        },
+        "evaluation_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-negatives-corrected/evaluation-manifest.json",
+          "sha256": "a77769529d565adc2b499e7ed4ef96051de02c61cc71a5a53edeb7bc0c08cde5"
+        },
+        "candidate_tree_sha256": "758fe1a0a03721cec64153fd9e427a66751de5546170634bf903fb068ff44586",
+        "evaluation_tree_sha256": "c4915e5aa43308dfe6dc46fc3960681426c3d5ba8c989b1c6d01429685f744ee",
+        "counts": {
+          "expected": 18,
+          "attempted": 18,
+          "valid": 18,
+          "errors": 0
+        },
+        "mode": "confirmation",
+        "selected_cases": [
+          "clef-audit-near-miss-fit",
+          "clef-audit-near-miss-pilot",
+          "clef-audit-near-miss-retro"
+        ],
+        "scope": "Repeated guide/no-guide confirmation",
+        "candidate_difference_from_final": [
+          "is-jev-useful-here/references/fit-indicators.md",
+          "jev-opportunity-audit/references/audit-method.md",
+          "jev-workflow-retro/SKILL.md"
+        ],
+        "all_selected_loaded_skill_sources_match_final": true,
+        "selected_loaded_skill_sources": [
+          {
+            "skill_relative_path": "jev/SKILL.md",
+            "snapshot_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+            "final_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+            "matches_final": true
+          }
+        ],
+        "selected_attempt_count": 18,
+        "attempt_binding_note": "Each selected result.json is individually SHA-256 bound in the retained-evidence manifest/archive. Its trace and case/arm/repetition preserve exactly which sources were loaded. The unique loaded-source bindings below match final bytes; unloaded candidate differences listed above are not concealed.",
+        "selection_by_case": [
+          {
+            "case": "clef-audit-near-miss-fit",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "case": "clef-audit-near-miss-pilot",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "case": "clef-audit-near-miss-retro",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "id": "confirmation-retro-final",
+        "report": {
+          "path": "target/clef-docs-skills-20261005/confirmation-retro-final/aggregate-result.json",
+          "sha256": "10e78c3afce9e67200a895ce9f504d1f8518cb6bd858128fab1ea5dd2d92c24a"
+        },
+        "candidate_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-retro-final/candidate-manifest.json",
+          "sha256": "cebcd362a7074c415684742f3a2c2cfa963d914900f24d44937e07203e1a425f"
+        },
+        "evaluation_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-retro-final/evaluation-manifest.json",
+          "sha256": "2d92b7006eb922f13f9b6915124886dd9896d76f853dbfa6fe3eaa4943eeecc0"
+        },
+        "candidate_tree_sha256": "0ec2715848b86af18426325d39b18138be5798d48906d4c9f11e17cd826621de",
+        "evaluation_tree_sha256": "ed4d84c8e5398c4662e68c5b0c9a45c6f4d4b4b271dee0206752646fac12789c",
+        "counts": {
+          "expected": 6,
+          "attempted": 6,
+          "valid": 6,
+          "errors": 0
+        },
+        "mode": "confirmation",
+        "selected_cases": [
+          "clef-audit-retro-recipient"
+        ],
+        "scope": "Repeated guide/no-guide confirmation",
+        "candidate_difference_from_final": [
+          "is-jev-useful-here/references/fit-indicators.md",
+          "jev-opportunity-audit/references/audit-method.md"
+        ],
+        "all_selected_loaded_skill_sources_match_final": true,
+        "selected_loaded_skill_sources": [
+          {
+            "skill_relative_path": "jev-workflow-retro/SKILL.md",
+            "snapshot_sha256": "01d7a1b424813879d9e0b6d377e52f7feec6ab2a9451339ace4442230ccd14ca",
+            "final_sha256": "01d7a1b424813879d9e0b6d377e52f7feec6ab2a9451339ace4442230ccd14ca",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev-workflow-retro/references/patterns.md",
+            "snapshot_sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+            "final_sha256": "2291b84aa7a697e86f92be10bf694bc20c86f9410c5a2af56ad83aa9fff96051",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev/SKILL.md",
+            "snapshot_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+            "final_sha256": "0c67aa27ec15c5bd8eb18e2e20eadab005e184f01323703d420ff728e5f2713d",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev/references/providers.md",
+            "snapshot_sha256": "041ed1694b91e3d8ab4281da4a253568d08325ce7bfc2333a722cb30ec845101",
+            "final_sha256": "041ed1694b91e3d8ab4281da4a253568d08325ce7bfc2333a722cb30ec845101",
+            "matches_final": true
+          }
+        ],
+        "selected_attempt_count": 6,
+        "attempt_binding_note": "Each selected result.json is individually SHA-256 bound in the retained-evidence manifest/archive. Its trace and case/arm/repetition preserve exactly which sources were loaded. The unique loaded-source bindings below match final bytes; unloaded candidate differences listed above are not concealed.",
+        "selection_by_case": [
+          {
+            "case": "clef-audit-retro-recipient",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      },
+      {
+        "id": "confirmation-vision-final",
+        "report": {
+          "path": "target/clef-docs-skills-20261005/confirmation-vision-final/aggregate-result.json",
+          "sha256": "ff9306dbd55f64be2d8f594ef40a87a2e0b3692746675c42e089cf1d5549d67a"
+        },
+        "candidate_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-vision-final/candidate-manifest.json",
+          "sha256": "f313fed81386214b7a4b5820c002fd1d3389648a330f07dbcbd93c506b2c4648"
+        },
+        "evaluation_manifest": {
+          "path": "target/clef-docs-skills-20261005/confirmation-vision-final/evaluation-manifest.json",
+          "sha256": "30192a1f785c4cd4711c9a31975978e58b98c741843d164f626fac0f7a50612e"
+        },
+        "candidate_tree_sha256": "43d8523c985f12a6ddf2bb44f10fb92153525cba094ea99c665a670f9f3f8e69",
+        "evaluation_tree_sha256": "b8f5643485303ec00e19100c74b2b58ca9e07f08de02b8ffaa5cda26fb29756f",
+        "counts": {
+          "expected": 18,
+          "attempted": 18,
+          "valid": 18,
+          "errors": 0
+        },
+        "mode": "confirmation",
+        "selected_cases": [
+          "clef-audit-fit-vision",
+          "clef-audit-near-miss-opportunity",
+          "clef-audit-opportunity-vision"
+        ],
+        "scope": "Repeated guide/no-guide confirmation",
+        "candidate_difference_from_final": [],
+        "all_selected_loaded_skill_sources_match_final": true,
+        "selected_loaded_skill_sources": [
+          {
+            "skill_relative_path": "is-jev-useful-here/SKILL.md",
+            "snapshot_sha256": "4fbf5d196afd6edd763cfd408341dd6ebe09d6483448524d36f6895b26f4c875",
+            "final_sha256": "4fbf5d196afd6edd763cfd408341dd6ebe09d6483448524d36f6895b26f4c875",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "is-jev-useful-here/references/fit-indicators.md",
+            "snapshot_sha256": "406551a28fee4a8bcd7178c47e70e6350008a491d6712521e28df47a065c1705",
+            "final_sha256": "406551a28fee4a8bcd7178c47e70e6350008a491d6712521e28df47a065c1705",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev-opportunity-audit/SKILL.md",
+            "snapshot_sha256": "2acad0c8f9233654c9194a9bf0e7028111222575bcffabe93d7e842b4c64a8a6",
+            "final_sha256": "2acad0c8f9233654c9194a9bf0e7028111222575bcffabe93d7e842b4c64a8a6",
+            "matches_final": true
+          },
+          {
+            "skill_relative_path": "jev-opportunity-audit/references/audit-method.md",
+            "snapshot_sha256": "71bffc6bafb7beab218576cd9df2e4a70b65f63b43ba33366de7ddaec122fce0",
+            "final_sha256": "71bffc6bafb7beab218576cd9df2e4a70b65f63b43ba33366de7ddaec122fce0",
+            "matches_final": true
+          }
+        ],
+        "selected_attempt_count": 18,
+        "attempt_binding_note": "Each selected result.json is individually SHA-256 bound in the retained-evidence manifest/archive. Its trace and case/arm/repetition preserve exactly which sources were loaded. The unique loaded-source bindings below match final bytes; unloaded candidate differences listed above are not concealed.",
+        "selection_by_case": [
+          {
+            "case": "clef-audit-opportunity-vision",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "case": "clef-audit-fit-vision",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          },
+          {
+            "case": "clef-audit-near-miss-opportunity",
+            "with_repetitions": [
+              1,
+              2,
+              3
+            ],
+            "without_repetitions": [
+              1,
+              2,
+              3
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "review_findings": [
+    {
+      "finding": "Parser-only no-network statement was overbroad about the agent model context",
+      "disposition": "Fixed: retrospective does not submit content to a Jev inference endpoint; agent-read content reaches its model provider context. Fresh final retrospective confirmation retained."
+    },
+    {
+      "finding": "Literal python3 reproduction ignored JEV_CLEF_PYTHON",
+      "disposition": "Fixed: verification reproduction uses quoted ${JEV_CLEF_PYTHON:-python3}, matching the actual verifier selection."
+    }
+  ],
+  "verification": {
+    "skill_validation": "16 valid; five pinned vendors intentionally skipped and verified separately",
+    "pinned_toolchain": "scripts/skill-authoring-setup.sh --check passed all four pinned research clones and all five installed authoring vendors",
+    "official_typesafe_upstream_comparison": {
+      "path": "target/clef-docs-skills-20261005/typesafe-upstream-comparison.json",
+      "sha256": "37bada73b18ebcb1e1e799aec5bbc9e285c74eb5092ca5b2c16f17c589162a7f"
+    },
+    "readiness": "Passed after root user-authorized verify adapter repair",
+    "diff_check": "Passed",
+    "full_repository_gate": "Recorded separately by the coordinator for the finished checkout; this frozen skill-evaluation receipt makes no completion-gate claim"
+  },
+  "retained_local_evidence": {
+    "manifest": {
+      "path": "target/clef-docs-skills-20261005/retention-manifest.json",
+      "sha256": "cd20f06dd07486ea1986cd806740be92258055e043ed90518b99d9e760049d2d"
+    },
+    "artifact_count": 492,
+    "bundle": {
+      "path": "target/clef-docs-skills-20261005/retained-evidence.tar.gz",
+      "sha256": "0a81802b634cd90fff6fdd769a7b194dce0e978497ad04e118e444ac9b08f71b"
+    },
+    "bytes": 3227679,
+    "retention_note": "Local target artifacts are excluded from normal Git commits. This hash manifest and local archive identify retained evidence; publishing this receipt does not publish those raw artifacts."
+  },
+  "limits": [
+    "No real hosted/local provider inference, model loading, weight downloads, production accuracy measurement or publishing action was performed by the skill audit.",
+    "Focused synthetic catalog checks do not establish all runtime/model behavior, native discovery, production performance, remote immutable weights or cross-platform inference.",
+    "No full skill evaluation suite was run; the nine focused cases and their author-origin/epoch limitations are stated explicitly."
+  ]
+}

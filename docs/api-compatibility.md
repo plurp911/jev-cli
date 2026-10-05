@@ -5,21 +5,27 @@ and how it is checked.
 
 This document's existing tables describe TypeSafe. Hosted Cloudflare and local
 Ollama/llama.cpp adapters follow their respective official contracts, researched on
-2026-10-03. The Python bridge has a separately documented project-owned contract. See [provider compatibility and limitations](clef.md) and
+2026-10-03 and rechecked for this documentation audit on 2026-10-05. The Python
+bridge has a separately documented project-owned contract. See [provider compatibility and limitations](clef.md) and
 [source evidence](development/clef-research.md). A System One-compatible question
 shape does not imply compatible routing, authentication, image encoding, or limits.
 
 ## The rule
 
-**Official TypeSafe sources are authoritative, and nothing else is.** In order:
+**For TypeSafe behavior, official TypeSafe sources are authoritative.** In order:
 
 1. <https://docs.typesafe.ai> — start from `llms.txt`; Mintlify serves Markdown by
    appending `.md` to a page path.
 2. The vendored official agent skill in `.claude/skills/typesafe-ai/`.
 3. The official SDK repositories and their typed definitions.
 
-A community project — including the ones in `references/` — is evidence about the
-landscape, never evidence about the API.
+Clef provider authority comes from [Cloudflare's hosted schemas](https://developers.cloudflare.com/workers-ai/models/clef/),
+[Ollama System One](https://docs.ollama.com/api/systemone),
+[llama.cpp's server contract](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md),
+and the [publisher implementation](https://huggingface.co/Cloudflare/clef/blob/main/joint_schema_model.py)
+for the local bridge. [Clef](clef.md) records the separate routes, content forms,
+media encoding, options, and bounds. A community project, including one in
+`references/`, is landscape evidence, not provider protocol authority.
 
 ## Verification status
 

@@ -148,8 +148,9 @@ jev noul "Does this commit message describe a breaking change?" \
 ```
 
 Keys are emitted in sorted order, and one document is written per invocation. `model`
-is what answered; `model_requested` is what was asked for, which differs whenever an
-alias like `jev-latest` resolves. `endpoint` is where the request went.
+is what answered; `model_requested` is what was asked for. TypeSafe aliases such as `jev-latest`
+can resolve to a version; a local Clef alias/report string does not prove which
+weights ran. Record runtime and weight identity separately when reproducibility matters. `endpoint` is where the request went.
 
 `noul` is the probability of **yes**. There is **no confidence field on a Noul** — the
 API does not return one. `0.5` means yes and no are similarly likely; it does not mean
@@ -301,9 +302,9 @@ Rules for using it:
    has none measured is the moment to propose `jev eval`, not to pick a number.
 2. **Propose it with data the user already has** — past decisions, resolved tickets, a
    spreadsheet — rather than asking them to create a dataset from nothing.
-3. **A calibration does not transfer.** It is evidence for one question, one dataset, and
-   one model version. Changing the instructions, the options, the input distribution, or
-   the model means recalibrating, not reusing the number.
+3. **A calibration does not transfer.** It is evidence for one provider/model, question,
+   dataset, and media/processor configuration. Changing any of those means recalibrating,
+   not reusing the number; a TypeSafe cut is not validated for Clef.
 4. **Pin the model** once a threshold is in use. Record the `model` the report names.
 5. **Do not quote a threshold without its objective.** The best cut under one objective is
    a bad cut under another, and `jev eval` never calls one "optimal" for that reason.
@@ -393,8 +394,10 @@ jev --model jev-1.13.0 ask -r q.json
 jev config set model jev-1.13.0
 ```
 
-The response reports the version that actually answered in `model`, separately from
-`model_requested`. Record it with any result you keep.
+The response reports the model identifier it received in `model`, separately from
+`model_requested`. Record it with the provider and endpoint. For local Clef, keep a
+separate verified runtime/weight manifest; neither identifier establishes immutable
+weights or identical calibration across providers.
 
 ## Common mistakes
 

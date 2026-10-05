@@ -1,13 +1,14 @@
 # Seed corpus
 
-Small, hand-written inputs that `scripts/fuzz-smoke.sh` copies into `fuzz/corpus/`
+Small, original inputs that `scripts/fuzz-smoke.sh` copies into `fuzz/corpus/`
 before every run. Unlike the working corpus, these are committed.
 
 ## Why they exist
 
 A fuzzer starting from random bytes spends most of a short run discovering that the
-input is JSON. Seeding it with real documents means a 30-second CI run starts from a
-successful parse and spends its budget on the interesting edges instead.
+input is JSON. Seeding it with valid documents and original image headers lets a
+short local smoke run start from a successful parse and spend its budget on
+interesting edges. This repository has no automatic GitHub CI; see ADR-0013.
 
 They are also where an input that once found a bug lives, so it is replayed on every
 run forever — the same role `proptest-regressions/` plays for the property tests.
@@ -17,10 +18,11 @@ run forever — the same role `proptest-regressions/` plays for the property tes
 | Target | Seeds |
 | --- | --- |
 | `api_response` | One of each primitive, an unrecognised answer type, a `FastAPI` validation-error body, a model list, and the Score whose distribution mentions a level its legend does not. |
-| `request_document` | Each primitive, a Choice with a `null` option description, a mixed set, and structured instructions. |
+| `request_document` | Each primitive, a Choice with a `null` option description, a mixed set, structured instructions, and raw PNG/JPEG/WebP headers for the media branch. |
 | `gate_expression` | A numeric comparison, a string equality, `not` around a nested `or`, a long conjunction, and `!=`. |
 | `endpoint_url` | The official host plainly and oddly spelled, loopback, an IPv6 literal, a lookalike host, userinfo, and the octal-ambiguous host below. |
 | `state_input` | Text, an object, an array, a truncated document, and a byte-order mark. |
+| `eval_dataset` | Original one-row and two-row datasets with Noul, Choice, and Score labels and structured state. |
 
 ## Findings kept here
 

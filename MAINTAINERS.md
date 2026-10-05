@@ -1,6 +1,7 @@
 # Maintainers
 
-This project is maintained by the community. It is not staffed by TypeSafe AI.
+This project is maintained by the community. It is not staffed by TypeSafe AI or
+Cloudflare.
 
 | Role | Responsibility |
 | --- | --- |
@@ -29,7 +30,8 @@ consequences are worth stating plainly rather than pretending otherwise:
 
 This matters more than usual here, because the code is written by AI agents and the
 human review step is a single point of failure. The maintainer reviews the local
-verification result before pushing; GitHub does not provide an independent CI check.
+verification result before pushing; GitHub does not provide an automatic CI check
+for ordinary changes. The authorized release workflow separately checks artifacts.
 See `AGENTS.md` §11 and `docs/threat-model.md` T14.
 
 ## Becoming a maintainer

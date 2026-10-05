@@ -3,6 +3,15 @@
 * Status: Accepted
 * Date: 2026-09-23
 
+## Current-status amendment (2026-10-05)
+
+The original consequence about GitHub no longer checking platforms below applies
+to routine change verification. The separately authorized manual v0.3.0 release
+run passed five target builds and four native CLI smoke tests on hosted runners.
+It supplies no automatic check for ordinary pushes or pull requests, and ran no
+model inference. The local verification decision remains in effect. See
+[release verification](../release-verification.md) for the target coverage.
+
 ## Context
 
 The repository previously ran automatic CI, security, dependency, and Scorecard

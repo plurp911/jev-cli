@@ -200,9 +200,13 @@ revisiting if the restriction actually changes.
 
 ### Modality mismatch
 
-Images, audio, video, scanned documents. A scanned invoice is an OCR problem before it is
-anything else, and an assessment that skips that step promises something that cannot be
-delivered.
+Assess modality against the explicitly selected provider. Cloudflare/Ollama Clef
+can make bounded image judgments; the project Hugging Face bridge also accepts
+prepared video frames. TypeSafe and llama.cpp Clef remain text-only here, and audio
+is unsupported. OCR/transcription is a separate prerequisite when the decision needs
+extracted text or the selected endpoint cannot inspect that modality. Consult the
+[provider reference](https://github.com/plurp911/jev-cli/blob/main/skills/jev/references/providers.md)
+without promising that a model name alone establishes endpoint capabilities.
 
 Numbers are **not** on this list. Structured state carrying numeric fields is ordinary
 input, and a judgment can reason about what an amount or a count means. What is excluded
@@ -231,7 +235,7 @@ judgment worth making, it is a NO.
 | No labelled data anywhere | Find the labels that already exist, and see below |
 | Sensitive data | An explicit decision that this content may be sent, and a state field carrying the minimum |
 | Enormous context | Retrieve or slice first |
-| Scanned or image input | OCR first; that is a separate decision with its own cost |
+| Scanned or image input | Select a vision-capable provider for a bounded visual judgment; OCR is a separate option when the downstream decision needs extracted text. TypeSafe and llama.cpp Clef remain text-only here. |
 
 ---
 
